@@ -20,6 +20,17 @@ class GeminiClient:
         )
         return response.text
 
+    async def generate_text(self, prompt: str, temperature: float = 0.2, max_tokens: int = 2048) -> str:
+        response = await self._client.aio.models.generate_content(
+            model=self._model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            ),
+        )
+        return response.text
+
     async def is_alive(self) -> bool:
         try:
             await self._client.aio.models.list()
