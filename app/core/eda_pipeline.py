@@ -5,6 +5,7 @@ import os
 import tempfile
 import asyncio
 import uuid
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -135,34 +136,48 @@ def generate_summary_md(df: pd.DataFrame, num_stats: dict, cat_stats: dict) -> s
     return "".join(lines)
 
 
+def _load_llm_summary_template() -> str:
+    path = Path(__file__).resolve().parent.parent / "data" / "LLM_Summary_Template.md"
+    return path.read_text(encoding="utf-8")
+
+
 # ---------------------------------------------------------------------------
 # Step 3 — call_llm_for_insight  (mirrors notebook cell-11, uses existing llm)
 # ---------------------------------------------------------------------------
 
 async def call_llm_for_insight(summary_text: str, profile_text: str) -> str:
-    prompt = f"""You are a Senior Data-Centric AI & QA Specialist.
-Analyze the statistical summary below and provide insights in Markdown format.
+    template_body = _load_llm_summary_template()
+    prompt = f"""Role: Senior Data-Centric AI & QA Specialist.
+Task: Analyze the statistical summary of the dataset and populate the EXACT Markdown template provided below.
 
-Guidelines:
-1. Analyze outliers — explain how anomalies affect data quality.
-2. Bias detection — evaluate categorical distributions for imbalance.
-3. Provide 2 actionable recommendations for the modeling team.
-4. Describe what each feature likely represents based on its statistics.
+Context: This analysis will be used by an automated Off-Domain QA System (Text-to-SQL/Pandas agent). The output MUST provide strict, actionable metadata for every column to prevent query hallucinations and calculation errors.
+
+CRITICAL RULES:
+1. DO NOT change the Markdown headers or add conversational text outside the template.
+2. ONLY output the Markdown template populated with your analysis. No introductory or concluding remarks.
+3. You MUST repeat the column-profiling bullet structure from the **Exhaustive Column-Level QA Profiling** section for EVERY SINGLE COLUMN present in the Statistical Report. Do not skip any columns.
+4. Replace the bracketed placeholders [Insert ...] with concise, highly technical insights based on the domain inferred from the data.
+
+=== BEGIN TEMPLATE ===
+{template_body}
+=== END TEMPLATE ===
 
 STATISTICAL REPORT:
 {summary_text}
 
 DATASET PROFILE:
 {profile_text}
-
-Respond in professional English, structured Markdown only. No JSON wrapper."""
+"""
 
     try:
-        insight = await llm.generate_text(prompt, max_tokens=2048)
-        return f"\n\n## 4. LLM Semantic Insights\n\n{insight.strip()}\n"
+        # Tăng max_tokens vì vòng lặp "REPEAT FOR EVERY COLUMN" sẽ tốn khá nhiều token
+        insight = await llm.generate_text(prompt, max_tokens=4096)
+        
+        # Bỏ đi wrapper "## 4. LLM Semantic Insights" ở phiên bản cũ vì Template
+        # (LLM_Summary_Template.md) đã tự quản lý các section Markdown.
+        return f"\n\n{insight.strip()}\n"
     except Exception as e:
-        return f"\n\n## 4. LLM Semantic Insights\n\n*Insight generation skipped: {e}*\n"
-
+        return f"\n\n## LLM Semantic Insights (Fallback)\n\n*Notice: AI Insight generation was bypassed due to system constraints. Error Log: {e}*\n"
 
 # ---------------------------------------------------------------------------
 # Orchestrator — run_eda  (ties all steps together, runs as background task)
