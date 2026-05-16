@@ -23,3 +23,6 @@ openpyxl>=3.1.0
 # MCP Server
 mcp>=1.0.0
 httpx>=0.27.0
+
+# Chat UI
+chainlit>=2.11.1

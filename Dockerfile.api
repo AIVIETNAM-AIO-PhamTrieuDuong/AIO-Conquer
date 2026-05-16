@@ -8,5 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app code sau — thay đổi code không trigger reinstall deps
 COPY app/ app/
+COPY .chainlit/ .chainlit/
+COPY public/ public/
+COPY README.md chainlit.md ./
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
