@@ -8,3 +8,5 @@ __pycache__/
 data/documents/*
 tests/
 *.md
+!README.md
+!chainlit.md
