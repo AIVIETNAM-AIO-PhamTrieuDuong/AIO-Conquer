@@ -18,11 +18,13 @@ New features are added by inserting nodes — existing nodes are never modified.
 | Layer | Role |
 |---|---|
 | **API** (`app/api/`) | HTTP interface — routes, schemas, middleware |
+| **UI** (`app/ui/`) | Chainlit chat interface that calls the FastAPI API |
 | **Core** (`app/core/`) | LangGraph pipeline, config |
 | **Model** (`app/model/`) | Gemini async client, prompt templates |
 | **Memory** (`app/memory/`) | Redis — conversation history per session |
 | **Retrieval** (`app/retrieval/`) | Pinecone stub — not yet active |
 | **Validation** (`app/validation/`) | JSON → `QAResponse` parsing |
+| **Static UI assets** (`public/`) | Custom Chainlit frontend hooks |
 
 ---
 
@@ -70,10 +72,17 @@ New features are added by inserting nodes — existing nodes are never modified.
 │   ├── validation/
 │   │   └── parser.py           # JSON → QAResponse
 │   │
-│   └── main.py
+│   ├── ui/
+│   │   ├── app.py             # Chainlit UI mounted into FastAPI at /
+│   │   └── config.py          # UI-side API/config constants
+│   │
+│   └── main.py                # FastAPI app + Chainlit mount
 │
 ├── Dockerfile.api              # FastAPI service
 ├── docker-compose.yml          # Orchestrates redis + api
+├── public/
+│   └── summary-toggle.js       # Header Summary toggle for Chainlit UI
+├── chainlit.md                 # Symlink to README.md for Chainlit readme panel
 ├── .env.example
 └── README.md
 ```
@@ -109,7 +118,7 @@ docker compose up -d --build
 
 Hai service khởi động theo thứ tự:
 1. `redis` — sẵn sàng khi ping OK
-2. `api` — chờ redis healthy rồi mới start
+2. `api` — chờ redis healthy rồi mới start, đồng thời serve Chainlit UI tại `http://localhost:8000`
 
 ### 4. Kiểm tra liveness
 
@@ -131,7 +140,24 @@ curl -X POST http://localhost:8000/ask \
   -d '{"question": "Tính đạo hàm của x^2 + 3x"}'
 ```
 
-### 6. Reset lịch sử hội thoại (dev)
+### 6. Chat với file CSV/Excel trong UI
+
+Mở Chainlit:
+
+```bash
+http://localhost:8000
+```
+
+Flow:
+1. Upload file `.csv`, `.xlsx`, hoặc `.xls`.
+2. UI gọi `POST /eda/analyze` và poll `GET /eda/result/{job_id}` đến khi xử lý xong.
+3. Gửi câu hỏi trong chat. UI gọi `POST /ask`; backend dùng EDA context đang active trong Redis.
+4. Upload file mới trong chat để thay context active.
+5. Dùng nút `Summary` ở header bên phải để bật/tắt summary markdown từ `GET /eda/result/{job_id}`.
+
+Chainlit readme panel dùng `chainlit.md`, và file này trỏ đến `README.md` để nội dung tài liệu trong UI luôn dùng cùng nguồn với tài liệu project.
+
+### 7. Reset lịch sử hội thoại (dev)
 
 ```bash
 curl -X DELETE http://localhost:8000/dev/history
@@ -152,9 +178,11 @@ Dữ liệu Redis được giữ trong Docker volume (`redis_data`).
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/` | Root — kiểm tra backend đang chạy |
+| `GET` | `/` | Chainlit chat UI |
 | `POST` | `/ask` | Gửi câu hỏi, nhận câu trả lời |
 | `GET` | `/health` | Liveness check (Gemini + Redis) |
+| `POST` | `/eda/analyze` | Upload CSV/Excel và bắt đầu EDA background job |
+| `GET` | `/eda/result/{job_id}` | Poll kết quả EDA |
 | `DELETE` | `/dev/history` | Xóa lịch sử hội thoại hiện tại |
 
 ### Request / Response
@@ -190,3 +218,4 @@ Dữ liệu Redis được giữ trong Docker volume (`redis_data`).
 | `PINECONE_API_KEY` | — | Pinecone API key (chưa dùng) |
 | `PINECONE_INDEX` | — | Pinecone index name (chưa dùng) |
 | `EMBED_MODEL` | `text-embedding-004` | Embedding model (chưa dùng) |
+| `AIO_API_BASE_URL` | `http://localhost:8000` | FastAPI base URL used by mounted Chainlit UI |
