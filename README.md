@@ -174,6 +174,55 @@ Dữ liệu Redis được giữ trong Docker volume (`redis_data`).
 
 ---
 
+## Load Testing với Locust
+
+Script `scripts/locustfile.py` gửi toàn bộ câu hỏi từ `app/data/EmployeeAttrition_QA_Benchmark.csv` vào endpoint `/ask` và ghi kết quả vào cột `llm_answer` của file đó.
+
+### 1. Tạo venv riêng cho locust
+
+```bash
+python -m venv scripts/.venv
+```
+
+### 2. Activate venv
+
+```bash
+# Windows
+scripts\.venv\Scripts\activate
+
+# macOS / Linux
+source scripts/.venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install locust
+```
+
+### 4. Chạy headless (tự quit khi hết câu hỏi)
+
+```bash
+locust -f scripts/locustfile.py --headless -u 5 -r 1 --host http://localhost:8000
+```
+
+| Flag | Ý nghĩa |
+|---|---|
+| `-u 5` | 5 user concurrent |
+| `-r 1` | spawn 1 user/giây |
+| `--host` | base URL của FastAPI |
+
+### 5. Chạy với Web UI (real-time chart)
+
+```bash
+locust -f scripts/locustfile.py --host http://localhost:8000
+# → mở http://localhost:8089
+```
+
+Kết quả được ghi thẳng vào file CSV khi locust dừng. Nếu chạy lại, câu nào đã có `llm_answer` sẽ được bỏ qua.
+
+---
+
 ## Endpoints
 
 | Method | Path | Description |
