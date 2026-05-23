@@ -5,7 +5,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    google_api_key: str
+    # 9Router
+    ninerouter_url: str = "http://45.128.222.24:20128/v1"
+    ninerouter_model: str = "ragas_experiments"
+    ninerouter_key: Optional[str] = None
+
+    # Legacy keys kept so existing .env files don't break on startup
+    google_api_key: Optional[str] = None
     gemini_model: str = "gemini-2.5-flash"
 
     redis_url: str = "redis://localhost:6379"
