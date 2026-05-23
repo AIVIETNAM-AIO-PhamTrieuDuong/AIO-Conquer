@@ -27,7 +27,7 @@ class Runner:
         request_timeout: float = 120.0,
         eda_poll_interval: float = 2.0,
         eda_max_wait: float = 300.0,
-        bertscore_model_type: str = "microsoft/deberta-xlarge-mnli",
+        bertscore_model_type: str = "distilbert-base-uncased",
         bertscore_lang: str = "en",
         bertscore_batch_size: int = 16,
         bertscore_rescale_with_baseline: bool = True,
@@ -142,7 +142,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Do not regenerate rows that already have generated_answer.",
+        help="Do not regenerate rows that already have generated_answer. Rows with llm_answer are always skipped.",
     )
     parser.add_argument(
         "--no-upload",

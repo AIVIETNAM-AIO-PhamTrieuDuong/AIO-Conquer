@@ -8,7 +8,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Iterable
 
-from app.evaluation.utils import DEFAULT_DATASETS, REPO_ROOT, DatasetSpec
+from app.evaluation.utils import DEFAULT_DATASETS, FAILED_ANSWER, REPO_ROOT, DatasetSpec
 
 
 @dataclass(frozen=True)
@@ -23,13 +23,13 @@ class BertScoreTestCase:
 class BertScore:
     """Calculate BERTScore for generated benchmark answers."""
 
-    REQUIRED_COLUMNS = {"Q", "A", "generated_answer"}
+    REQUIRED_COLUMNS = {"Q", "A", "llm_answer"}
 
     def __init__(
         self,
         datasets: Iterable[DatasetSpec] = DEFAULT_DATASETS,
         output_dir: str | Path = REPO_ROOT / "app" / "evaluation" / "results",
-        model_type: str = "microsoft/deberta-xlarge-mnli",
+        model_type: str = "distilbert-base-uncased",
         lang: str = "en",
         batch_size: int = 16,
         rescale_with_baseline: bool = True,
@@ -57,17 +57,6 @@ class BertScore:
             if missing_columns:
                 raise ValueError(f"{path} is missing required columns: {missing_columns}")
 
-            empty_generated_rows = [
-                index
-                for index, row in enumerate(rows, start=2)
-                if not row.get("generated_answer", "").strip()
-            ]
-            if empty_generated_rows:
-                raise ValueError(
-                    f"{path} has empty generated_answer values at CSV rows: "
-                    f"{empty_generated_rows[:20]}"
-                )
-
             validation[dataset.name] = {
                 "path": str(path),
                 "row_count": len(rows),
@@ -91,7 +80,7 @@ class BertScore:
                         row_number=index,
                         question=row["Q"].strip(),
                         reference=row["A"].strip(),
-                        candidate=row["generated_answer"].strip(),
+                        candidate=row["llm_answer"].strip() or FAILED_ANSWER,
                     )
                 )
 
@@ -108,30 +97,36 @@ class BertScore:
             raise ValueError("No test cases found in benchmark CSV files.")
 
         try:
-            import evaluate
+            from bert_score import BERTScorer
         except ImportError as exc:
             raise ImportError(
-                "Missing dependency 'evaluate'. Install it with "
-                "`pip install evaluate bert-score` or from requirements.txt."
+                "Missing dependency 'bert-score'. Install it with "
+                "`pip install bert-score` or from requirements.txt."
             ) from exc
-
-        candidates = [case.candidate for case in test_cases]
-        references = [case.reference for case in test_cases]
-        metric = evaluate.load("bertscore")
-        metric_output = metric.compute(
-            predictions=candidates,
-            references=references,
+        scorer = BERTScorer(
+            model_type=self.model_type, 
             lang=self.lang,
-            model_type=self.model_type,
-            batch_size=self.batch_size,
-            rescale_with_baseline=self.rescale_with_baseline,
+            batch_size=1,
+            rescale_with_baseline=self.rescale_with_baseline
         )
-        precision = metric_output["precision"]
-        recall = metric_output["recall"]
-        f1 = metric_output["f1"]
-
         case_scores = []
-        for case, p_value, r_value, f1_value in zip(test_cases, precision, recall, f1):
+        for case in test_cases:
+            try:
+                precision, recall, f1 = scorer.score(
+                    [case.candidate],
+                    [case.reference],
+                    verbose=True
+                )
+            except Exception as exc:
+                raise RuntimeError(
+                    "BERTScore failed for "
+                    f"dataset={case.dataset!r}, row_number={case.row_number}, "
+                    f"candidate_length={len(case.candidate)}, "
+                    f"reference_length={len(case.reference)}, "
+                    f"candidate_preview={case.candidate[:500]!r}, "
+                    f"reference_preview={case.reference[:500]!r}"
+                ) from exc
+
             case_scores.append(
                 {
                     "dataset": case.dataset,
@@ -139,9 +134,9 @@ class BertScore:
                     "question": case.question,
                     "reference": case.reference,
                     "candidate": case.candidate,
-                    "precision": float(p_value),
-                    "recall": float(r_value),
-                    "f1": float(f1_value),
+                    "precision": float(precision[0]),
+                    "recall": float(recall[0]),
+                    "f1": float(f1[0]),
                 }
             )
 
@@ -153,8 +148,7 @@ class BertScore:
                 "lang": self.lang,
                 "batch_size": self.batch_size,
                 "rescale_with_baseline": self.rescale_with_baseline,
-                "library": "huggingface-evaluate",
-                "hashcode": metric_output.get("hashcode"),
+                "library": "bert-score",
             },
             "score": {
                 "overall": self._aggregate_scores(case_scores),

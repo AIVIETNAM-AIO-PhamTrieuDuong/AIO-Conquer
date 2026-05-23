@@ -40,6 +40,7 @@ DEFAULT_DATASETS: tuple[DatasetSpec, ...] = (
 )
 
 GENERATED_RESPONSE_COLUMNS = [
+    "llm_answer",
     "generated_answer",
     "generated_explanation",
     "generated_confidence",
@@ -48,6 +49,8 @@ GENERATED_RESPONSE_COLUMNS = [
     "generated_premises",
     "generated_raw_response",
 ]
+
+FAILED_ANSWER = "FAILED_ANSWER"
 
 
 class TestBuilder:
@@ -155,9 +158,13 @@ class TestBuilder:
 
             for row in rows:
                 question = row["Q"]
-                if reset_before_each_question:
-                    self.reset_session()
-                response = self.ask(question)
+                candidate_answer = self._candidate_answer(row)
+                if candidate_answer:
+                    response = {"answer": candidate_answer}
+                else:
+                    if reset_before_each_question:
+                        self.reset_session()
+                    response = self.ask(question)
                 writer.writerow(
                     {
                         "dataset": dataset.name,
@@ -184,8 +191,9 @@ class TestBuilder:
     ) -> dict[str, Path]:
         """Generate answers via the API and save them back into each benchmark CSV.
 
-        The original Q/A columns are preserved. Generated fields are written to
-        generated_* columns that mirror the /ask response schema.
+        The original Q/A columns are preserved. Candidate answers are written
+        to llm_answer for scoring, with generated_* columns mirroring the /ask
+        response schema.
         """
         updated_paths: dict[str, Path] = {}
 
@@ -216,7 +224,10 @@ class TestBuilder:
         self._validate_benchmark_columns(benchmark_path, fieldnames)
 
         for row in rows:
-            if skip_existing and row.get("generated_answer"):
+            if self._existing_generated_answer(row):
+                continue
+            if self._has_candidate_answer_column(row):
+                row.update(self._format_failed_response())
                 continue
 
             if reset_before_each_question:
@@ -289,8 +300,10 @@ class TestBuilder:
 
     @staticmethod
     def _format_generated_response(response: dict[str, Any]) -> dict[str, str]:
+        answer = str(response.get("answer", ""))
         return {
-            "generated_answer": str(response.get("answer", "")),
+            "llm_answer": answer,
+            "generated_answer": answer,
             "generated_explanation": str(response.get("explanation", "")),
             "generated_confidence": "" if response.get("confidence") is None else str(response["confidence"]),
             "generated_fol": "" if response.get("fol") is None else str(response["fol"]),
@@ -298,6 +311,40 @@ class TestBuilder:
             "generated_premises": TestBuilder._join_list(response.get("premises")),
             "generated_raw_response": json.dumps(response, ensure_ascii=False),
         }
+
+    @staticmethod
+    def _format_failed_response() -> dict[str, str]:
+        return {
+            "llm_answer": FAILED_ANSWER,
+            "generated_answer": FAILED_ANSWER,
+            "generated_explanation": "",
+            "generated_confidence": "",
+            "generated_fol": "",
+            "generated_cot": "",
+            "generated_premises": "",
+            "generated_raw_response": json.dumps({"answer": FAILED_ANSWER}, ensure_ascii=False),
+        }
+
+    @staticmethod
+    def _candidate_answer(row: dict[str, str]) -> str:
+        existing_answer = TestBuilder._existing_generated_answer(row)
+        if existing_answer:
+            return existing_answer
+        if TestBuilder._has_candidate_answer_column(row):
+            return FAILED_ANSWER
+        return ""
+
+    @staticmethod
+    def _existing_generated_answer(row: dict[str, str]) -> str:
+        for column in ("llm_answer", "generated_answer"):
+            answer = row.get(column, "").strip()
+            if answer:
+                return answer
+        return ""
+
+    @staticmethod
+    def _has_candidate_answer_column(row: dict[str, str]) -> bool:
+        return any(column in row for column in ("llm_answer", "generated_answer"))
 
     @staticmethod
     def _resolve_path(path: str | Path) -> Path:

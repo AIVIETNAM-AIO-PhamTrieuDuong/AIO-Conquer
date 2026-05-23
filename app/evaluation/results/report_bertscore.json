@@ -1,0 +1,2670 @@
+{
+  "experiment_metadata": {
+    "experiment_name": "rag_chatbot_bertscore",
+    "created_at": "2026-05-23T10:19:06.944584+00:00",
+    "num_test_cases": 261,
+    "datasets": [
+      {
+        "name": "EmployeeAttrition",
+        "benchmark_path": "C:\\Users\\pc\\Desktop\\project\\conquer26\\AIO-Conquer\\app\\data\\EmployeeAttrition\\EmployeeAttrition_QA_Benchmark.csv"
+      },
+      {
+        "name": "MobileGameChurn",
+        "benchmark_path": "C:\\Users\\pc\\Desktop\\project\\conquer26\\AIO-Conquer\\app\\data\\MobileGameChurn\\MobileGameChurn_QA_Benchmark.csv"
+      },
+      {
+        "name": "SuperStore",
+        "benchmark_path": "C:\\Users\\pc\\Desktop\\project\\conquer26\\AIO-Conquer\\app\\data\\SuperStore\\SuperStore_QA_Benchmark.csv"
+      }
+    ],
+    "prepared_files": {}
+  },
+  "metrics": {
+    "name": "BERTScore",
+    "model_type": "distilbert-base-uncased",
+    "lang": "en",
+    "batch_size": 16,
+    "rescale_with_baseline": true,
+    "library": "bert-score"
+  },
+  "score": {
+    "overall": {
+      "count": 261,
+      "precision": 0.27773950289847005,
+      "recall": 0.3621043749403394,
+      "f1": 0.3177342959429883
+    },
+    "by_dataset": {
+      "EmployeeAttrition": {
+        "count": 89,
+        "precision": 0.2738186533280303,
+        "recall": 0.38731147884652856,
+        "f1": 0.3280167086573129
+      },
+      "MobileGameChurn": {
+        "count": 92,
+        "precision": 0.3686195190024117,
+        "recall": 0.5021311859397785,
+        "f1": 0.43237790594930237
+      },
+      "SuperStore": {
+        "count": 80,
+        "precision": 0.1775894295260514,
+        "recall": 0.17303063919534906,
+        "f1": 0.17445496029104107
+      }
+    }
+  },
+  "cases": [
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 2,
+      "question": "How many employee records are in the dataset?",
+      "reference": "There are 59,598 employee records in the dataset.",
+      "candidate": "Based on the reference document, there are 59,598 employee records in the dataset.",
+      "precision": 0.7953126430511475,
+      "recall": 0.9590715765953064,
+      "f1": 0.8750110864639282
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 3,
+      "question": "How many employees left versus stayed?",
+      "reference": "28,338 employees left and 31,260 stayed.",
+      "candidate": "Based on the reference document, 31,260 employees stayed and 28,338 employees left.",
+      "precision": 0.6235556602478027,
+      "recall": 0.875590980052948,
+      "f1": 0.7441027164459229
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 4,
+      "question": "What is the overall attrition rate?",
+      "reference": "The overall attrition rate is 47.55%.",
+      "candidate": "The overall attrition rate is approximately 47.55%, with 28,338 employees having left out of a total of 59,598 employees.",
+      "precision": 0.41056737303733826,
+      "recall": 0.9177306890487671,
+      "f1": 0.6404369473457336
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 5,
+      "question": "How many columns does the dataset have?",
+      "reference": "The dataset has 24 columns covering demographics, job details, work environment, and attrition outcome.",
+      "candidate": "Based on the reference document, the dataset has 25 columns.",
+      "precision": 0.6726120114326477,
+      "recall": 0.3856770992279053,
+      "f1": 0.5215775370597839
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 6,
+      "question": "What are the numeric columns in the dataset?",
+      "reference": "The numeric columns are: Age, Years at Company, Monthly Income, Number of Promotions, Distance from Home, Number of Dependents, and Company Tenure.",
+      "candidate": "Based on the reference document, the numeric columns in the dataset are Employee ID, Age, Years at Company, Monthly Income, Number of Promotions, Distance from Home, Number of Dependents, and Company Tenure.",
+      "precision": 0.7748376727104187,
+      "recall": 0.9159571528434753,
+      "f1": 0.8438342809677124
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 7,
+      "question": "What is the attrition rate by gender?",
+      "reference": "Female employees have an attrition rate of 53.16% and male employees have a rate of 42.94%.",
+      "candidate": "Based on the provided reference document, the attrition rate by gender cannot be determined because the document does not contain cross-tabulated data or joint distributions between the 'Gender' and 'Attrition' columns.",
+      "precision": 0.12393780052661896,
+      "recall": 0.10932080447673798,
+      "f1": 0.1176605373620987
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 8,
+      "question": "Which gender has the higher attrition rate?",
+      "reference": "Female employees have a higher attrition rate (53.16%) compared to male employees (42.94%).",
+      "candidate": "Based on the provided reference document, it is not possible to determine which gender has the higher attrition rate because the document does not contain cross-tabulated data or joint distributions between the 'Gender' and 'Attrition' columns.",
+      "precision": 0.14990487694740295,
+      "recall": 0.21595148742198944,
+      "f1": 0.1834060549736023
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 9,
+      "question": "How many male and female employees are in the dataset?",
+      "reference": "There are 32,739 male and 26,859 female employees.",
+      "candidate": "Based on the reference document, there are 32,739 male employees and 26,859 female employees in the dataset.",
+      "precision": 0.55228590965271,
+      "recall": 0.8684991598129272,
+      "f1": 0.701524555683136
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 10,
+      "question": "Which job role has the highest attrition rate?",
+      "reference": "Education has the highest attrition rate at 48.72%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which job role has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Job Role' and 'Attrition'.",
+      "precision": 0.1061965674161911,
+      "recall": 0.34943073987960815,
+      "f1": 0.2221037596464157
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 11,
+      "question": "Which job role has the lowest attrition rate?",
+      "reference": "Finance has the lowest attrition rate at 46.80%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which job role has the lowest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Job Role' and 'Attrition'.",
+      "precision": 0.16142010688781738,
+      "recall": 0.3757290244102478,
+      "f1": 0.2643924057483673
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 12,
+      "question": "How do attrition rates compare across all five job roles?",
+      "reference": "Education leads at 48.72%, followed by Media (47.44%), Healthcare (47.31%), Technology (47.29%), and Finance (46.80%). The gap is narrow — less than 2 percentage points across all roles.",
+      "candidate": "Based on the provided reference document, it is not possible to compare attrition rates across the five job roles because the document does not contain cross-tabulated data or joint distributions between 'Job Role' and 'Attrition'.",
+      "precision": 0.15352660417556763,
+      "recall": -0.023420803248882294,
+      "f1": 0.062384188175201416
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 13,
+      "question": "How many employees work in Technology?",
+      "reference": "15,507 employees work in Technology, the largest job-role group.",
+      "candidate": "Based on the reference document, there are 15,507 employees who work in Technology.",
+      "precision": 0.5675329566001892,
+      "recall": 0.5919093489646912,
+      "f1": 0.5801662802696228
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 14,
+      "question": "Which work-life balance rating is associated with the highest attrition?",
+      "reference": "Poor work-life balance is associated with the highest attrition rate at 60.11%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which work-life balance rating is associated with the highest attrition because the document does not contain cross-tabulated data or joint distributions between 'Work-Life Balance' and 'Attrition'.",
+      "precision": 0.30641889572143555,
+      "recall": 0.489990770816803,
+      "f1": 0.3954147398471832
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 15,
+      "question": "What is the attrition rate for employees with excellent work-life balance?",
+      "reference": "Employees with excellent work-life balance have an attrition rate of 35.81%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with an excellent work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Work-Life Balance' and 'Attrition'.",
+      "precision": 0.2999538481235504,
+      "recall": 0.5014577507972717,
+      "f1": 0.3971980810165405
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 16,
+      "question": "What is the spread in attrition between 'Poor' and 'Excellent' work-life balance?",
+      "reference": "The spread is 24.30 percentage points — Poor at 60.11% versus Excellent at 35.81%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the spread in attrition between 'Poor' and 'Excellent' work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Work-Life Balance' and 'Attrition'.",
+      "precision": 0.02565618045628071,
+      "recall": 0.04608840495347977,
+      "f1": 0.03697381168603897
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 17,
+      "question": "What is the attrition rate for employees with 'Good' work-life balance?",
+      "reference": "Employees with Good work-life balance have an attrition rate of 40.56%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with a 'Good' work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Work-Life Balance' and 'Attrition'.",
+      "precision": 0.24891574680805206,
+      "recall": 0.47554871439933777,
+      "f1": 0.35756397247314453
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 18,
+      "question": "What is the attrition rate for employees with 'Fair' work-life balance?",
+      "reference": "Employees with Fair work-life balance have an attrition rate of 57.46%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with a 'Fair' work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Work-Life Balance' and 'Attrition'.",
+      "precision": 0.22015665471553802,
+      "recall": 0.43596720695495605,
+      "f1": 0.32386866211891174
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 19,
+      "question": "Which job satisfaction level has the highest attrition rate?",
+      "reference": "Surprisingly, Very High job satisfaction has the highest attrition rate at 52.89%, followed by Low at 52.42%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which job satisfaction level has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Job Satisfaction' and 'Attrition'.",
+      "precision": 0.2846395671367645,
+      "recall": 0.3399936258792877,
+      "f1": 0.3128078877925873
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 20,
+      "question": "What is the attrition rate for employees with high job satisfaction?",
+      "reference": "Employees with High job satisfaction have an attrition rate of 45.30%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with high job satisfaction because the document does not contain cross-tabulated data or joint distributions between 'Job Satisfaction' and 'Attrition'.",
+      "precision": 0.26521262526512146,
+      "recall": 0.4843994081020355,
+      "f1": 0.3705005943775177
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 21,
+      "question": "What is the attrition rate for employees with medium job satisfaction?",
+      "reference": "Employees with Medium job satisfaction have an attrition rate of 45.32%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with medium job satisfaction because the document does not contain cross-tabulated data or joint distributions between 'Job Satisfaction' and 'Attrition'.",
+      "precision": 0.24836313724517822,
+      "recall": 0.47238481044769287,
+      "f1": 0.3558281362056732
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 22,
+      "question": "Which performance rating has the highest attrition rate?",
+      "reference": "Low performance rating is associated with the highest attrition rate at 57.53%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which performance rating has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Performance Rating' and 'Attrition'.",
+      "precision": 0.28310081362724304,
+      "recall": 0.44926831126213074,
+      "f1": 0.364027738571167
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 23,
+      "question": "What is the attrition rate for employees with high performance?",
+      "reference": "Employees with High performance have an attrition rate of 46.07%, slightly below the average.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with high performance because the document does not contain cross-tabulated data or joint distributions between 'Performance Rating' and 'Attrition'.",
+      "precision": 0.23062583804130554,
+      "recall": 0.41083475947380066,
+      "f1": 0.3180471956729889
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 24,
+      "question": "What is the attrition rate for below-average performers?",
+      "reference": "Below Average performers have an attrition rate of 51.81%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for below-average performers because the document does not contain cross-tabulated data or joint distributions between 'Performance Rating' and 'Attrition'.",
+      "precision": 0.1952667236328125,
+      "recall": 0.37244534492492676,
+      "f1": 0.28127890825271606
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 25,
+      "question": "What is the attrition rate for employees who work overtime versus those who don't?",
+      "reference": "Employees who work overtime have an attrition rate of 51.54%; those who don't have a rate of 45.61%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees who work overtime versus those who don't because the document does not contain cross-tabulated data or joint distributions between 'Overtime' and 'Attrition'.",
+      "precision": 0.25374388694763184,
+      "recall": 0.33503425121307373,
+      "f1": 0.29451319575309753
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 26,
+      "question": "How many employees work overtime?",
+      "reference": "19,450 employees work overtime out of 59,598 total (32.63%).",
+      "candidate": "According to the reference document, 19,450 employees work overtime.",
+      "precision": 0.5297034978866577,
+      "recall": 0.38342803716659546,
+      "f1": 0.45504042506217957
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 27,
+      "question": "Does overtime increase attrition risk?",
+      "reference": "Yes — employees working overtime churn at 51.54% compared to 45.61% for those who don't, a 5.93 percentage-point difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if overtime increases attrition risk because the document does not contain cross-tabulated data or joint distributions between 'Overtime' and 'Attrition'. The document only shows that 19,450 employees work overtime (with 40,148 not working overtime) and 28,338 employees left the company (with 31,260 staying).",
+      "precision": 0.1186564639210701,
+      "recall": 0.1563129425048828,
+      "f1": 0.13835032284259796
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 28,
+      "question": "Which education level has the highest attrition rate?",
+      "reference": "Bachelor's Degree holders have the highest attrition rate at 49.32%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which education level has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Education Level' and 'Attrition'.",
+      "precision": 0.17753925919532776,
+      "recall": 0.30209875106811523,
+      "f1": 0.23899775743484497
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 29,
+      "question": "Which education level has the lowest attrition rate?",
+      "reference": "PhD holders have by far the lowest attrition rate at 24.86%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which education level has the lowest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Education Level' and 'Attrition'.",
+      "precision": 0.1758286952972412,
+      "recall": 0.31446605920791626,
+      "f1": 0.24391154944896698
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 30,
+      "question": "How does PhD attrition compare to Bachelor's Degree attrition?",
+      "reference": "PhD holders have an attrition rate of 24.86%, roughly half that of Bachelor's Degree holders at 49.32%.",
+      "candidate": "Based on the provided reference document, it is not possible to compare PhD attrition to Bachelor's Degree attrition because the document does not contain cross-tabulated data or joint distributions between 'Education Level' and 'Attrition'.",
+      "precision": 0.23808972537517548,
+      "recall": 0.2396513670682907,
+      "f1": 0.2397802323102951
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 31,
+      "question": "How many PhD employees are in the dataset?",
+      "reference": "There are 3,089 PhD employees — the smallest education group.",
+      "candidate": "According to the reference document, there are 3,089 employees with a PhD in the dataset.",
+      "precision": 0.4921400249004364,
+      "recall": 0.6370237469673157,
+      "f1": 0.5630581974983215
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 32,
+      "question": "Which marital status has the highest attrition rate?",
+      "reference": "Single employees have the highest attrition rate at 66.83%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which marital status has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Marital Status' and 'Attrition'.",
+      "precision": 0.15433505177497864,
+      "recall": 0.3542401194572449,
+      "f1": 0.2507513761520386
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 33,
+      "question": "What is the attrition rate for married employees?",
+      "reference": "Married employees have the lowest attrition rate at 36.15%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for married employees because the document does not contain cross-tabulated data or joint distributions between 'Marital Status' and 'Attrition'.",
+      "precision": 0.20671167969703674,
+      "recall": 0.4059145152568817,
+      "f1": 0.30284494161605835
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 34,
+      "question": "What is the attrition rate for divorced employees?",
+      "reference": "Divorced employees have an attrition rate of 40.70%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for divorced employees because the document does not contain cross-tabulated data or joint distributions between 'Marital Status' and 'Attrition'.",
+      "precision": 0.20475010573863983,
+      "recall": 0.40143731236457825,
+      "f1": 0.29973146319389343
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 35,
+      "question": "How wide is the attrition gap between single and married employees?",
+      "reference": "The gap is 30.68 percentage points — single employees churn at 66.83% versus married at 36.15%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition gap between single and married employees because the document does not contain cross-tabulated data or joint distributions between 'Marital Status' and 'Attrition'.",
+      "precision": 0.15497419238090515,
+      "recall": 0.12185832858085632,
+      "f1": 0.13931851089000702
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 36,
+      "question": "How many single employees are in the dataset?",
+      "reference": "There are 20,835 single employees in the dataset.",
+      "candidate": "According to the reference document, there are 20,835 single employees in the dataset.",
+      "precision": 0.7776704430580139,
+      "recall": 0.9579722285270691,
+      "f1": 0.8651479482650757
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 37,
+      "question": "Which job level has the highest attrition rate?",
+      "reference": "Entry-level employees have the highest attrition rate at 63.19%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which job level has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Job Level' and 'Attrition'.",
+      "precision": 0.1611027717590332,
+      "recall": 0.3597923219203949,
+      "f1": 0.25696977972984314
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 38,
+      "question": "Which job level has the lowest attrition rate?",
+      "reference": "Senior-level employees have the lowest attrition rate at 20.31%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which job level has the lowest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Job Level' and 'Attrition'.",
+      "precision": 0.15225672721862793,
+      "recall": 0.3496633470058441,
+      "f1": 0.24753162264823914
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 39,
+      "question": "What is the attrition rate for mid-level employees?",
+      "reference": "Mid-level employees have an attrition rate of 45.56%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for mid-level employees because the document does not contain cross-tabulated data or joint distributions between 'Job Level' and 'Attrition'.",
+      "precision": 0.17981977760791779,
+      "recall": 0.4153006970882416,
+      "f1": 0.2923720180988312
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 40,
+      "question": "How does entry-level attrition compare to senior-level attrition?",
+      "reference": "Entry-level attrition (63.19%) is 3.1x higher than senior-level attrition (20.31%) — the largest single-factor gap in the dataset.",
+      "candidate": "Based on the provided reference document, it is not possible to compare entry-level attrition to senior-level attrition because the document does not contain cross-tabulated data or joint distributions between 'Job Level' and 'Attrition'.",
+      "precision": 0.41321688890457153,
+      "recall": 0.33435559272766113,
+      "f1": 0.37388068437576294
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 41,
+      "question": "How many employees are at each job level?",
+      "reference": "Entry: 23,867; Mid: 23,753; Senior: 11,978.",
+      "candidate": "According to the reference document, there are 23,867 employees at the Entry level, 23,753 at the Mid level, and 11,978 at the Senior level.",
+      "precision": 0.26527929306030273,
+      "recall": 0.4451266825199127,
+      "f1": 0.35254377126693726
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 42,
+      "question": "Does company size significantly affect attrition?",
+      "reference": "Differences are modest — Small companies have the highest attrition at 49.87%, followed by Medium at 46.58% and Large at 46.47%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if company size significantly affects attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Company Size' and 'Attrition'.",
+      "precision": 0.2116052508354187,
+      "recall": 0.13863994181156158,
+      "f1": 0.1754978895187378
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 43,
+      "question": "What is the attrition rate for employees with remote work versus those without?",
+      "reference": "Remote workers have an attrition rate of 24.86% versus 52.89% for non-remote workers — a 28.03 percentage-point difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees with remote work versus those without because the document does not contain cross-tabulated data or joint distributions between 'Remote Work' and 'Attrition'.",
+      "precision": 0.12063126266002655,
+      "recall": 0.07583929598331451,
+      "f1": 0.09907479584217072
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 44,
+      "question": "How many employees have remote work access?",
+      "reference": "11,359 employees have remote work (19.06% of the workforce).",
+      "candidate": "According to the reference document, 11,359 employees have remote work access (Yes), while 48,239 employees do not (No).",
+      "precision": 0.467523992061615,
+      "recall": 0.5090858340263367,
+      "f1": 0.48874324560165405
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 45,
+      "question": "Is remote work the strongest individual predictor of retention in this dataset?",
+      "reference": "Remote work is among the strongest predictors — remote workers churn at 24.86% versus 52.89% for non-remote workers, a gap comparable to PhD education and senior job level.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if remote work is the strongest individual predictor of retention because the document does not contain predictive modeling results, feature importance scores, or correlation statistics between 'Remote Work' and 'Attrition'.",
+      "precision": 0.3000745475292206,
+      "recall": 0.2956622838973999,
+      "f1": 0.2987057566642761
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 46,
+      "question": "Does having leadership opportunities reduce attrition?",
+      "reference": "Slightly — employees with leadership opportunities have an attrition rate of 45.31% versus 47.66% without, a 2.35 percentage-point difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if having leadership opportunities reduces attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Leadership Opportunities' and 'Attrition'.",
+      "precision": 0.2065885066986084,
+      "recall": 0.12255235761404037,
+      "f1": 0.16475459933280945
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 47,
+      "question": "Does having innovation opportunities reduce attrition?",
+      "reference": "Marginally — employees with innovation opportunities have an attrition rate of 45.11% versus 48.02% without, a 2.91 percentage-point difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if having innovation opportunities reduces attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Innovation Opportunities' and 'Attrition'.",
+      "precision": 0.16223229467868805,
+      "recall": 0.07622921466827393,
+      "f1": 0.11941245198249817
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 48,
+      "question": "How many employees have leadership opportunities?",
+      "reference": "Only 2,918 employees (4.89%) have leadership opportunities.",
+      "candidate": "According to the reference document, 2,918 employees have leadership opportunities (Yes), while 56,680 employees do not (No).",
+      "precision": 0.5163475275039673,
+      "recall": 0.6295427083969116,
+      "f1": 0.5722118616104126
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 49,
+      "question": "How many employees have innovation opportunities?",
+      "reference": "9,703 employees (16.28%) have innovation opportunities.",
+      "candidate": "According to the reference document, 9,703 employees have innovation opportunities (Yes), while 49,895 employees do not (No).",
+      "precision": 0.4943266808986664,
+      "recall": 0.6089627146720886,
+      "f1": 0.5508942604064941
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 50,
+      "question": "Which company reputation rating is associated with the highest attrition?",
+      "reference": "Poor company reputation is associated with the highest attrition rate at 56.50%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which company reputation rating is associated with the highest attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Company Reputation' and 'Attrition'.",
+      "precision": 0.26087719202041626,
+      "recall": 0.4484459161758423,
+      "f1": 0.3517012894153595
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 51,
+      "question": "What is the attrition rate for companies with excellent reputation?",
+      "reference": "Employees at companies with excellent reputation have an attrition rate of 43.92%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for companies with an excellent reputation because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Company Reputation' and 'Attrition'.",
+      "precision": 0.21370233595371246,
+      "recall": 0.4282072186470032,
+      "f1": 0.31681492924690247
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 52,
+      "question": "How wide is the attrition gap between poor and good company reputation?",
+      "reference": "The gap between Poor (56.50%) and Good (42.91%) reputation is 13.59 percentage points.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition gap between poor and good company reputation because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Company Reputation' and 'Attrition'.",
+      "precision": 0.20507584512233734,
+      "recall": 0.18586502969264984,
+      "f1": 0.1963905245065689
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 53,
+      "question": "Does employee recognition level significantly affect attrition?",
+      "reference": "The effect is small — attrition ranges from 47.83% (Low recognition) to 46.14% (Very High recognition), a difference of only 1.69 percentage points.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if employee recognition level significantly affects attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Employee Recognition' and 'Attrition'.",
+      "precision": 0.24301475286483765,
+      "recall": 0.16785752773284912,
+      "f1": 0.20574669539928436
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 54,
+      "question": "What is the average age of employees who left versus those who stayed?",
+      "reference": "Employees who left average 37.95 years old; those who stayed average 39.13 years old.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the average age of employees who left versus those who stayed because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Age' and 'Attrition'.",
+      "precision": 0.00479702465236187,
+      "recall": 0.15582647919654846,
+      "f1": 0.07867266982793808
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 55,
+      "question": "What is the average monthly income of employees who left versus those who stayed?",
+      "reference": "Employees who left earn an average of $7,277/month; those who stayed earn $7,326/month — a small $49 difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the average monthly income of employees who left versus those who stayed because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Monthly Income' and 'Attrition'.",
+      "precision": 0.16382665932178497,
+      "recall": 0.2086499035358429,
+      "f1": 0.18698185682296753
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 56,
+      "question": "What is the average years at company for employees who left versus stayed?",
+      "reference": "Employees who left averaged 14.99 years; those who stayed averaged 16.45 years.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the average years at company for employees who left versus those who stayed because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Years at Company' and 'Attrition'.",
+      "precision": 0.060382943600416183,
+      "recall": 0.29826873540878296,
+      "f1": 0.17382115125656128
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 57,
+      "question": "Do employees who leave have fewer promotions on average?",
+      "reference": "Yes — employees who left averaged 0.75 promotions versus 0.91 for those who stayed.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if employees who leave have fewer promotions on average because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Number of Promotions' and 'Attrition'.",
+      "precision": 0.1380673199892044,
+      "recall": 0.3228871822357178,
+      "f1": 0.22757217288017273
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 58,
+      "question": "Does distance from home correlate with attrition?",
+      "reference": "Yes — employees who left lived an average of 52.86 units from home versus 47.42 for those who stayed, suggesting distance is a mild attrition risk factor.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if distance from home correlates with attrition because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Distance from Home' and 'Attrition'.",
+      "precision": 0.22275254130363464,
+      "recall": 0.16636130213737488,
+      "f1": 0.19515806436538696
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 59,
+      "question": "Do employees who stay have more dependents on average?",
+      "reference": "Yes — employees who stayed average 1.76 dependents versus 1.52 for those who left, suggesting dependents correlate with retention.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if employees who stay have more dependents on average because the document does not contain cross-tabulated data, joint distributions, or correlation statistics between 'Number of Dependents' and 'Attrition'.",
+      "precision": 0.24060247838497162,
+      "recall": 0.3808825612068176,
+      "f1": 0.30943939089775085
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 60,
+      "question": "What is the average monthly income across all employees?",
+      "reference": "The average monthly income across all employees is $7,302.",
+      "candidate": "The average monthly income across all employees is 7,302.40.",
+      "precision": 0.7400588989257812,
+      "recall": 0.8473726511001587,
+      "f1": 0.7929328083992004
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 61,
+      "question": "What is the minimum and maximum age in the dataset?",
+      "reference": "The minimum age is 18 and the maximum age is 59.",
+      "candidate": "Based on the reference document, the minimum age in the dataset is 18.00 and the maximum age is 59.00.",
+      "precision": 0.2835209369659424,
+      "recall": 0.7432597279548645,
+      "f1": 0.49296867847442627
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 62,
+      "question": "What is the range of Years at Company in the dataset?",
+      "reference": "Years at Company ranges from 1 to 51.",
+      "candidate": "Based on the reference document, the range of Years at Company in the dataset is from 1.00 to 51.00.",
+      "precision": 0.271278440952301,
+      "recall": 0.6280516386032104,
+      "f1": 0.43734484910964966
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 63,
+      "question": "What is the average company tenure (in months) for employees who left vs stayed?",
+      "reference": "Employees who left had an average company tenure of 54.95 months; those who stayed had 56.49 months.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the average company tenure for employees who left vs stayed because the document does not contain cross-tabulated data or joint distributions between 'Company Tenure' and 'Attrition'.",
+      "precision": 0.13719487190246582,
+      "recall": 0.29727470874786377,
+      "f1": 0.21528394520282745
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 64,
+      "question": "What percentage of employees have never received a promotion?",
+      "reference": "49,852 out of 59,598 employees (49.86%) have zero promotions — the most common promotion count.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the exact percentage of employees who have never received a promotion because the document does not provide the frequency distribution or count of employees with zero promotions.",
+      "precision": 0.2840227782726288,
+      "recall": 0.13673216104507446,
+      "f1": 0.20887036621570587
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 65,
+      "question": "Do employees with no promotions have higher attrition than those with at least one?",
+      "reference": "Yes — employees with no promotions have an attrition rate of 49.33% versus 45.78% for those with at least one promotion.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if employees with no promotions have higher attrition than those with at least one because the document does not contain cross-tabulated data or joint distributions between 'Number of Promotions' and 'Attrition'.",
+      "precision": 0.29208627343177795,
+      "recall": 0.37203899025917053,
+      "f1": 0.33217644691467285
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 66,
+      "question": "Which age group has the highest attrition rate?",
+      "reference": "The 18–29 age group has the highest attrition rate at 52.20%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which age group has the highest attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Age' and 'Attrition'.",
+      "precision": 0.2086518108844757,
+      "recall": 0.35598644614219666,
+      "f1": 0.2808016240596771
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 67,
+      "question": "How does attrition differ across age groups?",
+      "reference": "Ages 18–29: 52.20%; 30–39: 45.50%; 40–49: 46.12%; 50–59: 45.56%. Younger employees leave at a noticeably higher rate.",
+      "candidate": "Based on the provided reference document, it is not possible to determine how attrition differs across age groups because the document does not contain cross-tabulated data or joint distributions between 'Age' and 'Attrition'.",
+      "precision": -0.02024826407432556,
+      "recall": -0.16458280384540558,
+      "f1": -0.0938367247581482
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 68,
+      "question": "What is the attrition rate for entry-level employees who also work overtime?",
+      "reference": "Entry-level employees who work overtime have an attrition rate of 67.31%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for entry-level employees who also work overtime because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Overtime', and 'Attrition'.",
+      "precision": 0.1767454743385315,
+      "recall": 0.4323572516441345,
+      "f1": 0.29830148816108704
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 69,
+      "question": "What is the attrition rate for senior employees who work overtime?",
+      "reference": "Senior employees who work overtime have an attrition rate of 23.72% — high seniority substantially buffers overtime-driven attrition.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for senior employees who work overtime because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Overtime', and 'Attrition'.",
+      "precision": 0.3044945001602173,
+      "recall": 0.47803446650505066,
+      "f1": 0.3888465166091919
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 70,
+      "question": "What is the attrition rate for single employees who work overtime?",
+      "reference": "Single employees who work overtime have an attrition rate of 70.94%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for single employees who work overtime because the document does not contain cross-tabulated data or joint distributions between 'Marital Status', 'Overtime', and 'Attrition'.",
+      "precision": 0.18238043785095215,
+      "recall": 0.4227603077888489,
+      "f1": 0.297136515378952
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 71,
+      "question": "What is the attrition rate for married employees who work overtime?",
+      "reference": "Married employees who work overtime have an attrition rate of 40.60%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for married employees who work overtime because the document does not contain cross-tabulated data or joint distributions between 'Marital Status', 'Overtime', and 'Attrition'.",
+      "precision": 0.20334650576114655,
+      "recall": 0.4426282048225403,
+      "f1": 0.31764060258865356
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 72,
+      "question": "What is the attrition rate for remote workers with poor work-life balance?",
+      "reference": "Remote workers with poor work-life balance churn at 36.52% — far lower than non-remote workers with poor work-life balance at 65.70%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for remote workers with poor work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Remote Work', 'Work-Life Balance', and 'Attrition'.",
+      "precision": 0.22632957994937897,
+      "recall": 0.36485880613327026,
+      "f1": 0.2943483889102936
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 73,
+      "question": "What is the attrition rate for non-remote workers with poor work-life balance?",
+      "reference": "Non-remote workers with poor work-life balance have an attrition rate of 65.70%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for non-remote workers with poor work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Remote Work', 'Work-Life Balance', and 'Attrition'.",
+      "precision": 0.2804843485355377,
+      "recall": 0.49454790353775024,
+      "f1": 0.38345471024513245
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 74,
+      "question": "What is the attrition rate for remote workers with excellent work-life balance?",
+      "reference": "Remote workers with excellent work-life balance churn at only 15.15% — the joint benefit of two strong retention factors.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for remote workers with excellent work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Remote Work', 'Work-Life Balance', and 'Attrition'.",
+      "precision": 0.3105449676513672,
+      "recall": 0.384016215801239,
+      "f1": 0.34748658537864685
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 75,
+      "question": "What is the attrition rate for entry-level employees who are also single?",
+      "reference": "Single entry-level employees have an attrition rate of 82.32% — one of the highest at-risk segments.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for entry-level employees who are also single because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Marital Status', and 'Attrition'.",
+      "precision": 0.24573005735874176,
+      "recall": 0.39174240827560425,
+      "f1": 0.3172541856765747
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 76,
+      "question": "What is the attrition rate for employees who are single + entry-level + overtime + poor work-life balance?",
+      "reference": "This highest-risk combination yields an attrition rate of 93.03% (n=373 employees).",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees who are single, entry-level, work overtime, and have poor work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Marital Status', 'Job Level', 'Overtime', 'Work-Life Balance', and 'Attrition'.",
+      "precision": 0.14658154547214508,
+      "recall": 0.2656795084476471,
+      "f1": 0.20547367632389069
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 77,
+      "question": "What is the attrition rate for senior + remote + excellent work-life balance employees?",
+      "reference": "This lowest-risk combination yields an attrition rate of just 0.68% (n=439 employees).",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for senior, remote employees with excellent work-life balance because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Remote Work', 'Work-Life Balance', and 'Attrition'.",
+      "precision": 0.19553329050540924,
+      "recall": 0.2913338243961334,
+      "f1": 0.2433163821697235
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 78,
+      "question": "What is the attrition rate for female employees who work overtime?",
+      "reference": "Female employees who work overtime have an attrition rate of 56.85%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for female employees who work overtime because the document does not contain cross-tabulated data or joint distributions between 'Gender', 'Overtime', and 'Attrition'.",
+      "precision": 0.20799604058265686,
+      "recall": 0.45339491963386536,
+      "f1": 0.3250420093536377
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 79,
+      "question": "What is the attrition rate for male employees who work overtime?",
+      "reference": "Male employees who work overtime have an attrition rate of 47.15%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for male employees who work overtime because the document does not contain cross-tabulated data or joint distributions between 'Gender', 'Overtime', and 'Attrition'.",
+      "precision": 0.20954802632331848,
+      "recall": 0.44934892654418945,
+      "f1": 0.32408419251441956
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 80,
+      "question": "What is the attrition rate for entry-level employees with low performance?",
+      "reference": "Entry-level employees with low performance ratings have an attrition rate of 72.40%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for entry-level employees with low performance because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Performance Rating', and 'Attrition'.",
+      "precision": 0.2662500739097595,
+      "recall": 0.5052597522735596,
+      "f1": 0.3805087208747864
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 81,
+      "question": "What is the attrition rate for senior employees with low performance?",
+      "reference": "Senior employees with low performance have an attrition rate of 30.89% — still the highest among senior sub-groups.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for senior employees with low performance because the document does not contain cross-tabulated data or joint distributions between 'Job Level', 'Performance Rating', and 'Attrition'.",
+      "precision": 0.26875317096710205,
+      "recall": 0.4355222284793854,
+      "f1": 0.3499588370323181
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 82,
+      "question": "Do PhD employees who work remotely have a very low attrition rate?",
+      "reference": "Yes — PhD employees with remote work have an attrition rate of just 8.13%, versus 28.62% for PhD employees without remote work.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if PhD employees who work remotely have a very low attrition rate because the document does not contain cross-tabulated data or joint distributions between 'Education Level', 'Remote Work', and 'Attrition'.",
+      "precision": 0.2527167797088623,
+      "recall": 0.3903834819793701,
+      "f1": 0.32032230496406555
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 83,
+      "question": "What is the attrition rate for employees at companies with poor reputation who also work remotely?",
+      "reference": "Remote employees at companies with poor reputation churn at 35.20% — noticeably lower than their non-remote counterparts at 61.39%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the attrition rate for employees at companies with poor reputation who also work remotely because the document does not contain cross-tabulated data or joint distributions between 'Company Reputation', 'Remote Work', and 'Attrition'.",
+      "precision": 0.21348708868026733,
+      "recall": 0.2631308138370514,
+      "f1": 0.23894472420215607
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 84,
+      "question": "Is monthly income meaningfully different across job levels?",
+      "reference": "No — average monthly income is nearly identical: Entry $7,325, Mid $7,279, Senior $7,303, suggesting the dataset does not reflect a strong pay gradient by level.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if monthly income is meaningfully different across job levels because the document does not contain cross-tabulated data or joint distributions between 'Monthly Income' and 'Job Level'.",
+      "precision": 0.38126227259635925,
+      "recall": 0.25059953331947327,
+      "f1": 0.31490781903266907
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 85,
+      "question": "Do employees who left earn less on average than those who stayed within each job level?",
+      "reference": "Yes, consistently — at every job level employees who left earned slightly less than those who stayed, though the gaps are small (under $100/month).",
+      "candidate": "Based on the provided reference document, it is not possible to determine if employees who left earn less on average than those who stayed within each job level because the document does not contain cross-tabulated data or joint distributions between 'Monthly Income', 'Attrition', and 'Job Level'.",
+      "precision": 0.3026115894317627,
+      "recall": 0.4705997109413147,
+      "f1": 0.38438573479652405
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 86,
+      "question": "What are the top individual factors associated with high attrition in this dataset?",
+      "reference": "The top individual attrition drivers are: Single marital status (66.83%), Entry job level (63.19%), Poor work-life balance (60.11%), and no remote work (52.89%).",
+      "candidate": "Based on the provided reference document, it is not possible to identify the top individual factors associated with high attrition because the document does not contain cross-tabulations, correlations, or joint distributions between 'Attrition' and other variables.",
+      "precision": 0.254093736410141,
+      "recall": 0.11701766401529312,
+      "f1": 0.18438246846199036
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 87,
+      "question": "What are the top individual factors associated with low attrition?",
+      "reference": "The strongest retention factors are: Remote work (24.86%), Senior job level (20.31%), PhD education (24.86%), and Married status (36.15%).",
+      "candidate": "Based on the provided reference document, it is not possible to identify the top individual factors associated with low attrition because the document does not contain cross-tabulations, correlations, or joint distributions between 'Attrition' and other variables.",
+      "precision": 0.16633744537830353,
+      "recall": 0.05581943690776825,
+      "f1": 0.11069662123918533
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 88,
+      "question": "Which combination of factors creates the highest-risk employee profile?",
+      "reference": "Single + Entry-level + Overtime + Poor Work-Life Balance yields the highest observed attrition rate at 93.03%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which combination of factors creates the highest-risk employee profile because the document does not contain cross-tabulated data, correlations, or joint distributions between 'Attrition' and other variables.",
+      "precision": 0.2055986076593399,
+      "recall": 0.3119202256202698,
+      "f1": 0.258395791053772
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 89,
+      "question": "Which combination of factors creates the lowest-risk (most retained) employee profile?",
+      "reference": "Senior + Remote Work + Excellent Work-Life Balance yields the lowest observed attrition rate at 0.68%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which combination of factors creates the lowest-risk (most retained) employee profile because the document does not contain cross-tabulated data, correlations, or joint distributions between 'Attrition' and other variables.",
+      "precision": 0.21850919723510742,
+      "recall": 0.32925713062286377,
+      "f1": 0.2734043300151825
+    },
+    {
+      "dataset": "EmployeeAttrition",
+      "row_number": 90,
+      "question": "Does remote work reduce attrition even when reputation or work-life balance is poor?",
+      "reference": "Yes — remote work consistently buffers attrition across all company reputation and work-life balance levels, roughly halving the attrition rate in each sub-group.",
+      "candidate": "Based on the provided reference document, it is not possible to determine if remote work reduces attrition when company reputation or work-life balance is poor, as the document does not contain cross-tabulated data or joint distributions between 'Remote Work', 'Attrition', 'Company Reputation', and 'Work-Life Balance'.",
+      "precision": 0.3657118082046509,
+      "recall": 0.5011065006256104,
+      "f1": 0.4322049915790558
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 2,
+      "question": "How many total records are in the dataset?",
+      "reference": "There are 5000 records in the dataset.",
+      "candidate": "There are a total of 5,000 records in the dataset.",
+      "precision": 0.6738359332084656,
+      "recall": 0.9317644238471985,
+      "f1": 0.7971076965332031
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 3,
+      "question": "What is the overall user churn rate?",
+      "reference": "The overall user churn rate is 53.06% (2653 out of 5000 users churned).",
+      "candidate": "The overall user churn rate is 53.06%.",
+      "precision": 0.9499839544296265,
+      "recall": 0.6279453039169312,
+      "f1": 0.7799302935600281
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 4,
+      "question": "How many users churned versus how many were retained?",
+      "reference": "2653 users churned and 2347 users were retained.",
+      "candidate": "Based on the reference document, 2,653 users churned (UserChurned = True) and 2,347 users were retained (UserChurned = False).",
+      "precision": 0.36406365036964417,
+      "recall": 0.7547540664672852,
+      "f1": 0.5450401306152344
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 5,
+      "question": "What date range does the dataset cover?",
+      "reference": "The dataset covers events from 2023-07-04 to 2023-07-30 (July 2023).",
+      "candidate": "The dataset covers the date range from 2023-07-04 00:00:00 to 2023-07-30 00:00:00.",
+      "precision": 0.5632935762405396,
+      "recall": 0.75981605052948,
+      "f1": 0.6583352088928223
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 6,
+      "question": "How many unique countries are represented in the dataset?",
+      "reference": "There are 15 unique countries represented in the dataset.",
+      "candidate": "There are 15 unique countries represented in the dataset.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 7,
+      "question": "Which country has the most users in the dataset?",
+      "reference": "Indonesia has the most users with 782 records.",
+      "candidate": "The category with the most users is 'Other' with 1,249 users. Among specific named countries, 'Indonesia' has the most users with 782.",
+      "precision": 0.34916001558303833,
+      "recall": 0.6855083703994751,
+      "f1": 0.5066868662834167
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 8,
+      "question": "Which country has the highest churn rate among the top 5 countries by user count?",
+      "reference": "Brazil has the highest churn rate at 64.65% among the top 5 countries by user count.",
+      "candidate": "It is not possible to determine which country has the highest churn rate among the top 5 countries from the provided reference document, as the document does not contain a breakdown of UserChurned by country.",
+      "precision": 0.3615659177303314,
+      "recall": 0.5371497273445129,
+      "f1": 0.44687244296073914
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 9,
+      "question": "What is the churn rate for users from Indonesia?",
+      "reference": "The churn rate for users from Indonesia is 46.04%.",
+      "candidate": "It is not possible to determine the churn rate for users from Indonesia from the provided reference document, as the document does not contain cross-tabulated data between the 'country' and 'UserChurned' columns.",
+      "precision": 0.27056580781936646,
+      "recall": 0.49244633316993713,
+      "f1": 0.37708237767219543
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 10,
+      "question": "What is the churn rate for users from Pakistan?",
+      "reference": "The churn rate for users from Pakistan is 50.97%.",
+      "candidate": "The churn rate for users from Pakistan cannot be determined from the provided reference document.",
+      "precision": 0.5346508622169495,
+      "recall": 0.5608345866203308,
+      "f1": 0.5482164621353149
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 11,
+      "question": "What is the churn rate for users from the Philippines?",
+      "reference": "The churn rate for users from the Philippines is 46.38%.",
+      "candidate": "I am unable to determine the exact churn rate for users from the Philippines because the reference document does not provide the joint distribution or cross-tabulation between the 'country' and 'UserChurned' columns.",
+      "precision": 0.28181055188179016,
+      "recall": 0.5150892734527588,
+      "f1": 0.39350229501724243
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 12,
+      "question": "What is the churn rate for users from Egypt?",
+      "reference": "The churn rate for users from Egypt is 47.63%.",
+      "candidate": "It is not possible to determine the churn rate for users from Egypt from the provided reference document, as it does not contain a breakdown of user churn by country.",
+      "precision": 0.34164875745773315,
+      "recall": 0.48171502351760864,
+      "f1": 0.41035324335098267
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 13,
+      "question": "How many users came from Brazil and what is their churn rate?",
+      "reference": "331 users came from Brazil and their churn rate is 64.65%.",
+      "candidate": "The provided reference document does not contain specific data for Brazil, as it is not listed in the top 5 countries, and there is no breakdown of churn rate by country.",
+      "precision": 0.22034330666065216,
+      "recall": 0.3087259531021118,
+      "f1": 0.2645522356033325
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 14,
+      "question": "What is the churn rate for users from the United States?",
+      "reference": "The churn rate for users from the United States is 57.22%.",
+      "candidate": "It is not possible to determine the churn rate for users from the United States from the provided reference document.",
+      "precision": 0.5068970918655396,
+      "recall": 0.5739685297012329,
+      "f1": 0.5405400395393372
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 15,
+      "question": "What is the churn rate for users from India?",
+      "reference": "The churn rate for users from India is 52.31%.",
+      "candidate": "The churn rate for users from India cannot be determined from the provided reference document.",
+      "precision": 0.5230927467346191,
+      "recall": 0.5311648845672607,
+      "f1": 0.5276877284049988
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 16,
+      "question": "What is the churn rate for users from Vietnam?",
+      "reference": "The churn rate for users from Vietnam is 58.08%.",
+      "candidate": "The churn rate for users from Vietnam cannot be determined from the provided reference document, as it does not contain cross-tabulated data between the 'country' and 'UserChurned' columns, nor does it list specific statistics for Vietnam.",
+      "precision": 0.25459110736846924,
+      "recall": 0.5022998452186584,
+      "f1": 0.37274518609046936
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 17,
+      "question": "Which sub-continent has the highest churn rate?",
+      "reference": "South America has the highest churn rate at 62.84%.",
+      "candidate": "It is not possible to determine which sub-continent has the highest churn rate from the provided reference document, as it does not contain cross-tabulated data between 'sub_continent' and 'UserChurned'.",
+      "precision": 0.10450781136751175,
+      "recall": 0.31166476011276245,
+      "f1": 0.20417888462543488
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 18,
+      "question": "Which sub-continent has the lowest churn rate?",
+      "reference": "Southeast Asia has the lowest churn rate at 48.22%.",
+      "candidate": "It is not possible to determine which sub-continent has the lowest churn rate from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'sub_continent' and 'UserChurned' columns.",
+      "precision": 0.07116874307394028,
+      "recall": 0.2943274974822998,
+      "f1": 0.17802657186985016
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 19,
+      "question": "What is the churn rate for users from Northern Africa?",
+      "reference": "The churn rate for users from Northern Africa is 49.31%.",
+      "candidate": "It is not possible to determine the churn rate for users from Northern Africa from the provided reference document, as it does not contain a breakdown of user churn by sub-continent.",
+      "precision": 0.3541417121887207,
+      "recall": 0.5225279927253723,
+      "f1": 0.4361018240451813
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 20,
+      "question": "What is the churn rate for users from Southern Asia?",
+      "reference": "The churn rate for users from Southern Asia is 52.64%.",
+      "candidate": "The churn rate for users from Southern Asia cannot be determined from the provided reference document.",
+      "precision": 0.5387515425682068,
+      "recall": 0.5636231899261475,
+      "f1": 0.5516635179519653
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 21,
+      "question": "What is the most common mobile device category in the dataset?",
+      "reference": "Mobile (smartphone) is the most common category with 4881 records (97.62%).",
+      "candidate": "The most common mobile device category in the dataset is 'mobile', which appears 4,881 times.",
+      "precision": 0.4171121418476105,
+      "recall": 0.4091014862060547,
+      "f1": 0.4138020873069763
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 22,
+      "question": "How many tablet users are in the dataset and what is their churn rate?",
+      "reference": "There are 118 tablet users with a churn rate of 65.25%.",
+      "candidate": "There are 118 tablet users in the dataset. However, their churn rate cannot be determined from the provided reference document because it does not contain cross-tabulated data between the 'category' and 'UserChurned' columns.",
+      "precision": 0.1923610121011734,
+      "recall": 0.40578150749206543,
+      "f1": 0.29496103525161743
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 23,
+      "question": "Is the churn rate higher for tablet or mobile users?",
+      "reference": "Tablet users have a higher churn rate (65.25%) compared to mobile users (52.76%).",
+      "candidate": "It is not possible to determine whether the churn rate is higher for tablet or mobile users from the provided reference document, as it does not contain cross-tabulated data between the 'category' and 'UserChurned' columns.",
+      "precision": 0.18311934173107147,
+      "recall": 0.27876588702201843,
+      "f1": 0.23083798587322235
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 24,
+      "question": "Which mobile brand has the most users?",
+      "reference": "Samsung has the most users with 1302 records.",
+      "candidate": "Based on the reference document, Samsung is the mobile brand with the most users, with 1,302 users.",
+      "precision": 0.4594433009624481,
+      "recall": 0.6351390480995178,
+      "f1": 0.544805645942688
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 25,
+      "question": "Which mobile brand has the highest churn rate?",
+      "reference": "Samsung (excluding 'Other') has the highest churn rate at 56.30%.",
+      "candidate": "It is not possible to determine which mobile brand has the highest churn rate from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'mobile_brand_name' and 'UserChurned' columns.",
+      "precision": 0.18330545723438263,
+      "recall": 0.38332897424697876,
+      "f1": 0.2797975242137909
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 26,
+      "question": "Which mobile brand has the lowest churn rate?",
+      "reference": "Infinix has the lowest churn rate at 46.18%.",
+      "candidate": "It is not possible to determine which mobile brand has the lowest churn rate from the provided reference document, as it does not contain cross-tabulated data between 'mobile_brand_name' and 'UserChurned'.",
+      "precision": 0.07985226064920425,
+      "recall": 0.29933497309684753,
+      "f1": 0.18506726622581482
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 27,
+      "question": "What is the churn rate for OPPO users?",
+      "reference": "The churn rate for OPPO users is 49.08%.",
+      "candidate": "The churn rate for OPPO users cannot be determined from the provided reference document, as it does not contain cross-tabulated data between 'mobile_brand_name' and 'UserChurned'.",
+      "precision": 0.25094738602638245,
+      "recall": 0.49784156680107117,
+      "f1": 0.3687300980091095
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 28,
+      "question": "What is the churn rate for Xiaomi users?",
+      "reference": "The churn rate for Xiaomi users is 53.10%.",
+      "candidate": "The churn rate for Xiaomi users cannot be determined from the provided reference document.",
+      "precision": 0.5292261242866516,
+      "recall": 0.5436834692955017,
+      "f1": 0.5369885563850403
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 29,
+      "question": "What is the churn rate for Vivo users?",
+      "reference": "The churn rate for Vivo users is 50.99%.",
+      "candidate": "The churn rate for Vivo users cannot be determined from the provided reference document.",
+      "precision": 0.500821053981781,
+      "recall": 0.5295356512069702,
+      "f1": 0.5156760811805725
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 30,
+      "question": "What is the churn rate for Realme users?",
+      "reference": "The churn rate for Realme users is 47.37%.",
+      "candidate": "The churn rate for Realme users cannot be determined from the provided reference document.",
+      "precision": 0.5204641222953796,
+      "recall": 0.536156415939331,
+      "f1": 0.5288500189781189
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 31,
+      "question": "How many Infinix users are in the dataset?",
+      "reference": "There are 301 Infinix users in the dataset.",
+      "candidate": "It is not possible to determine the exact number of Infinix users from the provided reference document, as 'Infinix' is not explicitly listed in the mobile brand statistics.",
+      "precision": 0.32227882742881775,
+      "recall": 0.5305455923080444,
+      "f1": 0.42263326048851013
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 32,
+      "question": "What is the most common Android operating system version in the dataset?",
+      "reference": "Android 11 is the most common with 1328 users.",
+      "candidate": "The most common Android operating system version in the dataset is 'Android 11', which appears 1,328 times.",
+      "precision": 0.3696977198123932,
+      "recall": 0.5723527073860168,
+      "f1": 0.4675063490867615
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 33,
+      "question": "What is the churn rate for Android 13 users?",
+      "reference": "The churn rate for Android 13 users is 58.52%.",
+      "candidate": "The churn rate for Android 13 users cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'operating_system_version' and 'UserChurned' columns.",
+      "precision": 0.22733038663864136,
+      "recall": 0.5168591737747192,
+      "f1": 0.364018976688385
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 34,
+      "question": "What is the churn rate for Android 11 users?",
+      "reference": "The churn rate for Android 11 users is 50.75%.",
+      "candidate": "The churn rate for Android 11 users cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'operating_system_version' and 'UserChurned' columns.",
+      "precision": 0.23314324021339417,
+      "recall": 0.5295628309249878,
+      "f1": 0.37287676334381104
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 35,
+      "question": "What is the churn rate for Android 10 users?",
+      "reference": "The churn rate for Android 10 users is 51.76%.",
+      "candidate": "The churn rate for Android 10 users cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'operating_system_version' and 'UserChurned' columns.",
+      "precision": 0.2284538298845291,
+      "recall": 0.512476921081543,
+      "f1": 0.3627183139324188
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 36,
+      "question": "What is the churn rate for Android 12 users?",
+      "reference": "The churn rate for Android 12 users is 52.92%.",
+      "candidate": "The churn rate for Android 12 users cannot be determined from the provided reference document, as it does not contain cross-tabulated data between 'operating_system_version' and 'UserChurned'.",
+      "precision": 0.25646883249282837,
+      "recall": 0.5295521020889282,
+      "f1": 0.38595250248908997
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 37,
+      "question": "What is the churn rate for Android 9 users?",
+      "reference": "The churn rate for Android 9 users is 52.58%.",
+      "candidate": "The churn rate for Android 9 users cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'operating_system_version' and 'UserChurned' columns.",
+      "precision": 0.22881998121738434,
+      "recall": 0.5196281671524048,
+      "f1": 0.3660753667354584
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 38,
+      "question": "Which Android version has the highest churn rate?",
+      "reference": "Android 13 has the highest churn rate at 58.52% among named Android versions.",
+      "candidate": "The reference document does not contain the joint distribution or cross-tabulated data between 'operating_system_version' and 'UserChurned', making it impossible to determine which Android version has the highest churn rate.",
+      "precision": 0.23678408563137054,
+      "recall": 0.4616767466068268,
+      "f1": 0.3446311056613922
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 39,
+      "question": "Which Android version has the lowest churn rate?",
+      "reference": "Android 6.0.1 has the lowest churn rate at 48.15% among named Android versions.",
+      "candidate": "It is not possible to determine which Android version has the lowest churn rate from the provided reference document, as it does not contain cross-tabulated data or joint distributions between 'operating_system_version' and 'UserChurned'.",
+      "precision": 0.2538937032222748,
+      "recall": 0.4120236337184906,
+      "f1": 0.3310791552066803
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 40,
+      "question": "What are the three acquisition sources in the dataset?",
+      "reference": "The three acquisition sources are google-play (organic), direct (none medium), and google (CPC).",
+      "candidate": "The three main acquisition sources in the dataset are 'google-play' (2,103 occurrences), '(direct)' (1,531 occurrences), and 'google' (1,365 occurrences).",
+      "precision": 0.3667251467704773,
+      "recall": 0.7662355303764343,
+      "f1": 0.5514659881591797
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 41,
+      "question": "Which acquisition source has the most users?",
+      "reference": "Google-play (organic) has the most users with 2103 records.",
+      "candidate": "The acquisition source with the most users is 'google-play' with 2,103 users.",
+      "precision": 0.5176671147346497,
+      "recall": 0.6003324389457703,
+      "f1": 0.5588600635528564
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 42,
+      "question": "What is the churn rate for users acquired through Google Play (organic)?",
+      "reference": "The churn rate for users acquired through Google Play (organic) is 49.26%.",
+      "candidate": "The churn rate for users acquired through Google Play (organic) cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'source' or 'medium' columns and the 'UserChurned' column.",
+      "precision": 0.31104913353919983,
+      "recall": 0.6364343166351318,
+      "f1": 0.4636808931827545
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 43,
+      "question": "What is the churn rate for users acquired via CPC (paid / google)?",
+      "reference": "The churn rate for users acquired via CPC is 56.19%.",
+      "candidate": "The churn rate for users acquired via CPC (paid / google) cannot be determined from the provided reference document, as it does not contain cross-tabulated data or joint distributions between the 'medium' (or 'source') and 'UserChurned' columns.",
+      "precision": 0.23322941362857819,
+      "recall": 0.5389444828033447,
+      "f1": 0.37703773379325867
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 44,
+      "question": "What is the churn rate for direct users (none medium)?",
+      "reference": "The churn rate for direct users is 55.45%.",
+      "candidate": "It is not possible to determine the churn rate for direct users (none medium) from the provided reference document.",
+      "precision": 0.3953174352645874,
+      "recall": 0.4720401465892792,
+      "f1": 0.4337517321109772
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 45,
+      "question": "Which acquisition channel has the lowest churn rate?",
+      "reference": "The organic channel (google-play) has the lowest churn rate at 49.26%.",
+      "candidate": "It is not possible to determine which acquisition channel has the lowest churn rate from the provided reference document.",
+      "precision": 0.3419085144996643,
+      "recall": 0.3781692087650299,
+      "f1": 0.360664963722229
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 46,
+      "question": "Which acquisition channel has the highest churn rate?",
+      "reference": "The CPC channel has the highest churn rate at 56.19%.",
+      "candidate": "It is not possible to determine which acquisition channel has the highest churn rate from the provided reference document.",
+      "precision": 0.34580162167549133,
+      "recall": 0.45024803280830383,
+      "f1": 0.39760807156562805
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 47,
+      "question": "How many tutorial steps are tracked in the dataset?",
+      "reference": "12 tutorial steps are tracked in the dataset.",
+      "candidate": "There are 12 tutorial steps tracked in the dataset.",
+      "precision": 0.8873081803321838,
+      "recall": 0.9256588816642761,
+      "f1": 0.9064688086509705
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 48,
+      "question": "Which tutorial step has the highest completion rate?",
+      "reference": "TUTORIAL_STEP_TUTDRAGCUE has the highest completion rate at 44.30%.",
+      "candidate": "It is not possible to determine which tutorial step has the highest completion rate from the provided reference document.",
+      "precision": 0.382556289434433,
+      "recall": 0.3573625385761261,
+      "f1": 0.3706459403038025
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 49,
+      "question": "Which tutorial step has the lowest completion rate (excluding steps with 0% completion)?",
+      "reference": "TUTORIAL_STEP_DONE has the lowest completion rate at 18.64%.",
+      "candidate": "It is not possible to determine which tutorial step has the lowest completion rate from the provided reference document, as the document does not contain completion rates or the necessary data to calculate them.",
+      "precision": 0.3037393391132355,
+      "recall": 0.38416925072669983,
+      "f1": 0.3440495431423187
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 50,
+      "question": "What percentage of users completed the TUTORIAL_STEP_DONE (final tutorial step)?",
+      "reference": "18.64% of users completed the TUTORIAL_STEP_DONE step.",
+      "candidate": "It is not possible to determine the exact percentage of users who completed the TUTORIAL_STEP_DONE step from the provided reference document.",
+      "precision": 0.4675341844558716,
+      "recall": 0.6152260899543762,
+      "f1": 0.5397847294807434
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 51,
+      "question": "What percentage of users completed TUTORIAL_STEP_JOINFIRSTGAME?",
+      "reference": "19.24% of users completed the TUTORIAL_STEP_JOINFIRSTGAME step.",
+      "candidate": "Based on the provided reference document, the percentage of users who completed TUTORIAL_STEP_JOINFIRSTGAME cannot be determined. The document only provides summary statistics for this metric, including a mean of 2.98, standard deviation of 6.98, minimum of 0.00, maximum of 40.90, and 962 outliers (19.24%).",
+      "precision": 0.2510435879230499,
+      "recall": 0.7367082834243774,
+      "f1": 0.4708583950996399
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 52,
+      "question": "What percentage of users completed TUTORIAL_STEP_WINFIRSTGAME?",
+      "reference": "26.40% of users completed the TUTORIAL_STEP_WINFIRSTGAME step.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_WINFIRSTGAME from the provided reference document.",
+      "precision": 0.505340039730072,
+      "recall": 0.633005678653717,
+      "f1": 0.5681034326553345
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 53,
+      "question": "Is TUTORIAL_STEP_GAME_TEACHBOOSTAIM ever completed by any user?",
+      "reference": "No — TUTORIAL_STEP_GAME_TEACHBOOSTAIM has zero completions across all 5000 users.",
+      "candidate": "No, TUTORIAL_STEP_GAME_TEACHBOOSTAIM is never completed by any user, as all recorded values for this step are 0.00.",
+      "precision": 0.6193891763687134,
+      "recall": 0.7559318542480469,
+      "f1": 0.6863014101982117
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 54,
+      "question": "What is the churn rate for users who completed TUTORIAL_STEP_WINFIRSTGAME vs those who did not?",
+      "reference": "Users who completed WINFIRSTGAME have a churn rate of 43.86%; those who did not have a churn rate of 56.36%.",
+      "candidate": "It is not possible to determine the churn rate for users who completed TUTORIAL_STEP_WINFIRSTGAME vs those who did not from the provided reference document.",
+      "precision": 0.44077152013778687,
+      "recall": 0.4434427320957184,
+      "f1": 0.44277361035346985
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 55,
+      "question": "Does winning the first game reduce churn?",
+      "reference": "Yes — users who won the first game (WINFIRSTGAME > 0) have a notably lower churn rate (43.86%) compared to those who did not (56.36%).",
+      "candidate": "It is not possible to determine if winning the first game reduces churn from the provided reference document, as it does not contain joint statistics or correlation data between 'TUTORIAL_STEP_WINFIRSTGAME' and 'UserChurned'.",
+      "precision": 0.287110835313797,
+      "recall": 0.2579858601093292,
+      "f1": 0.2733248472213745
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 56,
+      "question": "What is the churn rate for users who completed TUTORIAL_STEP_DONE?",
+      "reference": "Users who completed TUTORIAL_STEP_DONE have a churn rate of 40.77%.",
+      "candidate": "It is not possible to determine the churn rate for users who completed TUTORIAL_STEP_DONE from the provided reference document.",
+      "precision": 0.544437825679779,
+      "recall": 0.6168864369392395,
+      "f1": 0.580655574798584
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 57,
+      "question": "Does completing the full tutorial reduce churn?",
+      "reference": "Yes — users who completed the final tutorial step (DONE) churn at 40.77% compared to the overall rate of 53.06%.",
+      "candidate": "It is not possible to determine if completing the full tutorial reduces churn from the provided reference document.",
+      "precision": 0.36094537377357483,
+      "recall": 0.20025990903377533,
+      "f1": 0.2786354124546051
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 58,
+      "question": "What is the churn rate for users who joined their first game (JOINFIRSTGAME > 0)?",
+      "reference": "Users who joined their first game have a churn rate of 38.88%.",
+      "candidate": "It is not possible to determine the churn rate for users who joined their first game (TUTORIAL_STEP_JOINFIRSTGAME > 0) from the provided reference document.",
+      "precision": 0.32582351565361023,
+      "recall": 0.5343221426010132,
+      "f1": 0.4262862205505371
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 59,
+      "question": "What is the average time spent on TUTORIAL_STEP_WINFIRSTGAME across all users?",
+      "reference": "The average time spent on WINFIRSTGAME across all users is 71.51 seconds.",
+      "candidate": "The average time spent on TUTORIAL_STEP_WINFIRSTGAME across all users is 71.51.",
+      "precision": 0.7249366044998169,
+      "recall": 0.8788290619850159,
+      "f1": 0.8000082969665527
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 60,
+      "question": "What is the average time spent on TUTORIAL_STEP_WINFIRSTGAME among users who actually completed it?",
+      "reference": "Among users who completed the step (value > 0) the average time is approximately 270.86 seconds.",
+      "candidate": "It is not possible to determine the average time spent on TUTORIAL_STEP_WINFIRSTGAME specifically among users who completed it from the provided reference document.",
+      "precision": 0.3003627359867096,
+      "recall": 0.34568458795547485,
+      "f1": 0.323612242937088
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 61,
+      "question": "Which tutorial step has the highest average time spent across all users?",
+      "reference": "TUTORIAL_STEP_WINFIRSTGAME has the highest average time at 71.51 seconds across all users.",
+      "candidate": "The tutorial step with the highest average time spent across all users is TUTORIAL_STEP_WINFIRSTGAME, with a mean of 71.51.",
+      "precision": 0.7294236421585083,
+      "recall": 0.7917507290840149,
+      "f1": 0.7605220675468445
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 62,
+      "question": "Which tutorial step has the lowest average time spent across all users?",
+      "reference": "TUTORIAL_STEP_TUTPOTTEDBALL has the lowest non-zero average at 0.40 seconds.",
+      "candidate": "The tutorial step with the lowest average time spent is TUTORIAL_STEP_GAME_TEACHBOOSTAIM with a mean of 0.00. If excluding steps with zero recorded time, TUTORIAL_STEP_TUTPOTTEDBALL has the lowest average time spent with a mean of 0.40.",
+      "precision": 0.5452315807342529,
+      "recall": 0.6904246211051941,
+      "f1": 0.6162735223770142
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 63,
+      "question": "Do churned users spend more or less time on TUTORIAL_STEP_GAME_TEACHTARGETBALL than retained users?",
+      "reference": "Retained users spend more time on TEACHTARGETBALL (avg 16.74s) than churned users (avg 13.31s) suggesting engagement correlates with retention.",
+      "candidate": "It is not possible to determine whether churned users spend more or less time on TUTORIAL_STEP_GAME_TEACHTARGETBALL than retained users from the provided reference document, as it does not contain joint statistics or correlation data between these two variables.",
+      "precision": 0.3239820599555969,
+      "recall": 0.36748006939888,
+      "f1": 0.3463117778301239
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 64,
+      "question": "What is the average TUTDRAGCUE time for churned users vs retained users?",
+      "reference": "Churned users average 10.68 seconds and retained users average 10.49 seconds on TUTDRAGCUE — nearly identical.",
+      "candidate": "It is not possible to determine the average TUTDRAGCUE time for churned users vs retained users from the provided reference document, as it does not contain joint statistics or conditional breakdowns between 'TUTORIAL_STEP_TUTDRAGCUE' and 'UserChurned'.",
+      "precision": 0.31611430644989014,
+      "recall": 0.40727290511131287,
+      "f1": 0.36157798767089844
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 65,
+      "question": "What percentage of users completed TUTORIAL_STEP_SHOW_FORCE_CUE?",
+      "reference": "39.04% of users completed TUTORIAL_STEP_SHOW_FORCE_CUE.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_SHOW_FORCE_CUE from the provided reference document.",
+      "precision": 0.5265648365020752,
+      "recall": 0.6643407344818115,
+      "f1": 0.5941096544265747
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 66,
+      "question": "What percentage of users completed TUTORIAL_STEP_FORCE_CUE?",
+      "reference": "37.66% of users completed TUTORIAL_STEP_FORCE_CUE.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_FORCE_CUE from the provided reference document.",
+      "precision": 0.4946461617946625,
+      "recall": 0.6254351735115051,
+      "f1": 0.5588979721069336
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 67,
+      "question": "What percentage of users completed TUTORIAL_STEP_BREAKING?",
+      "reference": "37.38% of users completed TUTORIAL_STEP_BREAKING.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_BREAKING from the provided reference document.",
+      "precision": 0.4512065649032593,
+      "recall": 0.5786107778549194,
+      "f1": 0.5138766765594482
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 68,
+      "question": "What percentage of users completed TUTORIAL_STEP_GAME_TEACHTARGETBALL?",
+      "reference": "36.00% of users completed TUTORIAL_STEP_GAME_TEACHTARGETBALL.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_GAME_TEACHTARGETBALL from the provided reference document.",
+      "precision": 0.5328187346458435,
+      "recall": 0.6959207057952881,
+      "f1": 0.6122893691062927
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 69,
+      "question": "What percentage of users completed TUTORIAL_STEP_DONESCENETUT?",
+      "reference": "38.46% of users completed TUTORIAL_STEP_DONESCENETUT.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_DONESCENETUT from the provided reference document.",
+      "precision": 0.5230906009674072,
+      "recall": 0.6688220500946045,
+      "f1": 0.5943962335586548
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 70,
+      "question": "What percentage of users completed TUTORIAL_STEP_TUTPOTTEDBALL?",
+      "reference": "38.20% of users completed TUTORIAL_STEP_TUTPOTTEDBALL.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_TUTPOTTEDBALL from the provided reference document, as it only contains general statistical summaries and does not specify completion rates or the number of users who successfully finished this step.",
+      "precision": 0.3148299753665924,
+      "recall": 0.5976462364196777,
+      "f1": 0.4487546980381012
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 71,
+      "question": "What percentage of users completed TUTORIAL_STEP_TUTBOX?",
+      "reference": "19.18% of users completed TUTORIAL_STEP_TUTBOX.",
+      "candidate": "It is not possible to determine the percentage of users who completed TUTORIAL_STEP_TUTBOX from the provided reference document.",
+      "precision": 0.4824918210506439,
+      "recall": 0.6158419847488403,
+      "f1": 0.5479637980461121
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 72,
+      "question": "How many users completed TUTORIAL_STEP_DONE?",
+      "reference": "932 out of 5000 users completed TUTORIAL_STEP_DONE.",
+      "candidate": "It is not possible to determine how many users completed TUTORIAL_STEP_DONE from the provided reference document, as it only contains summary statistics and does not specify the number of users with non-zero or completion values.",
+      "precision": 0.27559077739715576,
+      "recall": 0.53737872838974,
+      "f1": 0.4000813961029053
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 73,
+      "question": "How many users completed TUTORIAL_STEP_JOINFIRSTGAME?",
+      "reference": "962 out of 5000 users completed TUTORIAL_STEP_JOINFIRSTGAME.",
+      "candidate": "It is not possible to determine the exact number of users who completed TUTORIAL_STEP_JOINFIRSTGAME from the provided reference document.",
+      "precision": 0.45733532309532166,
+      "recall": 0.6371328234672546,
+      "f1": 0.5446058511734009
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 74,
+      "question": "How many users completed TUTORIAL_STEP_WINFIRSTGAME?",
+      "reference": "1320 out of 5000 users completed TUTORIAL_STEP_WINFIRSTGAME.",
+      "candidate": "It is not possible to determine how many users completed TUTORIAL_STEP_WINFIRSTGAME from the provided reference document.",
+      "precision": 0.5095041990280151,
+      "recall": 0.6458090543746948,
+      "f1": 0.5763612389564514
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 75,
+      "question": "How does the South America sub-continent churn rate compare to Southeast Asia?",
+      "reference": "South America has a churn rate of 62.84% versus 48.22% for Southeast Asia — a 14.62 percentage point gap.",
+      "candidate": "It is not possible to compare the churn rates of the South America and Southeast Asia sub-continents because the reference document does not provide joint distribution data or a cross-tabulation between the `sub_continent` and `UserChurned` columns.",
+      "precision": 0.11629513651132584,
+      "recall": 0.14714166522026062,
+      "f1": 0.1326451301574707
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 76,
+      "question": "Is there a drop-off between early and late tutorial steps?",
+      "reference": "Yes — early steps like TUTDRAGCUE have ~44% completion while later steps like DONE and JOINFIRSTGAME drop to ~19% indicating significant funnel drop-off.",
+      "candidate": "Yes, there appears to be a significant drop-off between early and late tutorial steps, as indicated by the decreasing mean values of sequential steps (e.g., TUTORIAL_STEP_TUTDRAGCUE has a mean of 10.59, TUTORIAL_STEP_SHOW_FORCE_CUE has a mean of 6.99, and TUTORIAL_STEP_FORCE_CUE has a mean of 5.09) and the very low mean of the final step, TUTORIAL_STEP_DONE, which is only 0.49.",
+      "precision": 0.1526259183883667,
+      "recall": 0.4088735282421112,
+      "f1": 0.27441856265068054
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 77,
+      "question": "Which tutorial milestone shows the biggest engagement drop?",
+      "reference": "JOINFIRSTGAME (19.24%) and DONE (18.64%) show the biggest drops from the early tutorial steps that complete at ~38–44%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which tutorial milestone shows the biggest engagement drop because the document does not specify the sequential order of the tutorial steps, nor does it provide user-level progression or completion rates for each milestone.",
+      "precision": 0.30206507444381714,
+      "recall": 0.20374077558517456,
+      "f1": 0.25272470712661743
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 78,
+      "question": "What proportion of users who completed the full tutorial later churned?",
+      "reference": "40.77% of users who completed the tutorial (DONE step) churned — well below the overall churn rate of 53.06%.",
+      "candidate": "It is not possible to determine the proportion of users who completed the full tutorial and later churned from the provided reference document, as it does not contain joint distribution or cross-tabulation data between tutorial completion and churn status.",
+      "precision": 0.3646645247936249,
+      "recall": 0.3718140721321106,
+      "f1": 0.3689891993999481
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 79,
+      "question": "Does CPC (paid) traffic result in higher churn than organic?",
+      "reference": "Yes — CPC traffic has a churn rate of 56.19% compared to 49.26% for organic — a ~7 percentage point difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine whether CPC (paid) traffic results in higher churn than organic traffic because the document does not contain cross-tabulation or correlation data between the 'medium' and 'UserChurned' columns.",
+      "precision": 0.21478271484375,
+      "recall": 0.20349477231502533,
+      "f1": 0.2100701481103897
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 80,
+      "question": "Which country among the top 10 by volume has the lowest churn rate?",
+      "reference": "Indonesia has the lowest churn rate among the top 10 countries by volume at 46.04%.",
+      "candidate": "It is not possible to determine which country among the top 10 by volume has the lowest churn rate from the provided reference document, as it does not contain joint distribution data or a cross-tabulation between the `country` and `UserChurned` columns.",
+      "precision": 0.20969533920288086,
+      "recall": 0.4702138900756836,
+      "f1": 0.3334992825984955
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 81,
+      "question": "What is the total number of users from Southeast Asia sub-continent?",
+      "reference": "1769 users are from the Southeast Asia sub-continent.",
+      "candidate": "The total number of users from the Southeast Asia sub-continent is 1,769.",
+      "precision": 0.4470331072807312,
+      "recall": 0.7550504803657532,
+      "f1": 0.5924084782600403
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 82,
+      "question": "How does Samsung's churn rate compare to Infinix's churn rate?",
+      "reference": "Samsung has a churn rate of 56.30% versus Infinix at 46.18% — a 10.12 percentage point difference.",
+      "candidate": "It is not possible to compare the churn rates of Samsung and Infinix because the reference document does not provide joint distribution data or a cross-tabulation between the `mobile_brand_name` and `UserChurned` columns, nor does it provide specific statistics for Infinix.",
+      "precision": 0.1321725845336914,
+      "recall": 0.17076236009597778,
+      "f1": 0.15230923891067505
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 83,
+      "question": "What share of users are on Android 11 or newer (Android 11 / 12 / 13)?",
+      "reference": "2949 out of 5000 users (58.98%) are on Android 11 or newer.",
+      "candidate": "The share of users on Android 11 or newer (Android 11, 12, or 13) is 58.98% (2,949 out of 5,000 users).",
+      "precision": 0.530817985534668,
+      "recall": 0.7551893591880798,
+      "f1": 0.6386728882789612
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 84,
+      "question": "What is the most important single behavioral predictor of retention based on tutorial data?",
+      "reference": "Joining the first game (JOINFIRSTGAME) is the strongest retention signal — users who joined their first game have the lowest churn rate at 38.88%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the most important single behavioral predictor of retention because the document does not contain correlation, feature importance, or joint distribution data between the tutorial steps and retention or churn (UserChurned).",
+      "precision": 0.31199541687965393,
+      "recall": 0.2870674133300781,
+      "f1": 0.3003014326095581
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 85,
+      "question": "How many tutorial steps have a completion rate above 35%?",
+      "reference": "Eight tutorial steps have a completion rate above 35%: TUTDRAGCUE (44.30%), SHOW_FORCE_CUE (39.04%), DONESCENETUT (38.46%), TUTPOTTEDBALL (38.20%), FORCE_CUE (37.66%), BREAKING (37.38%), GAME_TEACHTARGETBALL (36.00%), and WINFIRSTGAME (26.40% — below 35%).",
+      "candidate": "Based on the provided reference document, it is not possible to determine how many tutorial steps have a completion rate above 35% because the document does not contain completion rates or the necessary data to calculate them.",
+      "precision": 0.3195347487926483,
+      "recall": 0.10559108108282089,
+      "f1": 0.20833805203437805
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 86,
+      "question": "How many users were acquired via Google Play vs Google (CPC)?",
+      "reference": "2103 users were acquired via Google Play (organic) and 1365 via Google (CPC).",
+      "candidate": "Based on the reference document, there are 2,103 users acquired via Google Play ('google-play') compared to 1,365 users acquired via Google CPC ('google' / 'cpc').",
+      "precision": 0.42986130714416504,
+      "recall": 0.6202882528305054,
+      "f1": 0.5220555663108826
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 87,
+      "question": "What is the ratio of churned to retained users?",
+      "reference": "The ratio of churned to retained users is approximately 1.13:1 (2653 churned vs 2347 retained).",
+      "candidate": "Based on the reference document, there are 2,653 churned users (True) and 2,347 retained users (False), resulting in a ratio of approximately 1.13 to 1.",
+      "precision": 0.4443637430667877,
+      "recall": 0.6092977523803711,
+      "f1": 0.5247074365615845
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 88,
+      "question": "Which sub-continent has the most users?",
+      "reference": "Southeast Asia has the most users with 1769 records.",
+      "candidate": "The sub-continent with the most users is 'Southeast Asia' with 1,769 users.",
+      "precision": 0.3848184049129486,
+      "recall": 0.6224513649940491,
+      "f1": 0.4985949397087097
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 89,
+      "question": "What is the churn rate for Eastern Europe users?",
+      "reference": "The churn rate for Eastern Europe users is 57.14%.",
+      "candidate": "It is not possible to determine the churn rate for Eastern Europe users from the provided reference document, as it does not contain joint distribution data or a cross-tabulation between the sub-continent (or country) and UserChurned columns, nor does it explicitly list Eastern Europe in the sub-continent statistics.",
+      "precision": 0.20332899689674377,
+      "recall": 0.46197888255119324,
+      "f1": 0.3262884020805359
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 90,
+      "question": "What is the churn rate for Western Asia users?",
+      "reference": "The churn rate for Western Asia users is 55.56%.",
+      "candidate": "FAILED_ANSWER",
+      "precision": -0.09737163037061691,
+      "recall": -0.16059616208076477,
+      "f1": -0.12816739082336426
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 91,
+      "question": "What is the churn rate for Southern Africa users?",
+      "reference": "The churn rate for Southern Africa users is 53.73%.",
+      "candidate": "FAILED_ANSWER",
+      "precision": -0.06907773017883301,
+      "recall": -0.15282422304153442,
+      "f1": -0.11054947972297668
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 92,
+      "question": "What is the churn rate for Western Africa users?",
+      "reference": "The churn rate for Western Africa users is 50.00%.",
+      "candidate": "FAILED_ANSWER",
+      "precision": -0.06475822627544403,
+      "recall": -0.1162186935544014,
+      "f1": -0.08953076601028442
+    },
+    {
+      "dataset": "MobileGameChurn",
+      "row_number": 93,
+      "question": "How many users are in the Northern America sub-continent?",
+      "reference": "203 users are in the Northern America sub-continent with a churn rate of 56.65%.",
+      "candidate": "Based on the provided reference document, the exact number of users in the 'Northern America' sub-continent cannot be determined because it is not listed in the top 5 sub-continents under the 'sub_continent' column statistics.",
+      "precision": 0.24672426283359528,
+      "recall": 0.322335809469223,
+      "f1": 0.2847602665424347
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 2,
+      "question": "Which region has been flagged as an anomaly, and why?",
+      "reference": "Southeast Asia has been flagged as an anomaly due to its margin of 2.0%, which falls below the 3% threshold. The possible cause is high costs or low pricing.",
+      "candidate": "Based on the provided reference document, no specific region has been flagged as an anomaly. The document only flags high anomaly rates for the numerical columns: 'discount' (8.13% outliers), 'profit' (19.02% outliers), and 'shipping_cost' (11.52% outliers).",
+      "precision": 0.2817624509334564,
+      "recall": 0.41985225677490234,
+      "f1": 0.3495575785636902
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 3,
+      "question": "How many regions have a margin below 3.0%?",
+      "reference": "1 out of 13 regions has a margin below 3.0%, which is Southeast Asia.",
+      "candidate": "Based on the provided reference document, it is not possible to determine how many regions have a margin below 3.0% because the document does not contain profit margin data or joint distributions of profit and sales by region.",
+      "precision": 0.21244052052497864,
+      "recall": 0.4289668798446655,
+      "f1": 0.3164699375629425
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 4,
+      "question": "How many categories have profit below the average?",
+      "reference": "1 out of 3 categories has profit below the average of $489,678.",
+      "candidate": "Based on the provided reference document, it is not possible to determine how many categories have profit below the average because the document does not contain profit data broken down by category or joint distributions between 'category' and 'profit'.",
+      "precision": 0.17469540238380432,
+      "recall": 0.22301439940929413,
+      "f1": 0.19954758882522583
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 5,
+      "question": "How many categories have revenue below the average?",
+      "reference": "2 out of 3 categories have revenue below the average of $4,214,302.",
+      "candidate": "Based on the provided reference document, it is not possible to determine how many categories have revenue below the average because the document does not contain average revenue (sales) data broken down by category, nor does it provide the overall average revenue.",
+      "precision": 0.1386885792016983,
+      "recall": 0.1690768152475357,
+      "f1": 0.15478737652301788
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 6,
+      "question": "What are the key warning signs in the data?",
+      "reference": "Southeast Asia stands out with a critically low margin of 2.0% and the lowest profit among named anomalies at $17,852. Additionally, 9 out of 13 regions fall below the average revenue of $972,531, indicating widespread revenue underperformance.",
+      "candidate": "The key warning signs in the data are high anomaly rates in three numerical columns: profit (19.02% outliers, or 9,755 outliers), shipping_cost (11.52% outliers, or 5,909 outliers), and discount (8.13% outliers, or 4,172 outliers). In total, there are 14,611 rows with flagged anomalies.",
+      "precision": 0.32343608140945435,
+      "recall": 0.3533283472061157,
+      "f1": 0.3390777111053467
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 7,
+      "question": "Which region has the highest profit margin?",
+      "reference": "Canada has the highest profit margin at 26.6%, which is 2.1x the overall average of 12.9%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which region has the highest profit margin because the document does not contain profit or sales data broken down by region.",
+      "precision": 0.17856205999851227,
+      "recall": 0.1756734549999237,
+      "f1": 0.17810067534446716
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 8,
+      "question": "Which region has the lowest profit margin?",
+      "reference": "Southeast Asia has the lowest profit margin at 2.0%, making it the only region flagged as an anomaly for falling below the 3% threshold.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which region has the lowest profit margin because the document does not contain profit or sales data broken down by region.",
+      "precision": 0.31409838795661926,
+      "recall": 0.3006668984889984,
+      "f1": 0.3081913888454437
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 9,
+      "question": "What is the average margin across all regions?",
+      "reference": "The average margin across all 13 regions is 12.9%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the average margin across all regions because the document does not contain profit margin data, nor does it provide profit or sales figures broken down by region.",
+      "precision": 0.10366379469633102,
+      "recall": 0.315372496843338,
+      "f1": 0.20539653301239014
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 10,
+      "question": "How many regions fall below the average margin?",
+      "reference": "7 out of 13 regions have a margin below the average of 12.9%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine how many regions fall below the average margin because the document does not contain profit margin data or profit and sales figures broken down by region.",
+      "precision": 0.08572465181350708,
+      "recall": 0.2080075442790985,
+      "f1": 0.14614635705947876
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 11,
+      "question": "What is the margin gap between the highest and lowest regions?",
+      "reference": "The margin gap between Canada (26.6%) and Southeast Asia (2.0%) is 24.6 percentage points, a 13.2x difference.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the margin gap between the highest and lowest regions because the document does not contain profit margin data or profit and sales figures broken down by region.",
+      "precision": 0.13981632888317108,
+      "recall": 0.01837078668177128,
+      "f1": 0.07842321693897247
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 12,
+      "question": "What are the margins for the North, South, East, and West regions?",
+      "reference": "North is 15.6%, West is 14.9%, East is 13.5%, and South is 8.8%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine the margins for the North, South, East, and West regions because the document does not contain profit or sales data broken down by region.",
+      "precision": 0.019453587010502815,
+      "recall": -0.07328487932682037,
+      "f1": -0.026776054874062538
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 13,
+      "question": "Which Asia-Pacific regions have the strongest margins?",
+      "reference": "North Asia leads at 19.5%, followed by Central Asia at 17.6%. Oceania sits at 11.1% and Southeast Asia is the weakest at 2.0%.",
+      "candidate": "Based on the provided reference document, it is not possible to determine which Asia-Pacific regions have the strongest margins because the document does not contain profit or sales data broken down by region or market.",
+      "precision": 0.05633286014199257,
+      "recall": 0.009481096640229225,
+      "f1": 0.033793721348047256
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 14,
+      "question": "How does the Central region's margin compare to the average?",
+      "reference": "Central's margin is 11.0%, which is slightly below the overall average of 12.9%.",
+      "candidate": "Based on the provided reference document, it is not possible to compare the Central region's margin to the average because the document does not contain profit margin data, nor does it provide profit or sales figures broken down by region.",
+      "precision": 0.12574240565299988,
+      "recall": 0.148808091878891,
+      "f1": 0.1382446140050888
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 15,
+      "question": "What are the margins for EMEA and Africa?",
+      "reference": "EMEA has a margin of 5.4% and Africa has a margin of 11.3%, both below the overall average of 12.9%.",
+      "candidate": "Based on the reference document, it is not possible to determine the margins for EMEA and Africa. Although the document indicates that 'EMEA' has 5,029 occurrences and 'Africa' has 4,587 occurrences in the 'region' column, it does not provide profit or sales figures broken down by region to calculate these margins.",
+      "precision": 0.1268293857574463,
+      "recall": 0.2173863798379898,
+      "f1": 0.17215457558631897
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 16,
+      "question": "Which region generates the highest profit?",
+      "reference": "Central generates the highest profit at $311,404, which is 2.8x the average profit of $113,003.",
+      "candidate": "Based on the reference document, it is not possible to determine which region generates the highest profit because the document does not provide profit figures broken down by region.",
+      "precision": 0.16051779687404633,
+      "recall": 0.1457037329673767,
+      "f1": 0.15409810841083527
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 17,
+      "question": "Which region generates the lowest profit?",
+      "reference": "Canada generates the lowest profit at $17,817.",
+      "candidate": "Based on the reference document, it is not possible to determine which region generates the lowest profit because the document does not provide profit figures broken down by region.",
+      "precision": 0.09881366789340973,
+      "recall": 0.2978932857513428,
+      "f1": 0.1948089599609375
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 18,
+      "question": "What is the average profit across all regions?",
+      "reference": "The average profit across all 13 regions is $113,003.",
+      "candidate": "The average profit across all regions is 28.64.",
+      "precision": 0.7318863272666931,
+      "recall": 0.6023472547531128,
+      "f1": 0.6659437417984009
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 19,
+      "question": "How many regions fall below the average profit?",
+      "reference": "7 out of 13 regions have profit below the average of $113,003.",
+      "candidate": "Based on the reference document, it is not possible to determine how many regions fall below the average profit because the document does not provide profit figures broken down by region.",
+      "precision": 0.20270897448062897,
+      "recall": 0.2883555293083191,
+      "f1": 0.2456182837486267
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 20,
+      "question": "What is the profit gap between the highest and lowest regions?",
+      "reference": "The profit gap between Central ($311,404) and Canada ($17,817) is a 17.5x difference.",
+      "candidate": "Based on the reference document, it is not possible to determine the profit gap between the highest and lowest regions because the document does not provide profit figures broken down by region.",
+      "precision": 0.2653888761997223,
+      "recall": 0.1663743555545807,
+      "f1": 0.2157144695520401
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 21,
+      "question": "What are the profits for the North, South, East, and West regions?",
+      "reference": "North is $194,598, South is $140,356, West is $108,418, and East is $91,523.",
+      "candidate": "Based on the reference document, it is not possible to determine the profits for the North, South, East, and West regions because the document does not provide profit figures broken down by region.",
+      "precision": 0.0505107119679451,
+      "recall": 0.014093279838562012,
+      "f1": 0.03329605609178543
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 22,
+      "question": "Which regions have profit above $150,000?",
+      "reference": "Central ($311,404) and North ($194,598) are the only regions with profit above $150,000.",
+      "candidate": "Based on the reference document, it is not possible to determine which regions have profit above $150,000 because the document does not provide profit figures broken down by region.",
+      "precision": 0.28221243619918823,
+      "recall": 0.3558031916618347,
+      "f1": 0.3192387819290161
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 23,
+      "question": "What are the profits for the Asia-Pacific regions?",
+      "reference": "North Asia leads at $165,578, followed by Central Asia at $132,480, Oceania at $121,667, Southeast Asia at $17,852, and Caribbean at $34,571.",
+      "candidate": "Based on the reference document, it is not possible to determine the profits for the Asia-Pacific regions because the document does not provide profit figures broken down by region or market.",
+      "precision": 0.017394041642546654,
+      "recall": -0.09859717637300491,
+      "f1": -0.04107191413640976
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 24,
+      "question": "Which region has the highest revenue?",
+      "reference": "Central has the highest revenue at $2,822,399, which is 2.9x the average revenue of $972,531.",
+      "candidate": "Based on the reference document, it is not possible to determine which region has the highest revenue because the document does not provide sales or revenue figures broken down by region.",
+      "precision": 0.11403749883174896,
+      "recall": 0.026644397526979446,
+      "f1": 0.07053128629922867
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 25,
+      "question": "Which region has the lowest revenue?",
+      "reference": "Canada has the lowest revenue at $66,932.",
+      "candidate": "Based on the reference document, it is not possible to determine which region has the lowest revenue because the document does not provide sales or revenue figures broken down by region.",
+      "precision": 0.08767496049404144,
+      "recall": 0.22847650945186615,
+      "f1": 0.15678785741329193
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 26,
+      "question": "What is the average revenue across all regions?",
+      "reference": "The average revenue across all 13 regions is $972,531.",
+      "candidate": "Based on the reference document, it is not possible to determine the average revenue across all regions because the document does not provide the mean or average for the 'sales' column, nor does it provide sales or revenue figures broken down by region.",
+      "precision": 0.11008252948522568,
+      "recall": 0.24623961746692657,
+      "f1": 0.17701765894889832
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 27,
+      "question": "How many regions fall below the average revenue?",
+      "reference": "9 out of 13 regions have revenue below the average of $972,531.",
+      "candidate": "Based on the reference document, it is not possible to determine how many regions fall below the average revenue because the document does not provide the average revenue (sales) or any revenue figures broken down by region.",
+      "precision": 0.1541019231081009,
+      "recall": 0.19888544082641602,
+      "f1": 0.17724819481372833
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 28,
+      "question": "What is the revenue gap between the highest and lowest regions?",
+      "reference": "The revenue gap between Central ($2,822,399) and Canada ($66,932) is $2,755,467, a 42.2x difference.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenue gap between the highest and lowest regions because the document does not provide sales or revenue figures broken down by region.",
+      "precision": 0.20033299922943115,
+      "recall": -0.03754018619656563,
+      "f1": 0.07570525258779526
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 29,
+      "question": "What are the revenue rankings for all 13 regions?",
+      "reference": "Central is 1st ($2,822,399), North is 3rd ($1,248,192), Oceania is 4th ($1,100,207), Southeast Asia is 5th ($884,438), EMEA is 7th ($806,184), Africa is 8th ($783,776), East is 11th ($678,834), Caribbean is 12th ($324,281), and Canada is 13th ($66,932).",
+      "candidate": "Based on the reference document, it is not possible to determine the revenue rankings for the 13 regions because the document does not provide sales or revenue figures broken down by region.",
+      "precision": -0.06463808566331863,
+      "recall": -0.27259761095046997,
+      "f1": -0.17311830818653107
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 30,
+      "question": "What share of total revenue do the top 3 regions account for?",
+      "reference": "The top 3 regions by revenue account for 44.9% of total revenue.",
+      "candidate": "Based on the reference document, it is not possible to determine the share of total revenue that the top 3 regions account for because the document does not provide sales or revenue figures broken down by region, nor does it provide the total revenue.",
+      "precision": 0.2191023975610733,
+      "recall": 0.5010762810707092,
+      "f1": 0.3524399995803833
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 31,
+      "question": "What are the revenues for the North, South, East, and West regions?",
+      "reference": "North is $1,248,192, South is $1,600,960, West is $725,514, and East is $678,834.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenues for the North, South, East, and West regions because the document does not provide sales or revenue figures broken down by region.",
+      "precision": 0.028567790985107422,
+      "recall": -0.038429439067840576,
+      "f1": -0.004291132558137178
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 32,
+      "question": "What is the revenue for Southeast Asia, and why is it notable?",
+      "reference": "Southeast Asia has revenue of $884,438 (ranked 5th), but is flagged as an anomaly because despite this mid-tier revenue, its margin is only 2.0%, signaling a serious cost or pricing problem.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenue for Southeast Asia or why it is notable because the document does not provide sales or revenue figures broken down by region, nor does it explicitly list 'Southeast Asia' or its metrics.",
+      "precision": 0.3163817822933197,
+      "recall": 0.24510525166988373,
+      "f1": 0.2810474932193756
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 33,
+      "question": "What are the revenues for Central Asia and North Asia?",
+      "reference": "Central Asia has revenue of $752,839 and North Asia has revenue of $848,349.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenues for Central Asia and North Asia because the document does not provide sales or revenue figures broken down by region, nor does it list 'Central Asia' or 'North Asia' in its region statistics.",
+      "precision": 0.11802036315202713,
+      "recall": 0.09643285721540451,
+      "f1": 0.10823900997638702
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 34,
+      "question": "Which region leads in all three metrics — margin, profit, and revenue?",
+      "reference": "No single region leads in all three. Canada leads in margin (26.6%), while Central leads in both profit ($311,404) and revenue ($2,822,399).",
+      "candidate": "Based on the reference document, it is not possible to determine which region leads in margin, profit, and revenue because the document does not provide a breakdown of these metrics by region.",
+      "precision": 0.27787578105926514,
+      "recall": 0.16256830096244812,
+      "f1": 0.21965917944908142
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 35,
+      "question": "How does Canada's margin compare to the overall average?",
+      "reference": "Canada's margin of 26.6% is 2.1x the overall average of 12.9%, making it the strongest margin performer despite having the lowest revenue and profit.",
+      "candidate": "Based on the reference document, it is not possible to compare Canada's margin to the overall average because the document does not contain data for Canada or a 'margin' metric.",
+      "precision": 0.3232555091381073,
+      "recall": 0.22915193438529968,
+      "f1": 0.2760976254940033
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 36,
+      "question": "How does Central's profit compare to the overall average?",
+      "reference": "Central's profit of $311,404 is 2.8x the overall average of $113,003, the highest of all 13 regions.",
+      "candidate": "Based on the reference document, it is not possible to compare Central's profit to the overall average because the document does not provide profit figures broken down by region. However, the document indicates that the overall average (mean) profit is 28.64, and 'Central' is the most frequent region with 11,117 occurrences.",
+      "precision": 0.25369131565093994,
+      "recall": 0.3862125277519226,
+      "f1": 0.318874329328537
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 37,
+      "question": "How does Central's revenue compare to the overall average?",
+      "reference": "Central's revenue of $2,822,399 is 2.9x the overall average of $972,531, the highest of all 13 regions.",
+      "candidate": "Based on the reference document, it is not possible to compare Central's revenue to the overall average because the document does not provide revenue or sales figures broken down by region, nor does it provide an overall average for revenue (the 'sales' column is listed under the categorical landscape without a calculated mean).",
+      "precision": 0.14271685481071472,
+      "recall": 0.06345533579587936,
+      "f1": 0.10341253131628036
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 38,
+      "question": "Which regions rank in the bottom three for revenue?",
+      "reference": "East is ranked 11th ($678,834), Caribbean is ranked 12th ($324,281), and Canada is ranked 13th ($66,932).",
+      "candidate": "Based on the reference document, it is not possible to determine which regions rank in the bottom three for revenue because the document does not provide sales or revenue figures broken down by region.",
+      "precision": -0.06654620170593262,
+      "recall": -0.052446380257606506,
+      "f1": -0.05825519561767578
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 39,
+      "question": "Which regions are above average in both margin and profit?",
+      "reference": "Data not available in the knowledge base.",
+      "candidate": "Based on the reference document, it is not possible to determine which regions are above average in both margin and profit. The document does not contain a 'margin' metric, nor does it provide a breakdown of profit by region.",
+      "precision": 0.1439947783946991,
+      "recall": 0.2936209738254547,
+      "f1": 0.21722155809402466
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 40,
+      "question": "What is the overall spread of margins and revenues across regions?",
+      "reference": "Margins span 24.6 percentage points (from 2.0% to 26.6%) and revenues span $2,755,467 (from $66,932 to $2,822,399), reflecting substantial performance disparity across regions.",
+      "candidate": "Based on the reference document, it is not possible to determine the overall spread of margins and revenues across regions. The document does not contain a 'margin' metric, does not provide numerical statistics (such as mean or standard deviation) for 'sales' (revenue), and does not provide any breakdown of these metrics by 'region'.",
+      "precision": 0.14426812529563904,
+      "recall": -0.012590806931257248,
+      "f1": 0.06398110836744308
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 41,
+      "question": "How does Southeast Asia compare to other regions across all metrics?",
+      "reference": "Southeast Asia ranks 5th in revenue ($884,438) but has the lowest margin at 2.0% and a profit of just $17,852, making it the worst-performing region on efficiency despite having a relatively high revenue rank.",
+      "candidate": "Based on the reference document, it is not possible to compare Southeast Asia to other regions across any metrics. The document does not provide a breakdown of metrics (such as profit, quantity, discount, shipping_cost, or sales) by region, nor does it explicitly list 'Southeast Asia' among the top regions.",
+      "precision": 0.2302180379629135,
+      "recall": 0.1443321406841278,
+      "f1": 0.18740470707416534
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 42,
+      "question": "Which region leads in profit margin?",
+      "reference": "Canada leads all regions with a margin of 26.6%, which is 2.1x the average regional margin of 12.9%.",
+      "candidate": "Based on the reference document, it is not possible to determine which region leads in profit margin because the document does not contain a 'profit margin' metric, nor does it provide a breakdown of profit or sales by region.",
+      "precision": 0.0757589191198349,
+      "recall": 0.04637427628040314,
+      "f1": 0.06208490952849388
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 43,
+      "question": "Which region leads in profit?",
+      "reference": "Central leads all regions in profit at $311,404, generating 2.8x the regional average of $113,003.",
+      "candidate": "Based on the reference document, it is not possible to determine which region leads in profit because the document does not provide a breakdown of profit by region.",
+      "precision": 0.1311129629611969,
+      "recall": 0.11898675560951233,
+      "f1": 0.12607905268669128
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 44,
+      "question": "Which region leads in revenue?",
+      "reference": "Central leads all regions in revenue at $2,822,399, generating 2.9x the regional average of $972,531.",
+      "candidate": "Based on the reference document, it is not possible to determine which region leads in revenue because the document does not provide a breakdown of sales (revenue) by region.",
+      "precision": 0.13480566442012787,
+      "recall": 0.011926279403269291,
+      "f1": 0.07265515625476837
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 45,
+      "question": "How does Canada's margin compare to the regional average?",
+      "reference": "Canada's margin of 26.6% is 2.1x the regional average of 12.9%, making it the top-performing region for profitability efficiency.",
+      "candidate": "Based on the reference document, it is not possible to compare Canada's margin to the regional average. The document does not contain a 'margin' metric, does not list 'Canada' in its country statistics, and does not provide a breakdown of profit or sales by country or region.",
+      "precision": 0.18710631132125854,
+      "recall": 0.21109223365783691,
+      "f1": 0.19999167323112488
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 46,
+      "question": "How does Central's performance compare to the regional average in both profit and revenue?",
+      "reference": "Central outperforms the regional average significantly in both metrics, leading profit at 2.8x the average and revenue at 2.9x the average of $972,531.",
+      "candidate": "Based on the reference document, it is not possible to compare the Central region's performance to the regional average in profit and revenue. The document does not provide a breakdown of profit or sales (revenue) by region, nor does it provide regional averages for these metrics.",
+      "precision": 0.33476948738098145,
+      "recall": 0.22877918183803558,
+      "f1": 0.2814037501811981
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 47,
+      "question": "Which category has the highest profit margin?",
+      "reference": "Technology has the highest profit margin at 14.0%, edging out Office Supplies at 13.7%.",
+      "candidate": "Based on the reference document, it is not possible to determine which category has the highest profit margin. The document does not contain a 'profit margin' metric, nor does it provide a breakdown of profit or sales by category.",
+      "precision": 0.14132237434387207,
+      "recall": 0.15167143940925598,
+      "f1": 0.14750507473945618
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 48,
+      "question": "Which category has the lowest profit margin?",
+      "reference": "Furniture has the lowest profit margin at 7.0%, roughly half the margin of the other two categories.",
+      "candidate": "Based on the reference document, it is not possible to determine which category has the lowest profit margin. The document does not contain a 'profit margin' metric, nor does it provide a breakdown of profit or sales by category.",
+      "precision": 0.2171906977891922,
+      "recall": 0.29836902022361755,
+      "f1": 0.25793829560279846
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 49,
+      "question": "What is the average profit margin across all categories?",
+      "reference": "The average profit margin across all categories is 11.6%.",
+      "candidate": "Based on the reference document, it is not possible to determine the average profit margin across all categories. The document does not contain a 'profit margin' metric, and while it lists 'profit' with a mean of 28.64 and 'category' with 3 unique values (Office Supplies, Technology, Furniture), it does not provide a breakdown of profit or sales by category to calculate this metric.",
+      "precision": 0.09373238682746887,
+      "recall": 0.5440429449081421,
+      "f1": 0.29786044359207153
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 50,
+      "question": "How does Office Supplies' margin compare to Furniture's?",
+      "reference": "Office Supplies' margin of 13.7% is 2.0x Furniture's margin of 7.0%.",
+      "candidate": "Based on the reference document, it is not possible to compare the margin of Office Supplies to that of Furniture. The document does not contain a 'margin' metric, nor does it provide a breakdown of profit or sales by category.",
+      "precision": 0.1164369061589241,
+      "recall": 0.05843052640557289,
+      "f1": 0.0881224125623703
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 51,
+      "question": "How does Technology's margin compare to Furniture's?",
+      "reference": "Technology's margin of 14.0% is 2.0x Furniture's margin of 7.0%.",
+      "candidate": "Based on the reference document, it is not possible to compare the margin of Technology to that of Furniture. The document does not contain a 'margin' metric, nor does it provide a breakdown of profit or sales by category.",
+      "precision": 0.12468474358320236,
+      "recall": 0.06805983185768127,
+      "f1": 0.09707091748714447
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 52,
+      "question": "How does Technology's margin compare to Office Supplies' margin?",
+      "reference": "Technology's margin of 14.0% is virtually equal to Office Supplies at 13.7%, representing a 1.0x ratio with only a 0.3 percentage point difference.",
+      "candidate": "Based on the reference document, it is not possible to compare the margin of Technology to that of Office Supplies. The document does not contain a 'margin' or 'profit margin' metric, nor does it provide a breakdown of profit or sales by category.",
+      "precision": 0.2656633257865906,
+      "recall": 0.1724863350391388,
+      "f1": 0.21903151273727417
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 53,
+      "question": "Which category generates the highest profit?",
+      "reference": "Technology generates the highest profit at $663,779, which is 1.4x the average category profit of $489,678.",
+      "candidate": "Based on the reference document, it is not possible to determine which category generates the highest profit.",
+      "precision": 0.2646031379699707,
+      "recall": 0.07526791095733643,
+      "f1": 0.1668020486831665
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 54,
+      "question": "Which category generates the lowest profit?",
+      "reference": "Furniture generates the lowest profit at $286,782, falling below the category average of $489,678.",
+      "candidate": "Based on the reference document, it is not possible to determine which category generates the lowest profit. The document provides overall statistics for the 'profit' column and frequency counts for the 'category' column, but it does not provide a breakdown of profit by category.",
+      "precision": 0.12170412391424179,
+      "recall": 0.11279898136854172,
+      "f1": 0.11829783767461777
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 55,
+      "question": "What is the average profit across all categories?",
+      "reference": "The average profit across all categories is $489,678.",
+      "candidate": "The average profit across all categories is 28.64.",
+      "precision": 0.7393178343772888,
+      "recall": 0.6051409244537354,
+      "f1": 0.6709387898445129
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 56,
+      "question": "What proportion of categories fall below the average profit?",
+      "reference": "One-third (1/3) of categories have profit below the average of $489,678, which corresponds to Furniture.",
+      "candidate": "Based on the reference document, it is not possible to determine what proportion of categories fall below the average profit.",
+      "precision": 0.3296091556549072,
+      "recall": 0.25893911719322205,
+      "f1": 0.2945742607116699
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 57,
+      "question": "How does Technology's profit compare to Office Supplies'?",
+      "reference": "Technology's profit of $663,779 is 1.3x Office Supplies' profit of $518,474.",
+      "candidate": "Based on the reference document, it is not possible to compare the profit of Technology to that of Office Supplies. The document provides overall statistics for the 'profit' column and frequency counts for the 'category' column, but it does not provide a breakdown of profit by category.",
+      "precision": 0.10265225172042847,
+      "recall": 0.0751708373427391,
+      "f1": 0.08991076052188873
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 58,
+      "question": "How does Technology's profit compare to Furniture's?",
+      "reference": "Technology's profit of $663,779 is 2.3x Furniture's profit of $286,782.",
+      "candidate": "Based on the reference document, it is not possible to compare the profit of Technology to that of Furniture.",
+      "precision": 0.22207890450954437,
+      "recall": 0.03435234725475311,
+      "f1": 0.1251222938299179
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 59,
+      "question": "How does Office Supplies' profit compare to Furniture's?",
+      "reference": "Office Supplies' profit of $518,474 is 1.8x Furniture's profit of $286,782.",
+      "candidate": "Based on the reference document, it is not possible to compare the profit of Office Supplies to that of Furniture. The document provides overall statistics for the 'profit' column and frequency counts for the 'category' column, but it does not provide a breakdown of profit by category.",
+      "precision": 0.07250887155532837,
+      "recall": 0.04796309769153595,
+      "f1": 0.061286717653274536
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 60,
+      "question": "What is the profit gap between the highest and lowest categories?",
+      "reference": "The profit gap between Technology ($663,779) and Furniture ($286,782) is $376,996.",
+      "candidate": "Based on the reference document, it is not possible to determine the profit gap between the highest and lowest categories.",
+      "precision": 0.2721793055534363,
+      "recall": 0.020076531916856766,
+      "f1": 0.13975279033184052
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 61,
+      "question": "Which category generates the highest revenue?",
+      "reference": "Technology generates the highest revenue at $4,744,691, ranking 1st among all categories.",
+      "candidate": "Based on the reference document, it is not possible to determine which category generates the highest revenue. The document provides frequency counts for the 'category' column and overall statistics for the 'sales' column, but it does not provide a breakdown of sales or revenue by category.",
+      "precision": 0.1006643995642662,
+      "recall": 0.09392474591732025,
+      "f1": 0.09836874157190323
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 62,
+      "question": "Which category generates the lowest revenue?",
+      "reference": "Office Supplies generates the lowest revenue at $3,787,330, ranking 3rd among all categories.",
+      "candidate": "Based on the reference document, it is not possible to determine which category generates the lowest revenue. The document provides frequency counts for the 'category' column and overall statistics for the 'sales' column, but it does not provide a breakdown of sales or revenue by category.",
+      "precision": 0.09888947010040283,
+      "recall": 0.12856082618236542,
+      "f1": 0.11468079686164856
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 63,
+      "question": "What is the average revenue across all categories?",
+      "reference": "The average revenue across all categories is $4,214,302.",
+      "candidate": "Based on the reference document, it is not possible to determine the average revenue across all categories. The document does not contain a 'revenue' column, and 'sales' is listed under the Categorical Landscape without any numerical mean or average provided.",
+      "precision": 0.07683123648166656,
+      "recall": 0.20968540012836456,
+      "f1": 0.14222575724124908
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 64,
+      "question": "What proportion of categories fall below the average revenue?",
+      "reference": "Two-thirds (2/3) of categories have revenue below the average of $4,214,302, corresponding to Office Supplies and Furniture.",
+      "candidate": "Based on the reference document, it is not possible to determine what proportion of categories fall below the average revenue. The document does not contain a 'revenue' column, and 'sales' is listed under the Categorical Landscape without any numerical statistics (such as a mean or sum) to calculate an average.",
+      "precision": 0.20433034002780914,
+      "recall": 0.22193153202533722,
+      "f1": 0.21403683722019196
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 65,
+      "question": "How does Technology's revenue compare to Furniture's?",
+      "reference": "Technology's revenue of $4,744,691 is 1.2x Furniture's revenue of $4,110,884.",
+      "candidate": "Based on the reference document, it is not possible to compare the revenue of Technology and Furniture. The document does not contain a 'revenue' column, and 'sales' is listed under the Categorical Landscape without any breakdown by category.",
+      "precision": 0.10313692688941956,
+      "recall": -0.016481967642903328,
+      "f1": 0.04272258281707764
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 66,
+      "question": "How does Technology's revenue compare to Office Supplies'?",
+      "reference": "Technology's revenue of $4,744,691 is 1.3x Office Supplies' revenue of $3,787,330.",
+      "candidate": "Based on the reference document, it is not possible to compare the revenue of Technology and Office Supplies. The document does not contain a 'revenue' column, and 'sales' is listed under the Categorical Landscape without any breakdown by category.",
+      "precision": 0.12877826392650604,
+      "recall": 0.012034441344439983,
+      "f1": 0.06987398117780685
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 67,
+      "question": "How does Furniture's revenue compare to Office Supplies'?",
+      "reference": "Furniture's revenue of $4,110,884 is 1.1x Office Supplies' revenue of $3,787,330, making them the closest two categories in revenue.",
+      "candidate": "Based on the reference document, it is not possible to compare the revenue of Furniture and Office Supplies. The document does not contain a 'revenue' column, and 'sales' is listed under the Categorical Landscape without any breakdown by category.",
+      "precision": 0.25336235761642456,
+      "recall": 0.09745244681835175,
+      "f1": 0.17360275983810425
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 68,
+      "question": "Which category ranks first in revenue?",
+      "reference": "Technology ranks first in revenue with $4,744,691.",
+      "candidate": "Based on the reference document, it is not possible to determine which category ranks first in revenue. The document does not contain a 'revenue' column, and 'sales' is listed as a categorical variable without any numerical summation or breakdown by category.",
+      "precision": -0.01354776881635189,
+      "recall": 0.05549423396587372,
+      "f1": 0.02155458927154541
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 69,
+      "question": "Which category ranks second in revenue?",
+      "reference": "Furniture ranks second in revenue with $4,110,884.",
+      "candidate": "Based on the reference document, it is not possible to determine which category ranks second in revenue. The document does not contain a 'revenue' column, and 'sales' is listed as a categorical variable without any numerical summation or breakdown by category.",
+      "precision": -0.0002561917353887111,
+      "recall": 0.0818609818816185,
+      "f1": 0.041123878210783005
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 70,
+      "question": "Which category ranks third in revenue?",
+      "reference": "Office Supplies ranks third in revenue with $3,787,330.",
+      "candidate": "Based on the reference document, it is not possible to determine which category ranks third in revenue. The document does not contain a 'revenue' column, and 'sales' is listed as a categorical variable without any numerical summation or breakdown by category.",
+      "precision": -0.001551810302771628,
+      "recall": 0.12260027229785919,
+      "f1": 0.059779081493616104
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 71,
+      "question": "How does Technology compare to the average across all three key metrics?",
+      "reference": "Technology leads the average in all three metrics: margin at 1.2x the average (14.0% vs 11.6%), profit at 1.4x the average ($663,779 vs $489,678), and revenue at 1.1x the average ($4,744,691 vs $4,214,302).",
+      "candidate": "Based on the reference document, it is not possible to compare Technology to the average across any key metrics. The document does not provide a breakdown of numerical metrics by category.",
+      "precision": 0.23961810767650604,
+      "recall": -0.060604680329561234,
+      "f1": 0.07982192933559418
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 72,
+      "question": "Which category has the best balance of high revenue and high margin?",
+      "reference": "Technology achieves both the highest revenue ($4,744,691) and the highest margin (14.0%), making it the strongest performer across both dimensions simultaneously.",
+      "candidate": "Based on the reference document, it is not possible to determine which category has the best balance of high revenue and high margin. The document does not contain 'revenue' or 'margin' columns, nor does it provide a breakdown of 'profit' or 'sales' by 'category'.",
+      "precision": 0.13997884094715118,
+      "recall": 0.13753168284893036,
+      "f1": 0.13978439569473267
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 73,
+      "question": "How wide is the revenue gap between the highest and lowest revenue categories?",
+      "reference": "The revenue gap between Technology ($4,744,691) and Office Supplies ($3,787,330) is $957,361, a 1.3x difference.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenue gap between the highest and lowest revenue categories. The document does not contain a 'revenue' column, and 'sales' is listed as a categorical variable without any numerical summation or breakdown by category.",
+      "precision": 0.16132517158985138,
+      "recall": -0.009392599575221539,
+      "f1": 0.07356513291597366
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 74,
+      "question": "Which category is the overall strongest performer?",
+      "reference": "Technology is the overall strongest performer, leading in revenue (rank 1), profit ($663,779), and margin (14.0%) across all three key metrics.",
+      "candidate": "Based on the reference document, it is not possible to determine which category is the overall strongest performer. The document only provides frequency counts for the categories: Office Supplies (31,273), Technology (10,141), and Furniture (9,876), but does not break down performance metrics like profit, sales, or quantity by category.",
+      "precision": 0.36818578839302063,
+      "recall": 0.4940090477466583,
+      "f1": 0.430151104927063
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 75,
+      "question": "Which region has an anomalous margin, and what is it?",
+      "reference": "Southeast Asia is an anomalous region with a margin of only 2.0%, far below the regional average of 12.9%.",
+      "candidate": "Based on the reference document, it is not possible to determine which region has an anomalous margin or what that margin is. The document does not contain a 'margin' column, nor does it provide any breakdown of anomalies or metrics by 'region'.",
+      "precision": 0.15560689568519592,
+      "recall": 0.14160877466201782,
+      "f1": 0.1496032327413559
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 76,
+      "question": "How many regions fall below the average margin?",
+      "reference": "Seven out of 13 regions (7/13) have a margin below the regional average of 12.9%.",
+      "candidate": "Based on the reference document, it is not possible to determine how many regions fall below the average margin. The document does not contain a 'margin' column, nor does it provide any breakdown of margins or profits by region.",
+      "precision": 0.09135961532592773,
+      "recall": 0.16925522685050964,
+      "f1": 0.13063572347164154
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 77,
+      "question": "How many regions fall below the average revenue?",
+      "reference": "Nine out of 13 regions (9/13) have revenue below the regional average of $972,531, indicating that a small number of top regions drive the bulk of total revenue.",
+      "candidate": "Based on the reference document, it is not possible to determine how many regions fall below the average revenue. The document does not contain a 'revenue' column, and it does not provide any breakdown of sales or revenue by 'region'.",
+      "precision": 0.2267100214958191,
+      "recall": 0.2330184280872345,
+      "f1": 0.23078066110610962
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 78,
+      "question": "What is the margin gap across regions?",
+      "reference": "The margin gap across regions is 24.6 percentage points, reflecting a wide disparity in profitability performance between the top and bottom regions.",
+      "candidate": "Based on the reference document, it is not possible to determine the margin gap across regions. The document does not contain a 'margin' column, nor does it provide any breakdown of financial metrics by region.",
+      "precision": 0.2661011517047882,
+      "recall": 0.37070778012275696,
+      "f1": 0.3180406093597412
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 79,
+      "question": "What is the revenue gap across regions?",
+      "reference": "The revenue gap across regions is $2,755,467, highlighting significant concentration of revenue among leading regions.",
+      "candidate": "Based on the reference document, it is not possible to determine the revenue gap across regions. The document does not contain a 'revenue' column, and it does not provide any breakdown of sales or revenue by 'region'.",
+      "precision": 0.2701789438724518,
+      "recall": 0.2990827262401581,
+      "f1": 0.28539469838142395
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 80,
+      "question": "What share of total revenue do the top 3 regions account for?",
+      "reference": "The top 3 regions collectively account for 44.9% of total revenue, demonstrating substantial revenue concentration at the top.",
+      "candidate": "Based on the reference document, it is not possible to determine the share of total revenue that the top 3 regions account for. The document does not contain a 'revenue' column, nor does it provide a breakdown of sales or revenue by region.",
+      "precision": 0.28493455052375793,
+      "recall": 0.44748854637145996,
+      "f1": 0.3641800582408905
+    },
+    {
+      "dataset": "SuperStore",
+      "row_number": 81,
+      "question": "What does the combination of regional and category data suggest about overall business performance?",
+      "reference": "Performance is highly concentrated, with Technology dominating at the category level and Central and Canada leading at the regional level, while a majority of both regions (9/13) and categories (2/3) fall below their respective averages for revenue, suggesting significant upside potential in underperforming segments.",
+      "candidate": "The reference document does not provide combined regional and category data. Individually, the 'Central' region is the most frequent region (11,117 occurrences out of 13 unique regions) and 'Office Supplies' is the leading category (31,273 occurrences out of 3 unique categories). Overall business performance shows an average profit of 28.64 (with 19.02% outliers) and an average quantity of 3.48 per transaction.",
+      "precision": 0.28146299719810486,
+      "recall": 0.37746354937553406,
+      "f1": 0.3292767107486725
+    }
+  ]
+}
