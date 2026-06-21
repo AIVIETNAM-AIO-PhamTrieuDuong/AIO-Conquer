@@ -5,14 +5,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # 9Router
-    ninerouter_url: str = "http://45.128.222.24:20128/v1"
-    ninerouter_model: str = "ragas_experiments"
+    # OpenAI-compatible LLM endpoint (set in .env)
+    ninerouter_url: str
+    ninerouter_model: str
     ninerouter_key: Optional[str] = None
-
-    # Legacy keys kept so existing .env files don't break on startup
-    google_api_key: Optional[str] = None
-    gemini_model: str = "gemini-2.5-flash"
 
     redis_url: str = "redis://localhost:6379"
     session_ttl: int = 3600
@@ -20,7 +16,7 @@ class Settings(BaseSettings):
 
     pinecone_api_key: Optional[str] = None
     pinecone_index: Optional[str] = None
-    embed_model: str = "text-embedding-004"
+    embed_model: str = "text-embedding-3-small"
 
 
 settings = Settings()
