@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph, END
 
 from app.api.schemas import AskRequest, QAResponse
 from app.memory.redis_client import memory
-from app.model.llm_client import llm
+from app.model.openai_client import llm
 from app.model.prompts.qa_system import build_prompt
 from app.validation.parser import parse_response
 
@@ -47,7 +47,8 @@ async def node_load_eda_context(state: QAState) -> dict:
 async def node_generate(state: QAState) -> dict:
     prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
     max_tokens = 4096 if state["context"] else 1024
-    return {"raw_response": await llm.generate(prompt, max_tokens=max_tokens)}
+    raw_response = await llm.generate(prompt, max_tokens=max_tokens)
+    return {"raw_response": raw_response}
 
 
 async def node_parse(state: QAState) -> dict:

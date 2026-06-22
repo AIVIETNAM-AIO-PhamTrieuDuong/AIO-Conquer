@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from app.memory.redis_client import memory
-from app.model.llm_client import llm
+from app.model.openai_client import llm
 
 
 # ---------------------------------------------------------------------------

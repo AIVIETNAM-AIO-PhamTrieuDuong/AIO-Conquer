@@ -4,12 +4,21 @@ from app.core.config import settings
 
 
 def _collect_sse(raw_text: str) -> str:
-    """Collect content chunks from an SSE stream into a single string.
+    """Extract assistant content from OpenAI-compatible responses.
 
-    9Router returns Server-Sent Events even for non-streaming requests.
-    Each line looks like:  data: {...}  or  data: [DONE]
-    We concatenate every delta.content token in order.
+    The provider may return either Server-Sent Events with delta chunks or a
+    normal JSON response with message.content. Empty content is treated as a
+    model response error so downstream state never receives a blank response.
     """
+    try:
+        response = json.loads(raw_text)
+        message = response["choices"][0].get("message", {})
+        content = message.get("content")
+        if content:
+            return content
+    except (json.JSONDecodeError, KeyError, IndexError, TypeError):
+        pass
+
     result: list[str] = []
     for line in raw_text.splitlines():
         line = line.strip()
@@ -20,12 +29,17 @@ def _collect_sse(raw_text: str) -> str:
             break
         try:
             chunk = json.loads(payload)
-            delta = chunk["choices"][0].get("delta", {})
-            if content := delta.get("content"):
+            choice = chunk["choices"][0]
+            delta = choice.get("delta", {})
+            message = choice.get("message", {})
+            if content := delta.get("content") or message.get("content"):
                 result.append(content)
         except (json.JSONDecodeError, KeyError, IndexError):
             continue
-    return "".join(result)
+    content = "".join(result)
+    if content:
+        return content
+    raise ValueError("LLM response did not include assistant content.")
 
 
 class NineRouterClient:
@@ -57,6 +71,7 @@ class NineRouterClient:
                 json=payload,
             )
             resp.raise_for_status()
+            print(resp)
             return _collect_sse(resp.text)
 
     async def generate(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1024) -> str:
