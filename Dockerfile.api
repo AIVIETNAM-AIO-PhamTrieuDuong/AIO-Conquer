@@ -1,15 +1,28 @@
-FROM python:3.13-slim
+FROM python:3.11-slim AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app
 
-# Layer riêng — chỉ rebuild khi requirements.txt thay đổi
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv pip install \
+    --python /usr/local/bin/python \
+    --target /app/packages \
+    --index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    --no-cache \
+    -r requirements.txt
 
-# Copy app code sau — thay đổi code không trigger reinstall deps
+
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=builder /app/packages /app/packages
+ENV PYTHONPATH="/app/packages"
+
 COPY app/ app/
 COPY .chainlit/ .chainlit/
 COPY public/ public/
 COPY README.md chainlit.md ./
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
