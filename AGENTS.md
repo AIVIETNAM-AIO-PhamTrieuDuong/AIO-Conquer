@@ -191,3 +191,5 @@ agent-relevant context that does not belong more naturally in
 - 2026-06-14: Established repository-wide agent rules. `AGENTS.md` is the
   canonical agent instruction file, and `DEVELOPMENT.md` is the canonical
   development guide.
+- 2026-06-22: Reviewed after `GraphState` replaced `QAState` in the QA
+  LangGraph pipeline; existing agent guidance remains valid.

@@ -162,7 +162,6 @@ python-dotenv==1.2.2
 python-engineio==4.13.2
 python-multipart==0.0.27
 python-socketio==5.16.2
-pywin32==311
 PyYAML==6.0.3
 ragas==0.4.3
 redis==7.4.0

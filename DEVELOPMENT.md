@@ -14,14 +14,30 @@ Không phá vỡ node cũ, không breaking changes.
 
 `app/core/pipeline.py` là file duy nhất cần đụng khi mở rộng pipeline.
 
+## LangGraph global state
+
+`app/core/pipeline.py` dùng `GraphState` làm state chung của graph. Các node
+chỉ return dict chứa field chúng cập nhật để LangGraph merge vào state hiện
+tại.
+
+Các field hiện tại:
+
+- `question`: câu hỏi đầu vào.
+- `session_id`: session memory và EDA context đang hoạt động.
+- `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ Redis.
+- `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
+- `prompt`: prompt cuối cùng đã gửi tới LLM.
+- `raw_response`: raw JSON text từ LLM.
+- `response`: `QAResponse` đã parse, hoặc `None` trước bước parse.
+
 ---
 
 ## Pattern: Thêm tính năng mới
 
-### Bước 1 — Thêm field vào QAState
+### Bước 1 — Thêm field vào GraphState
 
 ```python
-class QAState(TypedDict):
+class GraphState(TypedDict):
     question: str
     history: list[dict]
     raw_response: str
@@ -36,7 +52,7 @@ Node nhận state, trả về **dict chỉ gồm key nó thay đổi**.
 LangGraph merge phần còn lại tự động — không cần return toàn bộ state.
 
 ```python
-async def node_your_feature(state: QAState) -> dict:
+async def node_your_feature(state: GraphState) -> dict:
     result = do_something(state["question"])
     return {"your_new_field": result}
 ```
@@ -77,7 +93,7 @@ from app.tools.z3_solver import solve_constraints
 
 _executor = ThreadPoolExecutor(max_workers=2)
 
-async def node_z3(state: QAState) -> dict:
+async def node_z3(state: GraphState) -> dict:
     loop = asyncio.get_event_loop()
     result = await asyncio.wait_for(
         loop.run_in_executor(_executor, solve_constraints, state["constraints"]),
@@ -89,7 +105,7 @@ async def node_z3(state: QAState) -> dict:
 Dùng `add_conditional_edges` nếu tool chỉ chạy trong một số trường hợp:
 
 ```python
-def route_after_parse(state: QAState) -> str:
+def route_after_parse(state: GraphState) -> str:
     if state.get("needs_z3"):
         return "z3"
     return "save_memory"
@@ -118,7 +134,7 @@ Không cần thay đổi gì về memory hay session.
 ### Bước 1 — Thêm field vào State
 
 ```python
-class QAState(TypedDict):
+class GraphState(TypedDict):
     ...
     expert: str                        # "physics" | "rules"
     expert_response: str               # raw output từ expert được chọn
@@ -143,16 +159,16 @@ from app.model.prompts.router import build_router_prompt
 from app.model.prompts.expert_physics import build_physics_prompt
 from app.model.prompts.expert_rules import build_rules_prompt
 
-async def node_route(state: QAState) -> dict:
+async def node_route(state: GraphState) -> dict:
     prompt = build_router_prompt(state["question"])
     expert = await llm.generate(prompt)   # trả về "physics" hoặc "rules"
     return {"expert": expert.strip()}
 
-async def node_physics_expert(state: QAState) -> dict:
+async def node_physics_expert(state: GraphState) -> dict:
     prompt = build_physics_prompt(state["question"], history=state["history"])
     return {"expert_response": await llm.generate(prompt)}
 
-async def node_rules_expert(state: QAState) -> dict:
+async def node_rules_expert(state: GraphState) -> dict:
     prompt = build_rules_prompt(state["question"], history=state["history"])
     return {"expert_response": await llm.generate(prompt)}
 ```
@@ -160,7 +176,7 @@ async def node_rules_expert(state: QAState) -> dict:
 ### Bước 4 — Nối vào graph
 
 ```python
-def route_to_expert(state: QAState) -> str:
+def route_to_expert(state: GraphState) -> str:
     return state["expert"]   # "physics" | "rules"
 
 g.add_node("route", node_route)
@@ -181,13 +197,13 @@ Retriever hiện tại là stub — trả `""` nếu `PINECONE_API_KEY` không s
 Khi cần retrieval, thêm field `context` vào State và thêm node:
 
 ```python
-class QAState(TypedDict):
+class GraphState(TypedDict):
     ...
     context: str   # retrieved docs, mặc định ""
 ```
 
 ```python
-async def node_retrieve(state: QAState) -> dict:
+async def node_retrieve(state: GraphState) -> dict:
     context = await retriever.retrieve(state["question"])
     return {"context": context}
 ```
@@ -195,7 +211,7 @@ async def node_retrieve(state: QAState) -> dict:
 `build_prompt()` đã có sẵn param `context=""` — chỉ cần truyền vào:
 
 ```python
-async def node_generate(state: QAState) -> dict:
+async def node_generate(state: GraphState) -> dict:
     prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
     return {"raw_response": await llm.generate(prompt)}
 ```
@@ -216,7 +232,7 @@ async def retrieve(self, query: str, top_k: int = 3) -> str:
 
 Redis lưu lịch sử hội thoại theo session. Dùng `SESSION_ID = "default"` — 1 Redis key, không cần quản lý gì thêm.
 
-Khi thêm MoE hay tool, state vẫn chung 1 `QAState` → LangGraph merge tự động, không cần lo về memory hay lock.
+Khi thêm MoE hay tool, state vẫn chung 1 `GraphState` → LangGraph merge tự động, không cần lo về memory hay lock.
 
 Cấu hình trong `.env`:
 
@@ -233,7 +249,7 @@ scratchpad
 
 Phần này mô tả pattern mở rộng pipeline cho bài toán phân tích đa biến.
 Đây là thiết kế mục tiêu, không phải mô tả tính năng đã được triển khai.
-Workflow vẫn tuân theo nguyên tắc chung: dữ liệu đi qua `QAState`, mỗi agent
+Workflow vẫn tuân theo nguyên tắc chung: dữ liệu đi qua `GraphState`, mỗi agent
 là một node có trách nhiệm hẹp, và router dùng conditional edges để chọn
 đường chạy.
 
@@ -263,7 +279,7 @@ Các field nên dùng kiểu dữ liệu có cấu trúc để agent và tool kh
 free-form text:
 
 ```python
-class QAState(TypedDict):
+class GraphState(TypedDict):
     ...
     domain: str
     analysis_plan: list[str]
@@ -299,7 +315,7 @@ agent phải ghi `method`, `required_inputs` và `assumptions` vào
 `analysis_plan`.
 
 ```python
-async def node_statistical_agent(state: QAState) -> dict:
+async def node_statistical_agent(state: GraphState) -> dict:
     plan = build_statistical_plan(
         state["question"],
         state["dataset_profile"],
@@ -374,7 +390,7 @@ không cần cho kết quả cuối.
 risk level. Mapping domain phải explicit và có fallback:
 
 ```python
-def route_domain_agents(state: QAState) -> list[str]:
+def route_domain_agents(state: GraphState) -> list[str]:
     selected = ["statistical_agent", "feature_agent"]
     if state["domain"] in {"finance", "healthcare", "legal"}:
         selected.append("domain_agent")
@@ -408,7 +424,7 @@ response cuối.
 
 ## Checklist khi thêm tính năng
 
-- [ ] Thêm field vào `QAState` nếu cần truyền data qua nodes
+- [ ] Thêm field vào `GraphState` nếu cần truyền data qua nodes
 - [ ] Viết `node_xxx()` — chỉ return dict của key nó thay đổi
 - [ ] Thêm prompt file vào `app/model/prompts/` nếu cần prompt mới
 - [ ] Thêm `add_node` + `add_edge` (hoặc `add_conditional_edges`) vào `_build_graph()`
