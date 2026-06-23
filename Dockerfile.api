@@ -1,4 +1,4 @@
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
@@ -6,23 +6,19 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN uv pip install \
-    --python /usr/local/bin/python \
-    --target /app/packages \
-    --index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    --system \
     --no-cache \
+    --index-url https://pypi.org/simple \
     -r requirements.txt
 
-
-FROM python:3.11-slim AS runtime
-
-WORKDIR /app
-
-COPY --from=builder /app/packages /app/packages
-ENV PYTHONPATH="/app/packages"
+# Pre-download the fastembed model at build time so it's baked into the image
+# (no download on first request). Build-time and runtime share this cache dir.
+ENV FASTEMBED_CACHE_PATH=/app/.fastembed_cache
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5')"
 
 COPY app/ app/
 COPY .chainlit/ .chainlit/
 COPY public/ public/
 COPY README.md chainlit.md ./
 
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

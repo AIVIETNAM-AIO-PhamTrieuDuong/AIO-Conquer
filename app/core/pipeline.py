@@ -7,9 +7,12 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END
 
 from app.api.schemas import AskRequest, QAResponse
+from app.memory.eda_store import eda_store
 from app.memory.redis_client import memory
 from app.model.llm_client import llm
 from app.model.prompts.qa_system import build_prompt
+from app.retrieval.embedder import embed
+from app.retrieval.retriever import retriever
 from app.validation.parser import parse_response
 
 SESSION_ID = "default"
@@ -35,13 +38,19 @@ async def node_load_history(state: QAState) -> dict:
 
 
 async def node_load_eda_context(state: QAState) -> dict:
-    job_id = await memory.get_active_eda(SESSION_ID)
+    job_id = await eda_store.get_active_eda(SESSION_ID)
     if not job_id:
         return {"context": ""}
-    result = await memory.get_eda_result(job_id)
-    if not result:
-        return {"context": ""}
-    return {"context": result.get("summary_md", "")}
+    query_embedding = (await embed([state["question"]]))[0]
+    fallback_chunks, fallback_embeddings = await eda_store.get_eda_chunks(job_id)
+    chunks = await retriever.search(
+        session_id=SESSION_ID,
+        query_embedding=query_embedding,
+        top_k=3,
+        fallback_chunks=fallback_chunks,
+        fallback_embeddings=fallback_embeddings,
+    )
+    return {"context": "\n\n".join(chunks)}
 
 
 async def node_generate(state: QAState) -> dict:
