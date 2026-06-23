@@ -39,7 +39,7 @@ async def analyze_file(
     await eda_store.set_eda_status(job_id, "pending")
     await eda_store.set_active_eda(SESSION_ID, job_id)
 
-    background_tasks.add_task(run_eda, job_id, file_path)
+    background_tasks.add_task(run_eda, job_id, file_path, SESSION_ID)
 
     return EDAJobResponse(job_id=job_id, status="pending")
 
