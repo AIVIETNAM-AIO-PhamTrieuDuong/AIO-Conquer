@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-
+from typing import Optional, TypedDict
 from langgraph.graph import StateGraph, END
 from app.api.schemas import AskRequest, QAResponse
 from app.graph.nodes import (
