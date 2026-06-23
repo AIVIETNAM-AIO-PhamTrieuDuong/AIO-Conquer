@@ -19,8 +19,10 @@ def _collect_sse(raw_text: str) -> str:
             break
         try:
             chunk = json.loads(payload)
-            delta = chunk["choices"][0].get("delta", {})
-            if content := delta.get("content"):
+            choice = chunk["choices"][0]
+            delta = choice.get("delta", {})
+            message = choice.get("message", {})
+            if content := delta.get("content") or message.get("content"):
                 result.append(content)
         except (json.JSONDecodeError, KeyError, IndexError):
             continue
