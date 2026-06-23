@@ -10,8 +10,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from app.memory.redis_client import memory
+from app.memory.eda_store import eda_store
 from app.model.openai_client import llm
+from app.retrieval.chunker import fixed_size_chunk
+from app.retrieval.embedder import embed
+from app.retrieval.retriever import retriever
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +269,7 @@ DATASET PROFILE:
 # Orchestrator — run_eda  (ties all steps together, runs as background task)
 # ---------------------------------------------------------------------------
 
-async def run_eda(job_id: str, file_path: str) -> None:
+async def run_eda(job_id: str, file_path: str, session_id: str = "default") -> None:
     try:
         # Read file
         if file_path.endswith(".xlsx") or file_path.endswith(".xls"):
@@ -304,11 +307,18 @@ async def run_eda(job_id: str, file_path: str) -> None:
             "shape": {"rows": int(df_clean.shape[0]), "cols": int(df_clean.shape[1])},
             "cleaned_file_path": cleaned_path,
         }
-        await memory.set_eda_result(job_id, payload)
-        await memory.set_eda_status(job_id, "done")
+        await eda_store.set_eda_result(job_id, payload)
+
+        # Chunk → embed → store for RAG
+        chunks = fixed_size_chunk(summary_md)
+        embeddings = await embed(chunks)
+        await eda_store.set_eda_chunks(job_id, chunks, embeddings)
+        await retriever.upsert_chunks(job_id, session_id, chunks, embeddings)
+
+        await eda_store.set_eda_status(job_id, "done")
 
     except Exception as e:
-        await memory.set_eda_status(job_id, f"error:{e}")
+        await eda_store.set_eda_status(job_id, f"error:{e}")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)

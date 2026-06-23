@@ -4,21 +4,11 @@ from app.core.config import settings
 
 
 def _collect_sse(raw_text: str) -> str:
-    """Extract assistant content from OpenAI-compatible responses.
+    """Collect content chunks from a true SSE stream into a single string.
 
-    The provider may return either Server-Sent Events with delta chunks or a
-    normal JSON response with message.content. Empty content is treated as a
-    model response error so downstream state never receives a blank response.
+    Each line looks like:  data: {...}  or  data: [DONE]
+    We concatenate every delta.content token in order.
     """
-    try:
-        response = json.loads(raw_text)
-        message = response["choices"][0].get("message", {})
-        content = message.get("content")
-        if content:
-            return content
-    except (json.JSONDecodeError, KeyError, IndexError, TypeError):
-        pass
-
     result: list[str] = []
     for line in raw_text.splitlines():
         line = line.strip()
@@ -36,10 +26,39 @@ def _collect_sse(raw_text: str) -> str:
                 result.append(content)
         except (json.JSONDecodeError, KeyError, IndexError):
             continue
-    content = "".join(result)
-    if content:
-        return content
-    raise ValueError("LLM response did not include assistant content.")
+    return "".join(result)
+
+
+def _parse_response(raw_text: str) -> str:
+    """Extract assistant text from a 9Router response.
+
+    The router replies with a single JSON completion object (``message.content``)
+    followed by a trailing ``data: [DONE]`` marker, but may also fall back to a
+    real SSE stream of ``delta.content`` chunks. Handle both shapes.
+    """
+    text = raw_text.strip()
+
+    # Strip the trailing SSE done marker if the body is otherwise plain JSON.
+    done_marker = "data: [DONE]"
+    if text.endswith(done_marker):
+        text = text[: -len(done_marker)].strip()
+
+    # Case 1 — single JSON completion object.
+    try:
+        obj = json.loads(text)
+        choices = obj.get("choices") or []
+        if choices:
+            message = choices[0].get("message") or {}
+            if content := message.get("content"):
+                return content
+            delta = choices[0].get("delta") or {}
+            if content := delta.get("content"):
+                return content
+    except json.JSONDecodeError:
+        pass
+
+    # Case 2 — true SSE stream of delta chunks.
+    return _collect_sse(raw_text)
 
 
 class NineRouterClient:
@@ -71,8 +90,7 @@ class NineRouterClient:
                 json=payload,
             )
             resp.raise_for_status()
-            print(resp)
-            return _collect_sse(resp.text)
+            return _parse_response(resp.text)
 
     async def generate(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1024) -> str:
         """JSON-mode generation (replaces Gemini response_mime_type=application/json)."""

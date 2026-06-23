@@ -8,7 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 
 from app.api.schemas import EDAJobResponse, EDAResult
 from app.core.eda_pipeline import run_eda
-from app.memory.redis_client import memory
+from app.memory.eda_store import eda_store
 
 SESSION_ID = "default"
 
@@ -36,17 +36,17 @@ async def analyze_file(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    await memory.set_eda_status(job_id, "pending")
-    await memory.set_active_eda(SESSION_ID, job_id)
+    await eda_store.set_eda_status(job_id, "pending")
+    await eda_store.set_active_eda(SESSION_ID, job_id)
 
-    background_tasks.add_task(run_eda, job_id, file_path)
+    background_tasks.add_task(run_eda, job_id, file_path, SESSION_ID)
 
     return EDAJobResponse(job_id=job_id, status="pending")
 
 
 @router.get("/result/{job_id}", response_model=EDAResult)
 async def get_result(job_id: str) -> EDAResult:
-    status = await memory.get_eda_status(job_id)
+    status = await eda_store.get_eda_status(job_id)
     if status is None:
         raise HTTPException(status_code=404, detail="job_id not found")
 
@@ -56,7 +56,7 @@ async def get_result(job_id: str) -> EDAResult:
     if status == "pending":
         return EDAResult(job_id=job_id, status="pending")
 
-    result = await memory.get_eda_result(job_id)
+    result = await eda_store.get_eda_result(job_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Result not found")
 

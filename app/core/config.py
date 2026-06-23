@@ -16,7 +16,6 @@ class Settings(BaseSettings):
 
     pinecone_api_key: Optional[str] = None
     pinecone_index: Optional[str] = None
-    embed_model: str = "text-embedding-3-small"
 
 
 settings = Settings()

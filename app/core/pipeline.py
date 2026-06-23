@@ -11,7 +11,67 @@ from app.graph.nodes import (
     node_parse,
     node_save_memory
 )
+from app.memory.eda_store import eda_store
+from app.memory.redis_client import memory
+from app.model.llm_client import llm
+from app.model.prompts.qa_system import build_prompt
+from app.retrieval.embedder import embed
+from app.retrieval.retriever import retriever
+from app.validation.parser import parse_response
+
 SESSION_ID = "default"
+
+
+# ---------------------------------------------------------------------------
+# State
+# ---------------------------------------------------------------------------
+class QAState(TypedDict):
+    question: str
+    history: list[dict]
+    context: str
+    raw_response: str
+    response: Optional[QAResponse]
+
+
+# ---------------------------------------------------------------------------
+# Nodes
+# ---------------------------------------------------------------------------
+
+async def node_load_history(state: QAState) -> dict:
+    return {"history": await memory.get_history(SESSION_ID)}
+
+
+async def node_load_eda_context(state: QAState) -> dict:
+    job_id = await eda_store.get_active_eda(SESSION_ID)
+    if not job_id:
+        return {"context": ""}
+    query_embedding = (await embed([state["question"]]))[0]
+    fallback_chunks, fallback_embeddings = await eda_store.get_eda_chunks(job_id)
+    chunks = await retriever.search(
+        session_id=SESSION_ID,
+        query_embedding=query_embedding,
+        top_k=3,
+        fallback_chunks=fallback_chunks,
+        fallback_embeddings=fallback_embeddings,
+    )
+    return {"context": "\n\n".join(chunks)}
+
+
+async def node_generate(state: QAState) -> dict:
+    prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
+    max_tokens = 4096 if state["context"] else 1024
+    return {"raw_response": await llm.generate(prompt, max_tokens=max_tokens)}
+
+
+async def node_parse(state: QAState) -> dict:
+    return {"response": parse_response(state["raw_response"])}
+
+
+async def node_save_memory(state: QAState) -> dict:
+    r = state["response"]
+    if r:
+        await memory.append(SESSION_ID, state["question"], r.answer)
+    return {}
 
 
 # ---------------------------------------------------------------------------
