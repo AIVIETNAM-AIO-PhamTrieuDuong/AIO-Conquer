@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-import uuid
-from typing import Optional
-from typing_extensions import TypedDict
-
+from typing import Optional, TypedDict
 from langgraph.graph import StateGraph, END
-
 from app.api.schemas import AskRequest, QAResponse
+from app.graph.nodes import (
+    GraphState,
+    node_load_history,
+    node_load_eda_context,
+    node_generate,
+    node_parse,
+    node_save_memory
+)
 from app.memory.eda_store import eda_store
 from app.memory.redis_client import memory
 from app.model.llm_client import llm
@@ -75,7 +79,8 @@ async def node_save_memory(state: QAState) -> dict:
 # ---------------------------------------------------------------------------
 
 def _build_graph():
-    g = StateGraph(QAState)
+    """Build the QA LangGraph with the shared graph state schema."""
+    g = StateGraph(GraphState)
 
     g.add_node("load_history", node_load_history)
     g.add_node("load_eda_context", node_load_eda_context)
@@ -101,10 +106,13 @@ _graph = _build_graph()
 # ---------------------------------------------------------------------------
 
 async def run_qa_pipeline(request: AskRequest) -> QAResponse:
-    initial: QAState = {
+    """Run the QA graph and return its parsed response."""
+    initial: GraphState = {
         "question": request.question,
+        "session_id": SESSION_ID,
         "history": [],
         "context": "",
+        "prompt": "",
         "raw_response": "",
         "response": None,
     }

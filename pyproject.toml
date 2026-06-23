@@ -1,0 +1,11 @@
+[project]
+name = "aio-conquer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langsmith[claude-agent-sdk]>=0.8.18",
+]
+[tool.pyright]
+typeCheckingMode = "off"

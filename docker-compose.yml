@@ -23,6 +23,9 @@ services:
     env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
     depends_on:
       redis:
         condition: service_healthy

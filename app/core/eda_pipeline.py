@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from app.memory.eda_store import eda_store
-from app.model.llm_client import llm
+from app.model.openai_client import llm
 from app.retrieval.chunker import fixed_size_chunk
 from app.retrieval.embedder import embed
 from app.retrieval.retriever import retriever
