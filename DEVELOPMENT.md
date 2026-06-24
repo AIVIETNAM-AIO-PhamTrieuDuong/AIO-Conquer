@@ -9,7 +9,11 @@ Không phá vỡ node cũ, không breaking changes.
 ## Cấu trúc graph hiện tại
 
 ```
-[load_history] → [generate] → [parse] → [save_memory] → END
+[load_history] → [load_eda_context] → [column_metadata]
+    → [missingness_summary] → [type_compatibility]
+    → [basic_statistical_summary] → [statistical_association]
+    → [custom_metric]
+    → [generate] → [parse] → [save_memory] → END
 ```
 
 `app/core/pipeline.py` là file duy nhất cần đụng khi mở rộng pipeline.
@@ -26,6 +30,13 @@ Các field hiện tại:
 - `session_id`: session memory và EDA context đang hoạt động.
 - `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ Redis.
 - `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
+- `eda_result`: payload EDA có cấu trúc của job đang hoạt động.
+- `dataset_id`: job id / dataset id đang hoạt động.
+- `dataset_file_path`: đường dẫn CSV đã làm sạch từ EDA memory.
+- `tool_requests`: danh sách `ToolRequest` dạng dict đã gọi trong graph.
+- `tool_results`: danh sách `ToolResult` dạng dict đã trả về trong graph.
+- `statistical_findings`: kết quả thống kê có cấu trúc cho downstream nodes.
+- `warnings`: cảnh báo từ tool hoặc node trong graph run hiện tại.
 - `prompt`: prompt cuối cùng đã gửi tới LLM.
 - `raw_response`: raw JSON text từ LLM.
 - `response`: `QAResponse` đã parse, hoặc `None` trước bước parse.
@@ -72,6 +83,26 @@ g.add_edge("your_feature", "generate")
 ## Thêm Tool nội bộ (Z3, SymPy, calculator...)
 
 Tool là node thực hiện tác vụ ngoài LLM. Viết hàm async trong `app/tools/`, gọi trong node.
+
+`app/tools/dataset_profile.py` hiện có `DatasetProfileTool` cho các tool
+profiling tabular deterministic sau, dùng chung `ToolRequest` / `ToolResult`:
+
+- `tabular.dataset_profile`
+- `tabular.column_metadata`
+- `tabular.missingness_summary`
+- `tabular.type_compatibility`
+
+`app/tools/statistics.py` hiện có `StatisticalAnalysisTool` cho các tool
+statistical deterministic sau, dùng chung `ToolRequest` / `ToolResult`:
+
+- `stats.correlation`
+- `stats.basic_summary`
+- `stats.custom_metric`
+
+QA graph hiện gọi các tool này bằng node riêng sau `load_eda_context` nếu EDA
+memory có `cleaned_file_path`. Mỗi node append request/result vào
+`tool_requests` và `tool_results`, ghi finding vào `statistical_findings`, gom
+warnings vào `warnings`, và thêm summary ngắn vào `context` trước `generate`.
 
 ```python
 # app/tools/z3_solver.py
@@ -436,3 +467,21 @@ response cuối.
 - [ ] Dynamic routing có fallback, giới hạn vòng lặp và giới hạn tool call
 - [ ] High-risk hoặc ambiguous decision đi qua human review
 - [ ] Test bằng `curl http://localhost:8000/ask` sau mỗi thay đổi
+
+---
+
+## Verification Notes
+
+- 2026-06-24: Sau khi nối profiling tool nodes vào QA graph, đã chạy
+  `python -m py_compile app\graph\schema.py app\graph\nodes.py
+  app\core\pipeline.py` thành công. Node-level smoke test với CSV tạm và stub
+  service ngoài xác nhận 3 tool nodes append `tool_requests` / `tool_results`
+  và type compatibility trả compatible cho case compare category + numeric.
+- 2026-06-24: Đã hoàn tất migration profiling tools vào `DatasetProfileTool`
+  trong `app/tools/dataset_profile.py`; `app/tools/statistics.py` không còn
+  export compatibility alias và được giữ cho statistical analysis tools.
+- 2026-06-24: Đã hoàn tất Milestone 1 statistical tools trong
+  `StatisticalAnalysisTool`: `stats.correlation`, `stats.basic_summary`, và
+  `stats.custom_metric`. Đã chạy `python -m py_compile app\tools\statistics.py
+  app\tools\__init__.py app\graph\nodes.py app\core\pipeline.py`, direct
+  temp-CSV smoke test cho 3 tool, và graph-node smoke test với service stubs.

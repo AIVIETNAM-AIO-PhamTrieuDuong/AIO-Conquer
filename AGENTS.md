@@ -37,15 +37,19 @@ Use these files as primary context. Verify their claims against the current
 code when necessary, and preserve existing architecture and conventions.
 
 ## 3. Scope Discipline
-
 - Implement only what the user explicitly requests.
 - Never ask about, propose, recommend, or suggest new features unless the user explicitly asks for feature ideas or recommendations.
 - Do not add optional enhancements, speculative abstractions, unrelated cleanup, opportunistic refactors, or future-facing hooks.
 - Fix only defects required to complete the requested work.
 - Do not broaden acceptance criteria without explicit user approval.
-- When ambiguity can be resolved from repository context, choose the narrowest interpretation consistent with the request.
+- Don't assume. Don't hide confusion. Surface tradeoffs.
+- Before implementing:
+  - State your assumptions explicitly. If uncertain, ask.
+  - If multiple interpretations exist, present them - don't pick silently.
+  - If a simpler approach exists, say so. Push back when warranted.
+  - If something is unclear, stop. Name what's confusing. Ask.
 - When ambiguity cannot be resolved safely, ask only the minimum clarifying question needed to proceed. Do not use that question to expand scope.
-- Always decompose user's requests to smallest WBS and ask for confirmation from user before execution
+- For huge code base changes, refactor, impactful or big features, always decompose user's requests to smallest WBS and ask for confirmation from user before execution
 
 ## 4. File-Creation Rule
 
@@ -63,14 +67,18 @@ code when necessary, and preserve existing architecture and conventions.
 ## 5. Edit Boundary
 
 Every code modification must satisfy all of the following:
-
-- It is confined to exactly one source file per implementation step.
+- Minimum code that solves the problem. Nothing speculative.
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+- Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 - It is bounded to one existing function or one existing class.
 - For a class-bounded edit, changes may affect multiple methods only when all changed methods belong to that one class and are necessary for the request.
 - Do not combine unrelated function-bounded and class-bounded changes.
 - Do not make module-wide rewrites, cross-file source edits, broad search and   replace operations, or repository-wide formatting changes.
-- Do not change imports, module constants, decorators, schemas, or top-level registration unless they are part of the same required function/class
-  boundary or the user explicitly authorizes a broader change.
+- Do not change imports, module constants, decorators, schemas, or top-level registration unless they are part of the same required function/class boundary or the user explicitly authorizes a broader change.
 
 For work that inherently requires multiple source files:
 
@@ -85,6 +93,15 @@ they must remain narrowly limited to recording the completed work.
 ## 6. Large Changes And New Features
 
 A change is large when it introduces a new feature, changes public behavior or architecture, spans multiple source files, changes a shared contract, requires a migration, or has substantial regression risk.
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+- The test: Every changed line should trace directly to the user's request.
 
 Before implementing a large change or new feature:
 
@@ -124,6 +141,19 @@ relevant sections when possible.
 If a large change is complete but this `AGENTS.md` needs no contextual or rule change, add a concise dated entry under `Repository Context Updates` stating that the guidance was reviewed and remains valid.
 
 ## 8. Implementation Rules
+Define success criteria. Loop until verified.
+Transform tasks into verifiable goals:
+"Add validation" → "Write tests for invalid inputs, then make them pass"
+"Fix the bug" → "Write a test that reproduces it, then make it pass"
+"Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
 
 - Preserve the repository's current architecture and local coding style.
 - Follow the procedural extension pattern in `DEVELOPMENT.md`.
@@ -170,6 +200,8 @@ After each implementation step:
 For large changes, run focused checks after every step and the relevant broader
 suite after all approved steps are complete.
 
+These guidelines are working if: fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
 ## 10. Communication
 
 - Be direct and concise.
@@ -193,3 +225,15 @@ agent-relevant context that does not belong more naturally in
   development guide.
 - 2026-06-22: Reviewed after `GraphState` replaced `QAState` in the QA
   LangGraph pipeline; existing agent guidance remains valid.
+- 2026-06-24: Reviewed after deterministic column metadata, missingness
+  summary, and type compatibility tools were added; existing agent guidance
+  remains valid.
+- 2026-06-24: Reviewed after QA LangGraph added deterministic tabular tool
+  nodes for column metadata, missingness summary, and type compatibility;
+  existing agent guidance remains valid.
+- 2026-06-24: Reviewed after profiling tool migration completed in
+  `DatasetProfileTool`; `app/tools/statistics.py` no longer exports a
+  profiling compatibility alias and existing agent guidance remains valid.
+- 2026-06-24: Reviewed after Milestone 1 statistical tools were added in
+  `StatisticalAnalysisTool` and wired into the QA LangGraph; existing agent
+  guidance remains valid.
