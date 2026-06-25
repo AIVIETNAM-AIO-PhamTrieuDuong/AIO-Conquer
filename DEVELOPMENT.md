@@ -9,10 +9,18 @@ Không phá vỡ node cũ, không breaking changes.
 ## Cấu trúc graph hiện tại
 
 ```
-[load_history] → [generate] → [parse] → [save_memory] → END
+[load_history] → [load_eda_context] → [load_domain_context]
+    → [load_meta_memory] → [column_metadata]
+    → [missingness_summary] → [type_compatibility]
+    → [basic_statistical_summary] → [statistical_association]
+    → [custom_metric]
+    → [generate] → [parse] → [save_meta_memory]
+    → [save_memory] → END
 ```
 
-`app/core/pipeline.py` là file duy nhất cần đụng khi mở rộng pipeline.
+`app/core/pipeline.py` là file chính khi mở rộng pipeline. Nếu thay đổi public
+request schema, dependency, dev endpoint, hoặc memory contract thì cập nhật
+file liên quan tối thiểu theo scope được duyệt.
 
 ## LangGraph global state
 
@@ -23,12 +31,35 @@ tại.
 Các field hiện tại:
 
 - `question`: câu hỏi đầu vào.
-- `session_id`: session memory và EDA context đang hoạt động.
-- `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ Redis.
+- `session_id`: LangGraph `thread_id` và EDA context đang hoạt động.
+- `run_id`: id duy nhất cho một lần chạy graph, dùng làm provenance cho
+  meta-memory.
+- `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ LangGraph
+  checkpoint state.
 - `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
+- `domain_context`: domain-memory chunks đã retrieve từ Redis vector memory
+  cho dataset/job hiện tại.
+- `domain_requirements`: hint có cấu trúc từ domain memory, gồm metrics,
+  features, constraints và sources.
+- `tool_memory`: tool request/result/warning/provenance records của run hiện
+  tại, sau đó được persist vào Redis meta-memory.
+- `agent_working_memory`: objective, requirements, assumptions, intermediate
+  findings, unresolved questions, selected columns/metrics cho run hiện tại.
+- `curated_context`: reusable system-curated facts/decisions đã load từ Redis
+  và context mới được persist sau response thành công.
+- `error_memory`: recoverable warnings/errors và retry context của run hiện
+  tại, sau đó được persist vào Redis meta-memory.
+- `eda_result`: payload EDA có cấu trúc của job đang hoạt động.
+- `dataset_id`: job id / dataset id đang hoạt động.
+- `dataset_file_path`: đường dẫn CSV đã làm sạch từ EDA memory.
+- `tool_requests`: danh sách `ToolRequest` dạng dict đã gọi trong graph.
+- `tool_results`: danh sách `ToolResult` dạng dict đã trả về trong graph.
+- `statistical_findings`: kết quả thống kê có cấu trúc cho downstream nodes.
+- `warnings`: cảnh báo từ tool hoặc node trong graph run hiện tại.
 - `prompt`: prompt cuối cùng đã gửi tới LLM.
 - `raw_response`: raw JSON text từ LLM.
-- `response`: `QAResponse` đã parse, hoặc `None` trước bước parse.
+- `response`: dict JSON-safe đã parse từ `QAResponse`, hoặc `None` trước bước
+  parse.
 
 ---
 
@@ -72,6 +103,26 @@ g.add_edge("your_feature", "generate")
 ## Thêm Tool nội bộ (Z3, SymPy, calculator...)
 
 Tool là node thực hiện tác vụ ngoài LLM. Viết hàm async trong `app/tools/`, gọi trong node.
+
+`app/tools/dataset_profile.py` hiện có `DatasetProfileTool` cho các tool
+profiling tabular deterministic sau, dùng chung `ToolRequest` / `ToolResult`:
+
+- `tabular.dataset_profile`
+- `tabular.column_metadata`
+- `tabular.missingness_summary`
+- `tabular.type_compatibility`
+
+`app/tools/statistics.py` hiện có `StatisticalAnalysisTool` cho các tool
+statistical deterministic sau, dùng chung `ToolRequest` / `ToolResult`:
+
+- `stats.correlation`
+- `stats.basic_summary`
+- `stats.custom_metric`
+
+QA graph hiện gọi các tool này bằng node riêng sau `load_eda_context` nếu EDA
+memory có `cleaned_file_path`. Mỗi node append request/result vào
+`tool_requests` và `tool_results`, ghi finding vào `statistical_findings`, gom
+warnings vào `warnings`, và thêm summary ngắn vào `context` trước `generate`.
 
 ```python
 # app/tools/z3_solver.py
@@ -191,53 +242,88 @@ g.add_edge("rules", "parse")
 
 ---
 
-## Retrieval với Pinecone
+## Redis Vector Memory
 
-Retriever hiện tại là stub — trả `""` nếu `PINECONE_API_KEY` không set.
-Khi cần retrieval, thêm field `context` vào State và thêm node:
+Operational Redis (`REDIS_URL`) chỉ giữ EDA status/result, active job, và
+LangGraph checkpoint/session state. Vector memory dùng Redis Stack riêng qua
+`REDIS_VECTOR_URL` và RediSearch index `REDIS_VECTOR_INDEX`, truy cập bằng
+LangChain `RedisVectorStore`.
 
-```python
-class GraphState(TypedDict):
-    ...
-    context: str   # retrieved docs, mặc định ""
-```
+EDA pipeline ghi generated vectors vào Redis vector memory:
 
-```python
-async def node_retrieve(state: GraphState) -> dict:
-    context = await retriever.retrieve(state["question"])
-    return {"context": context}
-```
+- `memory_type="eda_summary"` cho EDA summary chunks.
+- `memory_type="domain_generated"` cho generated domain insight.
 
-`build_prompt()` đã có sẵn param `context=""` — chỉ cần truyền vào:
+Custom domain augmentation ghi `memory_type="domain_custom"` qua
+`POST /domain-memory/{job_id}`. Redis hash keys dùng prefix
+`vector:{memory_type}:{job_id}:{chunk_id}` và payload có `schema_version`,
+`job_id`, `memory_type`, provenance/source fields, text, metadata JSON và
+FLOAT32 embedding.
 
-```python
-async def node_generate(state: GraphState) -> dict:
-    prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
-    return {"raw_response": await llm.generate(prompt)}
-```
+QA graph chạy `load_domain_context` ngay sau `load_eda_context`, search
+`domain_generated` + `domain_custom` theo active `job_id`, rồi ghi
+`domain_context` và `domain_requirements` vào `GraphState`. Existing tool
+selection helpers ưu tiên exact feature/metric hints từ domain memory khi có.
 
-Fill logic embedding vào `app/retrieval/retriever.py` khi sẵn sàng:
+---
 
-```python
-async def retrieve(self, query: str, top_k: int = 3) -> str:
-    embedding = await embed(query)
-    results = self._index.query(vector=embedding, top_k=top_k, include_metadata=True)
-    chunks = [m["metadata"]["text"] for m in results["matches"]]
-    return "\n\n".join(chunks)
-```
+## Agent Meta-Memory
+
+Meta-memory dùng operational Redis (`REDIS_URL`), không dùng Redis vector
+service. `app/memory/context_store.py` là boundary chính và có một class cho
+mỗi memory type:
+
+- `ToolMemory`: append compact tool request/result/warning/provenance records.
+- `AgentWorkingMemory`: replace latest working-memory snapshot per scope.
+- `CuratedContextMemory`: append system-curated final QA facts/decisions.
+- `ErrorMemory`: append recoverable warnings/errors và retry context.
+
+Redis keys được scope theo active `dataset_id` / EDA `job_id`, fallback về
+`session_id`:
+
+- `meta:{scope_id}:tool_memory`
+- `meta:{scope_id}:agent_working_memory`
+- `meta:{scope_id}:curated_context`
+- `meta:{scope_id}:error_memory`
+
+List memories append và trim về 100 records; working memory là latest snapshot.
+Mọi record persist có `schema_version`, `scope_id`, `thread_id`, `run_id`,
+`created_at`, `source_node`, và provenance. `load_meta_memory` chạy trước tool
+nodes để đưa curated context vào prompt. `save_meta_memory` chạy sau `parse` để
+persist tool memory, working memory, curated context, và error memory.
+
+Curated context trong MVP là `validation_status="system_generated"` từ final
+QA answer đã parse thành công. Pipeline-level exception trong `run_qa_pipeline`
+được ghi vào `ErrorMemory` bằng `thread_id` làm fallback scope rồi re-raise.
 
 ---
 
 ## Short-term Memory
 
-Redis lưu lịch sử hội thoại theo session. Dùng `SESSION_ID = "default"` — 1 Redis key, không cần quản lý gì thêm.
+Conversation memory dùng LangGraph checkpointer với Redis backend
+(`RedisSaver`). `/ask` nhận `thread_id` optional; nếu client không gửi thì
+dùng active EDA `job_id` từ `/eda/analyze`; nếu chưa có active EDA job thì
+fallback về `SESSION_ID = "default"`. `thread_id` được truyền vào
+`config={"configurable": {"thread_id": ...}}` khi gọi graph, đồng thời được
+dùng làm `session_id` để EDA active context đi cùng conversation thread.
+Nếu Redis hiện tại không hỗ trợ Redis Stack search commands như `FT._LIST`,
+pipeline fallback sang LangGraph in-process checkpointer để `/ask` vẫn chạy
+theo `thread_id` trong process hiện tại.
 
-Khi thêm MoE hay tool, state vẫn chung 1 `GraphState` → LangGraph merge tự động, không cần lo về memory hay lock.
+`history` nằm trong checkpointed `GraphState`, không còn được đọc/ghi qua
+custom Redis key `session:{session_id}` trong QA graph path. `node_load_history`
+chỉ normalize history đã được LangGraph restore, còn `node_save_memory` append
+turn cuối dạng `{"q": question, "a": answer}` và trim theo
+`MAX_HISTORY_TURNS`.
+
+`app/api/routes/dev.py` dùng `reset_conversation_thread()` để xóa checkpoints
+của thread được chọn. Redis checkpointer retention theo backend mặc định;
+`SESSION_TTL` vẫn áp dụng cho EDA/session stores hiện có.
 
 Cấu hình trong `.env`:
 
 ```
-SESSION_TTL=3600        # giây — session hết hạn sau 1 tiếng không hoạt động
+SESSION_TTL=3600        # giây — áp dụng cho EDA/session stores hiện có
 MAX_HISTORY_TURNS=5     # giữ tối đa 5 lượt Q&A gần nhất
 ```
 
@@ -436,3 +522,53 @@ response cuối.
 - [ ] Dynamic routing có fallback, giới hạn vòng lặp và giới hạn tool call
 - [ ] High-risk hoặc ambiguous decision đi qua human review
 - [ ] Test bằng `curl http://localhost:8000/ask` sau mỗi thay đổi
+
+---
+
+## Verification Notes
+
+- 2026-06-25: Đã thêm agent meta-memory trong `app/memory/context_store.py`
+  với `ToolMemory`, `AgentWorkingMemory`, `CuratedContextMemory`,
+  `ErrorMemory`, và `ContextStore`. QA graph thêm `load_meta_memory` trước
+  tool nodes và `save_meta_memory` sau `parse`; `GraphState` trả về
+  `tool_memory`, `agent_working_memory`, `curated_context`, `error_memory`, và
+  `run_id`.
+- 2026-06-25: Đã refactor vector memory để dùng LangChain
+  `RedisVectorStore` thay cho custom RediSearch command wrapper. App code vẫn
+  gọi `vector_store.upsert_texts()`, `vector_store.search()`, và
+  `vector_store.list_chunks()`, còn LangChain xử lý index/add/search.
+- 2026-06-25: Đã tách vector memory sang Redis Stack riêng qua
+  `REDIS_VECTOR_URL` / `REDIS_VECTOR_INDEX`. EDA pipeline không còn ghi
+  embeddings vào `EDAStore` hoặc Pinecone path; generated EDA summary và
+  domain insight được ghi vào Redis vector memory. QA graph thêm
+  `load_domain_context` trước các tool nodes và `/domain-memory/{job_id}`
+  hỗ trợ custom domain augmentation/search.
+- 2026-06-25: Đã chuyển conversation memory của QA graph sang LangGraph
+  Redis checkpointer (`RedisSaver`) theo `thread_id`; `/ask` nhận
+  `thread_id` optional, graph invoke truyền `configurable.thread_id`, và
+  `history` được append trong checkpointed `GraphState` thay vì custom Redis
+  key `session:{session_id}`. Đã chạy `python -m py_compile
+  app\api\schemas.py app\core\pipeline.py app\graph\nodes.py
+  app\api\routes\dev.py` thành công.
+- 2026-06-25: Đã xử lý Redis không có Redis Stack/RediSearch command
+  `FT._LIST` bằng fallback sang LangGraph in-process checkpointer khi
+  `RedisSaver.setup()` báo unknown `FT.*` command.
+- 2026-06-25: `/ask` hiện trả về final `GraphState` thay vì `QAResponse`
+  trực tiếp; `response` trong state là dict JSON-safe để tránh LangGraph
+  checkpoint deserialize warning cho unregistered `QAResponse`.
+- 2026-06-25: `/ask` mặc định dùng active EDA `job_id` làm LangGraph
+  `thread_id` và bind active EDA job vào thread đó trước khi gọi graph. Đã
+  chạy `python -m py_compile app\api\routes\ask.py` thành công.
+- 2026-06-24: Sau khi nối profiling tool nodes vào QA graph, đã chạy
+  `python -m py_compile app\graph\schema.py app\graph\nodes.py
+  app\core\pipeline.py` thành công. Node-level smoke test với CSV tạm và stub
+  service ngoài xác nhận 3 tool nodes append `tool_requests` / `tool_results`
+  và type compatibility trả compatible cho case compare category + numeric.
+- 2026-06-24: Đã hoàn tất migration profiling tools vào `DatasetProfileTool`
+  trong `app/tools/dataset_profile.py`; `app/tools/statistics.py` không còn
+  export compatibility alias và được giữ cho statistical analysis tools.
+- 2026-06-24: Đã hoàn tất Milestone 1 statistical tools trong
+  `StatisticalAnalysisTool`: `stats.correlation`, `stats.basic_summary`, và
+  `stats.custom_metric`. Đã chạy `python -m py_compile app\tools\statistics.py
+  app\tools\__init__.py app\graph\nodes.py app\core\pipeline.py`, direct
+  temp-CSV smoke test cho 3 tool, và graph-node smoke test với service stubs.

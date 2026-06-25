@@ -13,6 +13,20 @@ services:
       timeout: 3s
       retries: 5
 
+  redis-vector:
+    image: redis/redis-stack-server:latest
+    container_name: redis-vector
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_vector_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   api:
     build:
       context: .
@@ -23,13 +37,18 @@ services:
     env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379
+      - REDIS_VECTOR_URL=redis://redis-vector:6379
+      - REDIS_VECTOR_INDEX=aio_conquer_vector_memory
     volumes:
       - ./app:/app/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
     depends_on:
       redis:
         condition: service_healthy
+      redis-vector:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   redis_data:
+  redis_vector_data:

@@ -1,120 +1,180 @@
 from __future__ import annotations
 
-from typing import Optional, TypedDict
+import uuid
+from typing import Any
+
+from langgraph.checkpoint.redis import RedisSaver
 from langgraph.graph import StateGraph, END
-from app.api.schemas import AskRequest, QAResponse
+from redis.exceptions import ResponseError
+
+from app.api.schemas import AskRequest
+from app.core.config import settings
 from app.graph.nodes import (
     GraphState,
-    node_load_history,
-    node_load_eda_context,
+    node_basic_statistical_summary,
+    node_column_metadata,
+    node_custom_metric,
     node_generate,
+    node_load_domain_context,
+    node_load_eda_context,
+    node_load_history,
+    node_load_meta_memory,
+    node_missingness_summary,
     node_parse,
-    node_save_memory
+    node_save_memory,
+    node_save_meta_memory,
+    node_statistical_association,
+    node_type_compatibility,
 )
-from app.memory.eda_store import eda_store
-from app.memory.redis_client import memory
-from app.model.llm_client import llm
-from app.model.prompts.qa_system import build_prompt
-from app.retrieval.embedder import embed
-from app.retrieval.retriever import retriever
-from app.validation.parser import parse_response
+from app.memory.context_store import context_store
 
 SESSION_ID = "default"
+_checkpointer: Any | None = None
+_graph: Any | None = None
 
 
-# ---------------------------------------------------------------------------
-# State
-# ---------------------------------------------------------------------------
-class QAState(TypedDict):
-    question: str
-    history: list[dict]
-    context: str
-    raw_response: str
-    response: Optional[QAResponse]
-
-
-# ---------------------------------------------------------------------------
-# Nodes
-# ---------------------------------------------------------------------------
-
-async def node_load_history(state: QAState) -> dict:
-    return {"history": await memory.get_history(SESSION_ID)}
-
-
-async def node_load_eda_context(state: QAState) -> dict:
-    job_id = await eda_store.get_active_eda(SESSION_ID)
-    if not job_id:
-        return {"context": ""}
-    query_embedding = (await embed([state["question"]]))[0]
-    fallback_chunks, fallback_embeddings = await eda_store.get_eda_chunks(job_id)
-    chunks = await retriever.search(
-        session_id=SESSION_ID,
-        query_embedding=query_embedding,
-        top_k=3,
-        fallback_chunks=fallback_chunks,
-        fallback_embeddings=fallback_embeddings,
-    )
-    return {"context": "\n\n".join(chunks)}
-
-
-async def node_generate(state: QAState) -> dict:
-    prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
-    max_tokens = 4096 if state["context"] else 1024
-    return {"raw_response": await llm.generate(prompt, max_tokens=max_tokens)}
-
-
-async def node_parse(state: QAState) -> dict:
-    return {"response": parse_response(state["raw_response"])}
-
-
-async def node_save_memory(state: QAState) -> dict:
-    r = state["response"]
-    if r:
-        await memory.append(SESSION_ID, state["question"], r.answer)
-    return {}
-
-
-# ---------------------------------------------------------------------------
-# Graph
-# ---------------------------------------------------------------------------
-
-def _build_graph():
+def _build_graph(checkpointer: Any):
     """Build the QA LangGraph with the shared graph state schema."""
     g = StateGraph(GraphState)
 
     g.add_node("load_history", node_load_history)
     g.add_node("load_eda_context", node_load_eda_context)
+    g.add_node("load_domain_context", node_load_domain_context)
+    g.add_node("load_meta_memory", node_load_meta_memory)
+    g.add_node("column_metadata", node_column_metadata)
+    g.add_node("missingness_summary", node_missingness_summary)
+    g.add_node("type_compatibility", node_type_compatibility)
+    g.add_node("basic_statistical_summary", node_basic_statistical_summary)
+    g.add_node("statistical_association", node_statistical_association)
+    g.add_node("custom_metric", node_custom_metric)
     g.add_node("generate", node_generate)
     g.add_node("parse", node_parse)
+    g.add_node("save_meta_memory", node_save_meta_memory)
     g.add_node("save_memory", node_save_memory)
 
     g.set_entry_point("load_history")
     g.add_edge("load_history", "load_eda_context")
-    g.add_edge("load_eda_context", "generate")
+    g.add_edge("load_eda_context", "load_domain_context")
+    g.add_edge("load_domain_context", "load_meta_memory")
+    g.add_edge("load_meta_memory", "column_metadata")
+    g.add_edge("column_metadata", "missingness_summary")
+    g.add_edge("missingness_summary", "type_compatibility")
+    g.add_edge("type_compatibility", "basic_statistical_summary")
+    g.add_edge("basic_statistical_summary", "statistical_association")
+    g.add_edge("statistical_association", "custom_metric")
+    g.add_edge("custom_metric", "generate")
     g.add_edge("generate", "parse")
-    g.add_edge("parse", "save_memory")
+    g.add_edge("parse", "save_meta_memory")
+    g.add_edge("save_meta_memory", "save_memory")
     g.add_edge("save_memory", END)
 
-    return g.compile()
+    return g.compile(checkpointer=checkpointer)
 
 
-_graph = _build_graph()
+async def _get_checkpointer() -> Any:
+    """Create and initialize the Redis checkpointer once per process."""
+    global _checkpointer
+    if _checkpointer is None:
+        redis_checkpointer = RedisSaver(redis_url=settings.redis_url)
+        try:
+            redis_checkpointer.setup()
+        except ResponseError as exc:
+            if not _is_missing_redis_stack_command(exc):
+                raise
+            _checkpointer = _build_memory_checkpointer()
+        else:
+            _checkpointer = redis_checkpointer
+    return _checkpointer
+
+
+def _is_missing_redis_stack_command(exc: ResponseError) -> bool:
+    """Return whether Redis lacks commands required by Redis Stack."""
+    message = str(exc).lower()
+    return "unknown command" in message and "ft." in message
+
+
+def _build_memory_checkpointer() -> Any:
+    """Build an in-process checkpointer when Redis Stack is unavailable."""
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    return InMemorySaver()
+
+
+async def _get_graph() -> Any:
+    """Compile the QA graph with Redis checkpoint persistence."""
+    global _graph
+    if _graph is None:
+        _graph = _build_graph(await _get_checkpointer())
+    return _graph
+
+
+async def reset_conversation_thread(thread_id: str = SESSION_ID) -> None:
+    """Delete checkpointed conversation state for one LangGraph thread."""
+    checkpointer = await _get_checkpointer()
+    if hasattr(checkpointer, "adelete_thread"):
+        await checkpointer.adelete_thread(thread_id)
+        return
+    if hasattr(checkpointer, "delete_thread"):
+        checkpointer.delete_thread(thread_id)
+        return
+    for attr in ("storage", "writes", "blobs"):
+        container = getattr(checkpointer, attr, None)
+        if isinstance(container, dict):
+            container.pop(thread_id, None)
 
 
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
 
-async def run_qa_pipeline(request: AskRequest) -> QAResponse:
-    """Run the QA graph and return its parsed response."""
+async def run_qa_pipeline(request: AskRequest) -> GraphState:
+    """Run the QA graph and return the final checkpoint-safe graph state."""
+    thread_id = request.thread_id or SESSION_ID
+    run_id = str(uuid.uuid4())
     initial: GraphState = {
         "question": request.question,
-        "session_id": SESSION_ID,
-        "history": [],
+        "session_id": thread_id,
+        "run_id": run_id,
         "context": "",
+        "domain_context": [],
+        "domain_requirements": {},
+        "tool_memory": [],
+        "agent_working_memory": {},
+        "curated_context": [],
+        "error_memory": [],
+        "eda_result": {},
+        "dataset_id": "",
+        "dataset_file_path": "",
+        "tool_requests": [],
+        "tool_results": [],
+        "statistical_findings": [],
+        "warnings": [],
         "prompt": "",
         "raw_response": "",
         "response": None,
     }
-    final = await _graph.ainvoke(initial)
-    return final["response"]
+    config = {"configurable": {"thread_id": thread_id}}
+    try:
+        final = await (await _get_graph()).ainvoke(initial, config)
+    except Exception as exc:
+        try:
+            await context_store.error_memory.append(
+                scope_id=thread_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                source_node="run_qa_pipeline",
+                record={
+                    "event_type": "pipeline_exception",
+                    "message": str(exc),
+                    "error_type": type(exc).__name__,
+                    "retry_context": {
+                        "thread_id": thread_id,
+                        "question": request.question,
+                    },
+                    "provenance": {"source": "run_qa_pipeline"},
+                },
+            )
+        except Exception:
+            pass
+        raise
+    return final

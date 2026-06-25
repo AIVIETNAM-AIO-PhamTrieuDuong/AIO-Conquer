@@ -3,7 +3,10 @@ from pydantic import BaseModel, Field
 
 
 class AskRequest(BaseModel):
+    """Represent a user question and optional LangGraph conversation thread."""
+
     question: str
+    thread_id: str = "default"
 
 
 class QAResponse(BaseModel):

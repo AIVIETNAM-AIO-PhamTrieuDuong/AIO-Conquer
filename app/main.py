@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from chainlit.utils import mount_chainlit
 
 from app.api.routes.ask import router as ask_router
+from app.api.routes.domain_memory import router as domain_memory_router
 from app.api.routes.health import router as health_router
 from app.api.routes.dev import router as dev_router
 from app.api.routes.eda import router as eda_router
@@ -9,6 +10,7 @@ from app.api.routes.eda import router as eda_router
 app = FastAPI(title="AIO-Conquer QA API", version="0.1.0")
 
 app.include_router(ask_router)
+app.include_router(domain_memory_router)
 app.include_router(health_router)
 app.include_router(dev_router)
 app.include_router(eda_router)

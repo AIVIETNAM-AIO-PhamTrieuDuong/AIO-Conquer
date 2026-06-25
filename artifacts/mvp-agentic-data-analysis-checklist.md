@@ -16,9 +16,9 @@ The MVP focuses on:
 
 - **Agent orchestration:** LangGraph coordinates agents, graph state,
   conditional routing, tool execution nodes, and state transitions.
-- **Memory backend:** Redis stores all memory categories, including
-  conversation memory, dataset memory, tool memory, agent working memory,
-  curated context memory, and error memory.
+- **Memory backend:** Redis services store memory categories. Operational
+  Redis stores conversation/session/dataset state, and Redis Stack stores
+  vector-backed EDA/domain memory.
 - **Tool runtime:** Python-based tools run approved CSV/tabular and statistical
   operations through the unified tool interface.
 
@@ -35,6 +35,48 @@ For the MVP, every agent or tool that writes to global state must document:
 - Whether the write replaces, appends, or merges data.
 - What provenance is attached to the update.
 - What downstream node consumes the update.
+
+## Agentic Workflow Design
+
+The MVP target architecture from the design sketch is:
+
+```mermaid
+flowchart TD
+    user([user])
+    orchestrator[orchestrator_agent]
+    chat_history[(chat history)]
+    domain_agent[domain_agent]
+    coding_agent[coding agent]
+    calculation_tool[calculation tool]
+    domain_knowledge[(domain knowledge<br/>mongodb)]
+    query_builder[query_builder_agent]
+    query_tool[query_tool]
+    tabular_source[(tabular source<br/>SQL/CSV)]
+
+    user -->|query| orchestrator
+    orchestrator -->|context| chat_history
+    orchestrator <-->|domain decomposition| domain_agent
+    domain_agent <-->|stat_knowledge| coding_agent
+    coding_agent --> calculation_tool
+    domain_agent --> domain_knowledge
+    domain_agent <-->|feature_vector| query_builder
+    query_tool --> query_builder
+    query_tool --> tabular_source
+```
+
+Design contracts implied by the sketch:
+
+- `orchestrator_agent` receives the user query, retrieves chat context, and
+  delegates domain decomposition to `domain_agent`.
+- `domain_agent` owns domain decomposition, consults domain knowledge, requests
+  statistical knowledge from `coding agent`, and exchanges feature vectors with
+  `query_builder_agent`.
+- `coding agent` is limited to calculation/statistical support through
+  deterministic tools.
+- `query_builder_agent` builds executable data queries from feature vectors and
+  uses `query_tool` to access the tabular source.
+- `chat history`, `domain knowledge`, and `tabular source` are separate memory
+  or data stores with explicit read/write contracts.
 
 ## MVP Scope
 
@@ -69,34 +111,51 @@ calling.
 
 ### Required Tools
 
-- [ ] CSV/dataframe loader tool.
-- [ ] Dataset profile tool.
-- [ ] Column metadata tool.
-- [ ] Missingness summary tool.
-- [ ] Type compatibility tool.
-- [ ] Correlation/statistical association tool.
-- [ ] Basic statistical summary tool.
-- [ ] Deterministic custom metric helper for approved simple calculations.
+- [x] CSV/dataframe loader tool.
+- [x] Dataset profile tool.
+- [x] Column metadata tool.
+- [x] Missingness summary tool.
+- [x] Type compatibility tool.
+- [x] Correlation/statistical association tool.
+- [x] Basic statistical summary tool.
+- [x] Deterministic custom metric helper for approved simple calculations.
 
 ### Tool Interface Tasks
 
-- [ ] Define `ToolRequest` JSON schema.
-- [ ] Define `ToolResult` JSON schema.
-- [ ] Require `tool_name`, `request_id`, `caller`, `purpose`, `inputs`, and
+- [x] Define `ToolRequest` JSON schema.
+- [x] Define `ToolResult` JSON schema.
+- [x] Require `tool_name`, `request_id`, `caller`, `purpose`, `inputs`, and
   `expected_output_schema` in every request.
-- [ ] Require `status`, `data`, `summary`, `warnings`, `error`, and
+- [x] Require `status`, `data`, `summary`, `warnings`, `error`, and
   `provenance` in every result.
-- [ ] Normalize error types: invalid column, incompatible type, insufficient
+- [x] Normalize error types: invalid column, incompatible type, insufficient
   rows, missing values, timeout, invalid code, invalid result shape, and
   unsupported method.
-- [ ] Require every tool result to identify dataset id, source columns, rows
-  used, and preprocessing notes when applicable.
-- [ ] Support approved Python backends such as `pandas`, `numpy`, `scipy`, and
-  `sympy` without restricting the MVP to Sympy.
-- [ ] Prefer deterministic helper functions over generated Python execution
+- [x] Prefer deterministic helper functions over generated Python execution
   for the first MVP pass.
-- [ ] Add a future extension point for constrained Python execution without
-  making it part of the MVP critical path.
+  
+### Current Status
+
+Checked against the current repository on 2026-06-24:
+
+- Implemented: `ToolRequest`, `ToolResult`, normalized tool errors,
+  `CSVDataLoaderTool`, and `DatasetProfileTool`.
+- Implemented in `DatasetProfileTool`: dataset profile, column metadata,
+  missingness summary, and type compatibility.
+- Implemented in `StatisticalAnalysisTool`: correlation/statistical
+  association, basic statistical summary, and approved deterministic custom
+  metrics.
+- Graph wiring implemented: the QA LangGraph now runs `column_metadata`,
+  `missingness_summary`, `type_compatibility`, `basic_statistical_summary`,
+  `statistical_association`, and `custom_metric` tool nodes after active EDA
+  context loading when `cleaned_file_path` is available.
+- Graph state now captures `tool_requests`, `tool_results`,
+  `statistical_findings`, and `warnings` from those deterministic tool nodes.
+- Milestone 1 helper tools are implemented without unrestricted generated
+  Python execution.
+- Not implemented: constrained Python extension point.
+- Test source for Milestone 1 is not present in `tests/`; only a compiled
+  `tests/__pycache__/test_tools_phase1...pyc` artifact exists.
 
 ### Suggested Request Shape
 
@@ -141,11 +200,11 @@ calling.
 
 ### Exit Criteria
 
-- [ ] Every MVP tool can be called through the same request/result envelope.
-- [ ] Tool failures are machine-readable.
-- [ ] Tool results can be written into global state without parsing free-form
+- [x] Every MVP tool can be called through the same request/result envelope.
+- [x] Tool failures are machine-readable.
+- [x] Tool results can be written into global state without parsing free-form
   text.
-- [ ] No MVP path depends on unrestricted generated Python code.
+- [x] No MVP path depends on unrestricted generated Python code.
 
 ## Milestone 2: Redis Memory Key/API Contracts
 
@@ -155,29 +214,76 @@ serialization format while LangGraph orchestrates read/write timing.
 
 ### Memory Types
 
-- [ ] Conversation memory: user questions and final assistant answers.
-- [ ] Dataset memory: active dataset id, cleaned file path, shape, profile, and
-  metadata.
-- [ ] Tool memory: tool requests, tool results, warnings, and provenance.
-- [ ] Agent working memory: active requirements, assumptions, intermediate
-  findings, and unresolved questions.
-- [ ] Curated context memory: validated reusable facts and decisions.
-- [ ] Error memory: recoverable failures, blocked tasks, and retry context.
+- [x] Conversation memory: user questions and final assistant answers.
+- [x] Dataset memory: active dataset id, cleaned file path, shape, profile, and metadata.
+- [x] Domain memory: Text corpus that contains domain knowledge as embedding / vector
+- [x] Tool memory: tool requests, tool results, warnings, and provenance.
+- [x] Agent working memory: active requirements, assumptions, intermediate findings, and unresolved questions.
+- [x] Curated context memory: validated reusable facts and decisions.
+- [x] Error memory: recoverable failures, blocked tasks, and retry context.
 
 ### LangGraph And Redis Tasks
 
-- [ ] Define Redis key pattern for each memory type.
-- [ ] Define read API for each memory type.
-- [ ] Define write API for each memory type.
-- [ ] Define update semantics: replace, append, merge, or expire.
-- [ ] Decide which memory fields belong in LangGraph state for one run.
-- [ ] Decide which memory fields persist outside the run in Redis.
-- [ ] Define read/write policy for each memory type.
-- [ ] Define TTL or lifecycle for temporary memory.
-- [ ] Define merge behavior for concurrent or repeated writes.
-- [ ] Add provenance requirements for memory writes.
-- [ ] Define compaction rules for large tool outputs or long context.
-- [ ] Add `schema_version` or equivalent metadata to memory payloads.
+- [x] Define Redis key pattern for each memory type.
+- [x] Define read API for each memory type.
+- [x] Define write API for each memory type.
+- [x] Decide which memory fields belong in LangGraph state for one run.
+- [x] Define read/write policy for each memory type.
+- [x] Define merge behavior for concurrent or repeated writes.
+- [x] Add provenance requirements for memory writes.
+- [x] Define compaction rules for large tool outputs or long context.
+- [x] Add `schema_version` or equivalent metadata to memory payloads.
+
+### Current Status
+
+Checked against the current repository on 2026-06-25:
+
+- Implemented conversation memory through LangGraph checkpointing. The QA graph
+  uses `RedisSaver` when Redis supports the required Redis Stack/RediSearch
+  commands and falls back to an in-process checkpointer when Redis reports
+  unknown `FT.*` commands.
+- `/ask` accepts optional `thread_id`; when omitted, it uses the active EDA
+  `job_id` created by `/eda/analyze` so each analyzed dataset gets its own
+  conversation thread.
+- `/ask` now returns the final `GraphState`. The parsed `response` field is a
+  JSON-safe dict instead of a `QAResponse` object, avoiding checkpoint
+  deserialization warnings for unregistered Python classes.
+- Dataset memory exists in Redis through `EDAStore`: active EDA job,
+  job status, EDA result payload, cleaned file path, and shape/profile
+  metadata use purpose-specific `eda:*` keys with `SESSION_TTL`.
+- Domain vector memory is implemented through LangChain `RedisVectorStore`
+  against a dedicated Redis Stack service via `REDIS_VECTOR_URL` /
+  `REDIS_VECTOR_INDEX`. EDA generated summary chunks use
+  `memory_type="eda_summary"`, generated domain insight chunks use
+  `memory_type="domain_generated"`, and custom domain augmentations use
+  `memory_type="domain_custom"`.
+- Vector memory records use `vector:{memory_type}:{job_id}:{chunk_id}` keys
+  with `schema_version`, provenance/source fields, text, metadata JSON, and
+  FLOAT32 embeddings. `/domain-memory/{job_id}` appends custom domain
+  knowledge, and `/domain-memory/{job_id}/search` retrieves generated/custom
+  domain context by vector search.
+- QA graph now retrieves domain memory before deterministic tool nodes and
+  stores retrieved snippets in `domain_context` plus merged metric/feature
+  hints in `domain_requirements`.
+- Agent meta-memory is implemented in operational Redis through
+  `app/memory/context_store.py`. The store exposes one class per memory type:
+  `ToolMemory`, `AgentWorkingMemory`, `CuratedContextMemory`, and
+  `ErrorMemory`, coordinated by `ContextStore`.
+- Meta-memory keys are `meta:{scope_id}:tool_memory`,
+  `meta:{scope_id}:agent_working_memory`, `meta:{scope_id}:curated_context`,
+  and `meta:{scope_id}:error_memory`, scoped by active EDA `job_id` /
+  `dataset_id` with `session_id` fallback.
+- QA graph now loads meta-memory before deterministic tool nodes and saves it
+  after parse. `GraphState` includes `run_id`, `tool_memory`,
+  `agent_working_memory`, `curated_context`, and `error_memory`.
+- List memories append and trim to the latest 100 records; working memory
+  replaces the latest snapshot. Stored records include `schema_version`,
+  `scope_id`, `thread_id`, `run_id`, `created_at`, `source_node`, and
+  provenance. Curated context uses `validation_status="system_generated"` for
+  successful final QA answers.
+- Not implemented yet: human-validated curated context, advanced memory
+  compaction beyond compact records/list trimming, and cross-process conflict
+  resolution beyond Redis atomic append/replace operations.
 
 ### Provisional State Fields
 
@@ -201,11 +307,11 @@ class AnalysisState(TypedDict):
 
 ### Exit Criteria
 
-- [ ] Each memory type has a clear purpose.
-- [ ] Agents know where to read context from.
-- [ ] Agents know where to write outputs.
-- [ ] Temporary working context is separated from curated reusable context.
-- [ ] Redis memory payloads include schema/version metadata.
+- [x] Each memory type has a clear purpose.
+- [x] Agents know where to read context from.
+- [x] Agents know where to write outputs.
+- [x] Temporary working context is separated from curated reusable context.
+- [x] Redis memory payloads include schema/version metadata.
 
 ## Milestone 3: Query Agent Reads Structured EDA Memory
 
@@ -353,21 +459,21 @@ the domain is unclear.
 
 ## MVP Acceptance Checklist
 
-- [ ] Essential statistics and CSV/tabular tools are defined.
-- [ ] All MVP tools use one request/result interface.
-- [ ] LangGraph is used as the agent orchestration framework.
-- [ ] Redis key/API contracts are separated by purpose.
-- [ ] All memory kinds are backed by Redis with schema/version metadata.
+- [x] Essential statistics and CSV/tabular tools are defined.
+- [x] All MVP tools use one request/result interface.
+- [x] LangGraph is used as the agent orchestration framework.
+- [x] Redis key/API contracts are separated by purpose.
+- [x] All memory kinds are backed by Redis with schema/version metadata.
 - [ ] Query agent reads structured EDA memory and updates global state.
 - [ ] Feature agent calls statistical tools and updates
   global state.
 - [ ] Domain agent converts user intent into actionable requirements and
   handles ambiguity before updating global state.
-- [ ] Global state schema is treated as provisional during MVP development.
-- [ ] Tool outputs and agent outputs are JSON-first.
-- [ ] Errors and warnings are machine-readable.
+- [x] Global state schema is treated as provisional during MVP development.
+- [x] Tool outputs and agent outputs are JSON-first.
+- [x] Errors and warnings are machine-readable.
 - [ ] No downstream stage depends on parsing Markdown tables.
-- [ ] No Python execution is unrestricted.
+- [x] No Python execution is unrestricted.
 
 ## Recommended MVP Build Order
 
