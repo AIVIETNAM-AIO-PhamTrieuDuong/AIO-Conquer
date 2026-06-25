@@ -217,22 +217,22 @@ serialization format while LangGraph orchestrates read/write timing.
 - [x] Conversation memory: user questions and final assistant answers.
 - [x] Dataset memory: active dataset id, cleaned file path, shape, profile, and metadata.
 - [x] Domain memory: Text corpus that contains domain knowledge as embedding / vector
-- [ ] Tool memory: tool requests, tool results, warnings, and provenance.
-- [ ] Agent working memory: active requirements, assumptions, intermediate findings, and unresolved questions.
-- [ ] Curated context memory: validated reusable facts and decisions.
-- [ ] Error memory: recoverable failures, blocked tasks, and retry context.
+- [x] Tool memory: tool requests, tool results, warnings, and provenance.
+- [x] Agent working memory: active requirements, assumptions, intermediate findings, and unresolved questions.
+- [x] Curated context memory: validated reusable facts and decisions.
+- [x] Error memory: recoverable failures, blocked tasks, and retry context.
 
 ### LangGraph And Redis Tasks
 
-- [ ] Define Redis key pattern for each memory type.
-- [ ] Define read API for each memory type.
-- [ ] Define write API for each memory type.
-- [ ] Decide which memory fields belong in LangGraph state for one run.
-- [ ] Define read/write policy for each memory type.
-- [ ] Define merge behavior for concurrent or repeated writes.
-- [ ] Add provenance requirements for memory writes.
-- [ ] Define compaction rules for large tool outputs or long context.
-- [ ] Add `schema_version` or equivalent metadata to memory payloads.
+- [x] Define Redis key pattern for each memory type.
+- [x] Define read API for each memory type.
+- [x] Define write API for each memory type.
+- [x] Decide which memory fields belong in LangGraph state for one run.
+- [x] Define read/write policy for each memory type.
+- [x] Define merge behavior for concurrent or repeated writes.
+- [x] Add provenance requirements for memory writes.
+- [x] Define compaction rules for large tool outputs or long context.
+- [x] Add `schema_version` or equivalent metadata to memory payloads.
 
 ### Current Status
 
@@ -265,12 +265,25 @@ Checked against the current repository on 2026-06-25:
 - QA graph now retrieves domain memory before deterministic tool nodes and
   stores retrieved snippets in `domain_context` plus merged metric/feature
   hints in `domain_requirements`.
-- Tool requests, tool results, warnings, and statistical findings are captured
-  in `GraphState` and therefore checkpointed with the thread, but a dedicated
-  tool-memory key/API contract is not yet implemented.
-- Not implemented yet: tool memory, agent working memory, curated context
-  memory, error memory, schema/version metadata across all memory payloads,
-  compaction policy, and explicit concurrent-write merge semantics.
+- Agent meta-memory is implemented in operational Redis through
+  `app/memory/context_store.py`. The store exposes one class per memory type:
+  `ToolMemory`, `AgentWorkingMemory`, `CuratedContextMemory`, and
+  `ErrorMemory`, coordinated by `ContextStore`.
+- Meta-memory keys are `meta:{scope_id}:tool_memory`,
+  `meta:{scope_id}:agent_working_memory`, `meta:{scope_id}:curated_context`,
+  and `meta:{scope_id}:error_memory`, scoped by active EDA `job_id` /
+  `dataset_id` with `session_id` fallback.
+- QA graph now loads meta-memory before deterministic tool nodes and saves it
+  after parse. `GraphState` includes `run_id`, `tool_memory`,
+  `agent_working_memory`, `curated_context`, and `error_memory`.
+- List memories append and trim to the latest 100 records; working memory
+  replaces the latest snapshot. Stored records include `schema_version`,
+  `scope_id`, `thread_id`, `run_id`, `created_at`, `source_node`, and
+  provenance. Curated context uses `validation_status="system_generated"` for
+  successful final QA answers.
+- Not implemented yet: human-validated curated context, advanced memory
+  compaction beyond compact records/list trimming, and cross-process conflict
+  resolution beyond Redis atomic append/replace operations.
 
 ### Provisional State Fields
 
@@ -294,11 +307,11 @@ class AnalysisState(TypedDict):
 
 ### Exit Criteria
 
-- [ ] Each memory type has a clear purpose.
+- [x] Each memory type has a clear purpose.
 - [x] Agents know where to read context from.
 - [x] Agents know where to write outputs.
-- [ ] Temporary working context is separated from curated reusable context.
-- [ ] Redis memory payloads include schema/version metadata.
+- [x] Temporary working context is separated from curated reusable context.
+- [x] Redis memory payloads include schema/version metadata.
 
 ## Milestone 3: Query Agent Reads Structured EDA Memory
 
@@ -449,8 +462,8 @@ the domain is unclear.
 - [x] Essential statistics and CSV/tabular tools are defined.
 - [x] All MVP tools use one request/result interface.
 - [x] LangGraph is used as the agent orchestration framework.
-- [ ] Redis key/API contracts are separated by purpose.
-- [ ] All memory kinds are backed by Redis with schema/version metadata.
+- [x] Redis key/API contracts are separated by purpose.
+- [x] All memory kinds are backed by Redis with schema/version metadata.
 - [ ] Query agent reads structured EDA memory and updates global state.
 - [ ] Feature agent calls statistical tools and updates
   global state.
@@ -458,7 +471,7 @@ the domain is unclear.
   handles ambiguity before updating global state.
 - [x] Global state schema is treated as provisional during MVP development.
 - [x] Tool outputs and agent outputs are JSON-first.
-- [ ] Errors and warnings are machine-readable.
+- [x] Errors and warnings are machine-readable.
 - [ ] No downstream stage depends on parsing Markdown tables.
 - [x] No Python execution is unrestricted.
 

@@ -9,11 +9,13 @@ Không phá vỡ node cũ, không breaking changes.
 ## Cấu trúc graph hiện tại
 
 ```
-[load_history] → [load_eda_context] → [load_domain_context] → [column_metadata]
+[load_history] → [load_eda_context] → [load_domain_context]
+    → [load_meta_memory] → [column_metadata]
     → [missingness_summary] → [type_compatibility]
     → [basic_statistical_summary] → [statistical_association]
     → [custom_metric]
-    → [generate] → [parse] → [save_memory] → END
+    → [generate] → [parse] → [save_meta_memory]
+    → [save_memory] → END
 ```
 
 `app/core/pipeline.py` là file chính khi mở rộng pipeline. Nếu thay đổi public
@@ -30,6 +32,8 @@ Các field hiện tại:
 
 - `question`: câu hỏi đầu vào.
 - `session_id`: LangGraph `thread_id` và EDA context đang hoạt động.
+- `run_id`: id duy nhất cho một lần chạy graph, dùng làm provenance cho
+  meta-memory.
 - `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ LangGraph
   checkpoint state.
 - `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
@@ -37,6 +41,14 @@ Các field hiện tại:
   cho dataset/job hiện tại.
 - `domain_requirements`: hint có cấu trúc từ domain memory, gồm metrics,
   features, constraints và sources.
+- `tool_memory`: tool request/result/warning/provenance records của run hiện
+  tại, sau đó được persist vào Redis meta-memory.
+- `agent_working_memory`: objective, requirements, assumptions, intermediate
+  findings, unresolved questions, selected columns/metrics cho run hiện tại.
+- `curated_context`: reusable system-curated facts/decisions đã load từ Redis
+  và context mới được persist sau response thành công.
+- `error_memory`: recoverable warnings/errors và retry context của run hiện
+  tại, sau đó được persist vào Redis meta-memory.
 - `eda_result`: payload EDA có cấu trúc của job đang hoạt động.
 - `dataset_id`: job id / dataset id đang hoạt động.
 - `dataset_file_path`: đường dẫn CSV đã làm sạch từ EDA memory.
@@ -252,6 +264,37 @@ QA graph chạy `load_domain_context` ngay sau `load_eda_context`, search
 `domain_generated` + `domain_custom` theo active `job_id`, rồi ghi
 `domain_context` và `domain_requirements` vào `GraphState`. Existing tool
 selection helpers ưu tiên exact feature/metric hints từ domain memory khi có.
+
+---
+
+## Agent Meta-Memory
+
+Meta-memory dùng operational Redis (`REDIS_URL`), không dùng Redis vector
+service. `app/memory/context_store.py` là boundary chính và có một class cho
+mỗi memory type:
+
+- `ToolMemory`: append compact tool request/result/warning/provenance records.
+- `AgentWorkingMemory`: replace latest working-memory snapshot per scope.
+- `CuratedContextMemory`: append system-curated final QA facts/decisions.
+- `ErrorMemory`: append recoverable warnings/errors và retry context.
+
+Redis keys được scope theo active `dataset_id` / EDA `job_id`, fallback về
+`session_id`:
+
+- `meta:{scope_id}:tool_memory`
+- `meta:{scope_id}:agent_working_memory`
+- `meta:{scope_id}:curated_context`
+- `meta:{scope_id}:error_memory`
+
+List memories append và trim về 100 records; working memory là latest snapshot.
+Mọi record persist có `schema_version`, `scope_id`, `thread_id`, `run_id`,
+`created_at`, `source_node`, và provenance. `load_meta_memory` chạy trước tool
+nodes để đưa curated context vào prompt. `save_meta_memory` chạy sau `parse` để
+persist tool memory, working memory, curated context, và error memory.
+
+Curated context trong MVP là `validation_status="system_generated"` từ final
+QA answer đã parse thành công. Pipeline-level exception trong `run_qa_pipeline`
+được ghi vào `ErrorMemory` bằng `thread_id` làm fallback scope rồi re-raise.
 
 ---
 
@@ -484,6 +527,12 @@ response cuối.
 
 ## Verification Notes
 
+- 2026-06-25: Đã thêm agent meta-memory trong `app/memory/context_store.py`
+  với `ToolMemory`, `AgentWorkingMemory`, `CuratedContextMemory`,
+  `ErrorMemory`, và `ContextStore`. QA graph thêm `load_meta_memory` trước
+  tool nodes và `save_meta_memory` sau `parse`; `GraphState` trả về
+  `tool_memory`, `agent_working_memory`, `curated_context`, `error_memory`, và
+  `run_id`.
 - 2026-06-25: Đã refactor vector memory để dùng LangChain
   `RedisVectorStore` thay cho custom RediSearch command wrapper. App code vẫn
   gọi `vector_store.upsert_texts()`, `vector_store.search()`, và

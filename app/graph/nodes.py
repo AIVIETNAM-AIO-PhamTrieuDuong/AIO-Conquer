@@ -1,6 +1,7 @@
 import asyncio
 
 from app.core.config import settings
+from app.memory.context_store import context_store
 from app.memory.eda_store import eda_store
 from app.memory.vector_store import vector_store
 from app.model.openai_client import llm
@@ -64,6 +65,23 @@ async def node_load_domain_context(state: GraphState) -> dict:
         "context": _append_context(
             state.get("context", ""),
             _domain_context_summary(results, requirements),
+        ),
+    }
+
+
+async def node_load_meta_memory(state: GraphState) -> dict:
+    """Load reusable meta-memory and initialize working memory."""
+    scope_id = _memory_scope_id(state)
+    loaded = await context_store.load_meta_memory(scope_id)
+    curated_context = loaded.get("curated_context", [])
+    return {
+        "tool_memory": [],
+        "error_memory": [],
+        "curated_context": curated_context,
+        "agent_working_memory": _initial_working_memory(state, loaded),
+        "context": _append_context(
+            state.get("context", ""),
+            _curated_context_summary(curated_context),
         ),
     }
 
@@ -154,6 +172,62 @@ async def node_parse(state: GraphState) -> dict:
     return {"response": _dump_model(parse_response(state["raw_response"]))}
 
 
+async def node_save_meta_memory(state: GraphState) -> dict:
+    """Persist current-run meta-memory records to operational Redis."""
+    scope_id = _memory_scope_id(state)
+    thread_id = state["session_id"]
+    run_id = state.get("run_id", "")
+    saved_tools = []
+    saved_errors = []
+    for record in state.get("tool_memory", []):
+        saved_tools.append(
+            await context_store.tool_memory.append(
+                scope_id=scope_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                source_node=record.get("source_node", "tool_node"),
+                record=record,
+            )
+        )
+    for record in state.get("error_memory", []):
+        saved_errors.append(
+            await context_store.error_memory.append(
+                scope_id=scope_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                source_node=record.get("source_node", "tool_node"),
+                record=record,
+            )
+        )
+
+    working_memory = _final_working_memory(state)
+    saved_working = await context_store.agent_working_memory.save(
+        scope_id=scope_id,
+        thread_id=thread_id,
+        run_id=run_id,
+        source_node="node_save_meta_memory",
+        snapshot=working_memory,
+    )
+    curated_context = list(state.get("curated_context", []))
+    curated_record = _curated_context_record(state)
+    if curated_record:
+        saved_curated = await context_store.curated_context.append(
+            scope_id=scope_id,
+            thread_id=thread_id,
+            run_id=run_id,
+            source_node="node_save_meta_memory",
+            record=curated_record,
+        )
+        curated_context.append(saved_curated)
+
+    return {
+        "tool_memory": saved_tools,
+        "error_memory": saved_errors,
+        "agent_working_memory": saved_working,
+        "curated_context": curated_context[-20:],
+    }
+
+
 async def node_save_memory(state: GraphState) -> dict:
     """Append the final answer to checkpointed conversation history."""
     r = state["response"]
@@ -196,10 +270,26 @@ async def _run_tabular_tool(
     warnings = [*state.get("warnings", []), *result.warnings]
     if result.status == "error" and result.error:
         warnings.append(result.error.message)
+    tool_memory = [
+        *state.get("tool_memory", []),
+        _tool_memory_record(request_payload, result_payload),
+    ]
+    error_memory = [
+        *state.get("error_memory", []),
+        *_tool_error_memory_records(request_payload, result_payload),
+    ]
+    working_memory = _update_working_memory_with_tool(
+        state,
+        request_payload,
+        result_payload,
+    )
 
     return {
         "tool_requests": [*state.get("tool_requests", []), request_payload],
         "tool_results": [*state.get("tool_results", []), result_payload],
+        "tool_memory": tool_memory,
+        "error_memory": error_memory,
+        "agent_working_memory": working_memory,
         "statistical_findings": [
             *state.get("statistical_findings", []),
             _statistical_finding(result),
@@ -242,10 +332,26 @@ async def _run_statistical_tool(
     warnings = [*state.get("warnings", []), *result.warnings]
     if result.status == "error" and result.error:
         warnings.append(result.error.message)
+    tool_memory = [
+        *state.get("tool_memory", []),
+        _tool_memory_record(request_payload, result_payload),
+    ]
+    error_memory = [
+        *state.get("error_memory", []),
+        *_tool_error_memory_records(request_payload, result_payload),
+    ]
+    working_memory = _update_working_memory_with_tool(
+        state,
+        request_payload,
+        result_payload,
+    )
 
     return {
         "tool_requests": [*state.get("tool_requests", []), request_payload],
         "tool_results": [*state.get("tool_results", []), result_payload],
+        "tool_memory": tool_memory,
+        "error_memory": error_memory,
+        "agent_working_memory": working_memory,
         "statistical_findings": [
             *state.get("statistical_findings", []),
             _statistical_finding(result),
@@ -255,6 +361,227 @@ async def _run_statistical_tool(
             state.get("context", ""),
             _tool_context_summary(result),
         ),
+    }
+
+
+def _memory_scope_id(state: GraphState) -> str:
+    """Return the Redis meta-memory scope for this graph state."""
+    return str(state.get("dataset_id") or state.get("session_id") or "default")
+
+
+def _initial_working_memory(
+    state: GraphState,
+    loaded: dict,
+) -> dict:
+    """Create the current run working-memory snapshot."""
+    prior_working = loaded.get("agent_working_memory") or {}
+    return {
+        "objective": state["question"],
+        "requirements": state.get("domain_requirements", {}),
+        "assumptions": prior_working.get("assumptions", []),
+        "intermediate_findings": [],
+        "unresolved_questions": [],
+        "selected_columns": [],
+        "selected_metrics": [],
+        "prior_context": {
+            "tool_memory_count": len(loaded.get("tool_memory", [])),
+            "recent_tool_memory": loaded.get("tool_memory", [])[-3:],
+            "error_memory_count": len(loaded.get("error_memory", [])),
+            "recent_errors": loaded.get("error_memory", [])[-3:],
+            "curated_context_count": len(loaded.get("curated_context", [])),
+        },
+    }
+
+
+def _curated_context_summary(curated_context: list[dict]) -> str:
+    """Format recent curated context for prompt augmentation."""
+    if not curated_context:
+        return ""
+
+    lines = ["Curated context memory:"]
+    for item in curated_context[-3:]:
+        question = str(item.get("question", "")).strip()
+        answer = str(item.get("answer", "")).strip()
+        label = question or item.get("record_type", "context")
+        if answer:
+            lines.append(f"- {label}: {answer[:500]}")
+    return "\n".join(lines) if len(lines) > 1 else ""
+
+
+def _tool_memory_record(request: dict, result: dict) -> dict:
+    """Build a compact state record for one tool call."""
+    return {
+        "source_node": "tool_node",
+        "tool_name": request.get("tool_name", ""),
+        "request_id": request.get("request_id", ""),
+        "caller": request.get("caller", ""),
+        "purpose": request.get("purpose", ""),
+        "inputs": request.get("inputs", {}),
+        "status": result.get("status", ""),
+        "summary": result.get("summary", ""),
+        "warnings": result.get("warnings", []),
+        "error": result.get("error"),
+        "provenance": result.get("provenance", {}),
+    }
+
+
+def _tool_error_memory_records(request: dict, result: dict) -> list[dict]:
+    """Build recoverable warning/error memory records for one tool call."""
+    records = []
+    retry_context = {
+        "tool_name": request.get("tool_name", ""),
+        "request_id": request.get("request_id", ""),
+        "inputs": request.get("inputs", {}),
+        "purpose": request.get("purpose", ""),
+    }
+    for warning in result.get("warnings", []):
+        records.append(
+            {
+                "source_node": "tool_node",
+                "event_type": "tool_warning",
+                "tool_name": request.get("tool_name", ""),
+                "request_id": request.get("request_id", ""),
+                "message": warning,
+                "retry_context": retry_context,
+                "provenance": result.get("provenance", {}),
+            }
+        )
+    if result.get("status") == "error":
+        error = result.get("error") or {}
+        records.append(
+            {
+                "source_node": "tool_node",
+                "event_type": "tool_error",
+                "tool_name": request.get("tool_name", ""),
+                "request_id": request.get("request_id", ""),
+                "message": error.get("message", result.get("summary", "")),
+                "error": error,
+                "retry_context": retry_context,
+                "provenance": result.get("provenance", {}),
+            }
+        )
+    return records
+
+
+def _update_working_memory_with_tool(
+    state: GraphState,
+    request: dict,
+    result: dict,
+) -> dict:
+    """Update working memory with one tool result artifact."""
+    working = dict(state.get("agent_working_memory", {}))
+    inputs = request.get("inputs", {})
+    working["selected_columns"] = _unique_values(
+        [
+            *working.get("selected_columns", []),
+            *_input_columns(inputs),
+        ]
+    )
+    data = result.get("data") if isinstance(result.get("data"), dict) else {}
+    metric = inputs.get("metric") or data.get("metric")
+    working["selected_metrics"] = _unique_values(
+        [
+            *working.get("selected_metrics", []),
+            *([str(metric)] if metric else []),
+            request.get("tool_name", ""),
+        ]
+    )
+    working["intermediate_findings"] = [
+        *working.get("intermediate_findings", []),
+        {
+            "tool_name": request.get("tool_name", ""),
+            "status": result.get("status", ""),
+            "summary": result.get("summary", ""),
+            "warnings": result.get("warnings", []),
+        },
+    ][-20:]
+
+    unresolved = list(working.get("unresolved_questions", []))
+    for warning in result.get("warnings", []):
+        unresolved.append(
+            f"Review warning from {request.get('tool_name', 'tool')}: {warning}"
+        )
+    if result.get("status") == "error":
+        unresolved.append(
+            "Resolve tool error from "
+            f"{request.get('tool_name', 'tool')}: {result.get('summary', '')}"
+        )
+    working["unresolved_questions"] = _unique_values(unresolved)[-20:]
+    return working
+
+
+def _input_columns(inputs: dict) -> list[str]:
+    """Return all column-like inputs from a tool request payload."""
+    columns = []
+    for key in (
+        "columns",
+        "column",
+        "value_column",
+        "group_column",
+        "numerator_column",
+        "denominator_column",
+    ):
+        columns.extend(_as_list(inputs.get(key)))
+    return columns
+
+
+def _unique_values(values: list[str]) -> list[str]:
+    """Return unique non-empty strings while preserving order."""
+    unique = []
+    seen = set()
+    for value in values:
+        normalized = str(value).strip()
+        key = normalized.lower()
+        if normalized and key not in seen:
+            unique.append(normalized)
+            seen.add(key)
+    return unique
+
+
+def _final_working_memory(state: GraphState) -> dict:
+    """Build the final working-memory snapshot for persistence."""
+    working = dict(state.get("agent_working_memory", {}))
+    working["objective"] = state["question"]
+    working["requirements"] = state.get("domain_requirements", {})
+    working["warnings"] = state.get("warnings", [])
+    working["statistical_findings"] = state.get("statistical_findings", [])[-20:]
+    working["final_response_present"] = bool(state.get("response"))
+    return working
+
+
+def _curated_context_record(state: GraphState) -> dict | None:
+    """Build a system-curated final answer record when parsing succeeded."""
+    response = state.get("response") or {}
+    answer = str(response.get("answer", "")).strip()
+    if not answer:
+        return None
+
+    return {
+        "record_type": "qa_final_answer",
+        "validation_status": "system_generated",
+        "question": state["question"],
+        "answer": answer,
+        "explanation": response.get("explanation", ""),
+        "confidence": response.get("confidence"),
+        "dataset_id": state.get("dataset_id", ""),
+        "provenance": {
+            "domain_sources": [
+                {
+                    "memory_type": item.get("memory_type", ""),
+                    "source_id": item.get("source_id", ""),
+                    "score": item.get("score"),
+                }
+                for item in state.get("domain_context", [])
+            ],
+            "tool_memory": [
+                {
+                    "tool_name": item.get("tool_name", ""),
+                    "request_id": item.get("request_id", ""),
+                    "status": item.get("status", ""),
+                }
+                for item in state.get("tool_memory", [])
+            ],
+        },
     }
 
 

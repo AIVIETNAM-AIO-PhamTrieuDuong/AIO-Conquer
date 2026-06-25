@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import Any
 
 from langgraph.checkpoint.redis import RedisSaver
@@ -17,12 +18,15 @@ from app.graph.nodes import (
     node_load_domain_context,
     node_load_eda_context,
     node_load_history,
+    node_load_meta_memory,
     node_missingness_summary,
     node_parse,
     node_save_memory,
+    node_save_meta_memory,
     node_statistical_association,
     node_type_compatibility,
 )
+from app.memory.context_store import context_store
 
 SESSION_ID = "default"
 _checkpointer: Any | None = None
@@ -36,6 +40,7 @@ def _build_graph(checkpointer: Any):
     g.add_node("load_history", node_load_history)
     g.add_node("load_eda_context", node_load_eda_context)
     g.add_node("load_domain_context", node_load_domain_context)
+    g.add_node("load_meta_memory", node_load_meta_memory)
     g.add_node("column_metadata", node_column_metadata)
     g.add_node("missingness_summary", node_missingness_summary)
     g.add_node("type_compatibility", node_type_compatibility)
@@ -44,12 +49,14 @@ def _build_graph(checkpointer: Any):
     g.add_node("custom_metric", node_custom_metric)
     g.add_node("generate", node_generate)
     g.add_node("parse", node_parse)
+    g.add_node("save_meta_memory", node_save_meta_memory)
     g.add_node("save_memory", node_save_memory)
 
     g.set_entry_point("load_history")
     g.add_edge("load_history", "load_eda_context")
     g.add_edge("load_eda_context", "load_domain_context")
-    g.add_edge("load_domain_context", "column_metadata")
+    g.add_edge("load_domain_context", "load_meta_memory")
+    g.add_edge("load_meta_memory", "column_metadata")
     g.add_edge("column_metadata", "missingness_summary")
     g.add_edge("missingness_summary", "type_compatibility")
     g.add_edge("type_compatibility", "basic_statistical_summary")
@@ -57,7 +64,8 @@ def _build_graph(checkpointer: Any):
     g.add_edge("statistical_association", "custom_metric")
     g.add_edge("custom_metric", "generate")
     g.add_edge("generate", "parse")
-    g.add_edge("parse", "save_memory")
+    g.add_edge("parse", "save_meta_memory")
+    g.add_edge("save_meta_memory", "save_memory")
     g.add_edge("save_memory", END)
 
     return g.compile(checkpointer=checkpointer)
@@ -122,12 +130,18 @@ async def reset_conversation_thread(thread_id: str = SESSION_ID) -> None:
 async def run_qa_pipeline(request: AskRequest) -> GraphState:
     """Run the QA graph and return the final checkpoint-safe graph state."""
     thread_id = request.thread_id or SESSION_ID
+    run_id = str(uuid.uuid4())
     initial: GraphState = {
         "question": request.question,
         "session_id": thread_id,
+        "run_id": run_id,
         "context": "",
         "domain_context": [],
         "domain_requirements": {},
+        "tool_memory": [],
+        "agent_working_memory": {},
+        "curated_context": [],
+        "error_memory": [],
         "eda_result": {},
         "dataset_id": "",
         "dataset_file_path": "",
@@ -140,5 +154,27 @@ async def run_qa_pipeline(request: AskRequest) -> GraphState:
         "response": None,
     }
     config = {"configurable": {"thread_id": thread_id}}
-    final = await (await _get_graph()).ainvoke(initial, config)
+    try:
+        final = await (await _get_graph()).ainvoke(initial, config)
+    except Exception as exc:
+        try:
+            await context_store.error_memory.append(
+                scope_id=thread_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                source_node="run_qa_pipeline",
+                record={
+                    "event_type": "pipeline_exception",
+                    "message": str(exc),
+                    "error_type": type(exc).__name__,
+                    "retry_context": {
+                        "thread_id": thread_id,
+                        "question": request.question,
+                    },
+                    "provenance": {"source": "run_qa_pipeline"},
+                },
+            )
+        except Exception:
+            pass
+        raise
     return final

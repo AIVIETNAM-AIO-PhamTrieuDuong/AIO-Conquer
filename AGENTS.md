@@ -258,3 +258,7 @@ agent-relevant context that does not belong more naturally in
   `RedisVectorStore`; the app-facing `app.memory.vector_store.vector_store`
   adapter remains the integration point for EDA/domain vector upsert, search,
   and inspection.
+- 2026-06-25: Reviewed after agent meta-memory was added in
+  `app/memory/context_store.py`; `ToolMemory`, `AgentWorkingMemory`,
+  `CuratedContextMemory`, and `ErrorMemory` use operational Redis keys under
+  `meta:{scope_id}:*` and are loaded/saved by QA graph nodes.
