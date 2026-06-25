@@ -250,3 +250,11 @@ agent-relevant context that does not belong more naturally in
   remains valid.
 - 2026-06-25: Reviewed after `/ask` default thread selection changed to the
   active EDA `job_id`; existing agent guidance remains valid.
+- 2026-06-25: Reviewed after EDA/domain vector memory moved to dedicated
+  Redis Stack configuration via `REDIS_VECTOR_URL` / `REDIS_VECTOR_INDEX`;
+  operational Redis remains responsible for EDA status/result, active job,
+  and LangGraph checkpoint/session state.
+- 2026-06-25: Reviewed after vector memory was refactored to use LangChain
+  `RedisVectorStore`; the app-facing `app.memory.vector_store.vector_store`
+  adapter remains the integration point for EDA/domain vector upsert, search,
+  and inspection.

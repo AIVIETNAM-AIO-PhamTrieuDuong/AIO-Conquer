@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Load application, Redis, vector memory, and model configuration."""
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # OpenAI-compatible LLM endpoint (set in .env)
@@ -11,6 +13,8 @@ class Settings(BaseSettings):
     ninerouter_key: Optional[str] = None
 
     redis_url: str = "redis://localhost:6379"
+    redis_vector_url: str = "redis://localhost:6380"
+    redis_vector_index: str = "aio_conquer_vector_memory"
     session_ttl: int = 3600
     max_history_turns: int = 5
 

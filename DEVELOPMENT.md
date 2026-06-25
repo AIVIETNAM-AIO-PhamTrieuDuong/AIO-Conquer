@@ -9,7 +9,7 @@ Không phá vỡ node cũ, không breaking changes.
 ## Cấu trúc graph hiện tại
 
 ```
-[load_history] → [load_eda_context] → [column_metadata]
+[load_history] → [load_eda_context] → [load_domain_context] → [column_metadata]
     → [missingness_summary] → [type_compatibility]
     → [basic_statistical_summary] → [statistical_association]
     → [custom_metric]
@@ -33,6 +33,10 @@ Các field hiện tại:
 - `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ LangGraph
   checkpoint state.
 - `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
+- `domain_context`: domain-memory chunks đã retrieve từ Redis vector memory
+  cho dataset/job hiện tại.
+- `domain_requirements`: hint có cấu trúc từ domain memory, gồm metrics,
+  features, constraints và sources.
 - `eda_result`: payload EDA có cấu trúc của job đang hoạt động.
 - `dataset_id`: job id / dataset id đang hoạt động.
 - `dataset_file_path`: đường dẫn CSV đã làm sạch từ EDA memory.
@@ -226,40 +230,28 @@ g.add_edge("rules", "parse")
 
 ---
 
-## Retrieval với Pinecone
+## Redis Vector Memory
 
-Retriever hiện tại là stub — trả `""` nếu `PINECONE_API_KEY` không set.
-Khi cần retrieval, thêm field `context` vào State và thêm node:
+Operational Redis (`REDIS_URL`) chỉ giữ EDA status/result, active job, và
+LangGraph checkpoint/session state. Vector memory dùng Redis Stack riêng qua
+`REDIS_VECTOR_URL` và RediSearch index `REDIS_VECTOR_INDEX`, truy cập bằng
+LangChain `RedisVectorStore`.
 
-```python
-class GraphState(TypedDict):
-    ...
-    context: str   # retrieved docs, mặc định ""
-```
+EDA pipeline ghi generated vectors vào Redis vector memory:
 
-```python
-async def node_retrieve(state: GraphState) -> dict:
-    context = await retriever.retrieve(state["question"])
-    return {"context": context}
-```
+- `memory_type="eda_summary"` cho EDA summary chunks.
+- `memory_type="domain_generated"` cho generated domain insight.
 
-`build_prompt()` đã có sẵn param `context=""` — chỉ cần truyền vào:
+Custom domain augmentation ghi `memory_type="domain_custom"` qua
+`POST /domain-memory/{job_id}`. Redis hash keys dùng prefix
+`vector:{memory_type}:{job_id}:{chunk_id}` và payload có `schema_version`,
+`job_id`, `memory_type`, provenance/source fields, text, metadata JSON và
+FLOAT32 embedding.
 
-```python
-async def node_generate(state: GraphState) -> dict:
-    prompt = build_prompt(state["question"], context=state["context"], history=state["history"])
-    return {"raw_response": await llm.generate(prompt)}
-```
-
-Fill logic embedding vào `app/retrieval/retriever.py` khi sẵn sàng:
-
-```python
-async def retrieve(self, query: str, top_k: int = 3) -> str:
-    embedding = await embed(query)
-    results = self._index.query(vector=embedding, top_k=top_k, include_metadata=True)
-    chunks = [m["metadata"]["text"] for m in results["matches"]]
-    return "\n\n".join(chunks)
-```
+QA graph chạy `load_domain_context` ngay sau `load_eda_context`, search
+`domain_generated` + `domain_custom` theo active `job_id`, rồi ghi
+`domain_context` và `domain_requirements` vào `GraphState`. Existing tool
+selection helpers ưu tiên exact feature/metric hints từ domain memory khi có.
 
 ---
 
@@ -492,6 +484,16 @@ response cuối.
 
 ## Verification Notes
 
+- 2026-06-25: Đã refactor vector memory để dùng LangChain
+  `RedisVectorStore` thay cho custom RediSearch command wrapper. App code vẫn
+  gọi `vector_store.upsert_texts()`, `vector_store.search()`, và
+  `vector_store.list_chunks()`, còn LangChain xử lý index/add/search.
+- 2026-06-25: Đã tách vector memory sang Redis Stack riêng qua
+  `REDIS_VECTOR_URL` / `REDIS_VECTOR_INDEX`. EDA pipeline không còn ghi
+  embeddings vào `EDAStore` hoặc Pinecone path; generated EDA summary và
+  domain insight được ghi vào Redis vector memory. QA graph thêm
+  `load_domain_context` trước các tool nodes và `/domain-memory/{job_id}`
+  hỗ trợ custom domain augmentation/search.
 - 2026-06-25: Đã chuyển conversation memory của QA graph sang LangGraph
   Redis checkpointer (`RedisSaver`) theo `thread_id`; `/ask` nhận
   `thread_id` optional, graph invoke truyền `configurable.thread_id`, và

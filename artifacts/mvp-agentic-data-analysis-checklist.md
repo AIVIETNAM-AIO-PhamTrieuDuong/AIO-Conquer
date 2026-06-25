@@ -16,9 +16,9 @@ The MVP focuses on:
 
 - **Agent orchestration:** LangGraph coordinates agents, graph state,
   conditional routing, tool execution nodes, and state transitions.
-- **Memory backend:** Redis stores all memory categories, including
-  conversation memory, dataset memory, tool memory, agent working memory,
-  curated context memory, and error memory.
+- **Memory backend:** Redis services store memory categories. Operational
+  Redis stores conversation/session/dataset state, and Redis Stack stores
+  vector-backed EDA/domain memory.
 - **Tool runtime:** Python-based tools run approved CSV/tabular and statistical
   operations through the unified tool interface.
 
@@ -216,7 +216,7 @@ serialization format while LangGraph orchestrates read/write timing.
 
 - [x] Conversation memory: user questions and final assistant answers.
 - [x] Dataset memory: active dataset id, cleaned file path, shape, profile, and metadata.
-- [ ] Domain memory: Text corpus that contains domain knowledge as embedding / vector
+- [x] Domain memory: Text corpus that contains domain knowledge as embedding / vector
 - [ ] Tool memory: tool requests, tool results, warnings, and provenance.
 - [ ] Agent working memory: active requirements, assumptions, intermediate findings, and unresolved questions.
 - [ ] Curated context memory: validated reusable facts and decisions.
@@ -227,11 +227,8 @@ serialization format while LangGraph orchestrates read/write timing.
 - [ ] Define Redis key pattern for each memory type.
 - [ ] Define read API for each memory type.
 - [ ] Define write API for each memory type.
-- [ ] Define update semantics: replace, append, merge, or expire.
 - [ ] Decide which memory fields belong in LangGraph state for one run.
-- [ ] Decide which memory fields persist outside the run in Redis.
 - [ ] Define read/write policy for each memory type.
-- [ ] Define TTL or lifecycle for temporary memory.
 - [ ] Define merge behavior for concurrent or repeated writes.
 - [ ] Add provenance requirements for memory writes.
 - [ ] Define compaction rules for large tool outputs or long context.
@@ -252,13 +249,27 @@ Checked against the current repository on 2026-06-25:
   JSON-safe dict instead of a `QAResponse` object, avoiding checkpoint
   deserialization warnings for unregistered Python classes.
 - Dataset memory exists in Redis through `EDAStore`: active EDA job,
-  job status, EDA result payload, cleaned file path, shape/profile metadata,
-  and chunks/embeddings use purpose-specific `eda:*` keys with `SESSION_TTL`.
+  job status, EDA result payload, cleaned file path, and shape/profile
+  metadata use purpose-specific `eda:*` keys with `SESSION_TTL`.
+- Domain vector memory is implemented through LangChain `RedisVectorStore`
+  against a dedicated Redis Stack service via `REDIS_VECTOR_URL` /
+  `REDIS_VECTOR_INDEX`. EDA generated summary chunks use
+  `memory_type="eda_summary"`, generated domain insight chunks use
+  `memory_type="domain_generated"`, and custom domain augmentations use
+  `memory_type="domain_custom"`.
+- Vector memory records use `vector:{memory_type}:{job_id}:{chunk_id}` keys
+  with `schema_version`, provenance/source fields, text, metadata JSON, and
+  FLOAT32 embeddings. `/domain-memory/{job_id}` appends custom domain
+  knowledge, and `/domain-memory/{job_id}/search` retrieves generated/custom
+  domain context by vector search.
+- QA graph now retrieves domain memory before deterministic tool nodes and
+  stores retrieved snippets in `domain_context` plus merged metric/feature
+  hints in `domain_requirements`.
 - Tool requests, tool results, warnings, and statistical findings are captured
   in `GraphState` and therefore checkpointed with the thread, but a dedicated
   tool-memory key/API contract is not yet implemented.
-- Not implemented yet: domain memory, agent working memory, curated context
-  memory, error memory, schema/version metadata across memory payloads,
+- Not implemented yet: tool memory, agent working memory, curated context
+  memory, error memory, schema/version metadata across all memory payloads,
   compaction policy, and explicit concurrent-write merge semantics.
 
 ### Provisional State Fields

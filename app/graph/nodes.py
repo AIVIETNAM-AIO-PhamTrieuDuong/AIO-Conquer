@@ -2,6 +2,7 @@ import asyncio
 
 from app.core.config import settings
 from app.memory.eda_store import eda_store
+from app.memory.vector_store import vector_store
 from app.model.openai_client import llm
 from app.model.prompts.qa_system import build_prompt
 from app.tools.dataset_profile import DatasetProfileTool
@@ -41,6 +42,29 @@ async def node_load_eda_context(state: GraphState) -> dict:
         "eda_result": result,
         "dataset_id": job_id,
         "dataset_file_path": result.get("cleaned_file_path", ""),
+    }
+
+
+async def node_load_domain_context(state: GraphState) -> dict:
+    """Retrieve dataset-scoped domain memory before tool execution."""
+    job_id = state.get("dataset_id", "")
+    if not job_id:
+        return {"domain_context": [], "domain_requirements": {}}
+
+    results = await vector_store.search(
+        job_id=job_id,
+        query=state["question"],
+        memory_types=["domain_generated", "domain_custom"],
+        top_k=3,
+    )
+    requirements = _domain_requirements(results)
+    return {
+        "domain_context": results,
+        "domain_requirements": requirements,
+        "context": _append_context(
+            state.get("context", ""),
+            _domain_context_summary(results, requirements),
+        ),
     }
 
 
@@ -234,6 +258,104 @@ async def _run_statistical_tool(
     }
 
 
+def _domain_requirements(results: list[dict]) -> dict:
+    """Merge domain vector metadata into tool-planning hints."""
+    requirements = {
+        "metrics": [],
+        "features": [],
+        "constraints": [],
+        "sources": [],
+    }
+    for result in results:
+        metadata = result.get("metadata", {})
+        _extend_unique(requirements["metrics"], _as_list(metadata.get("metrics")))
+        _extend_unique(requirements["features"], _as_list(metadata.get("features")))
+        _extend_unique(
+            requirements["constraints"],
+            _as_list(metadata.get("constraints")),
+        )
+        requirements["sources"].append(
+            {
+                "memory_type": result.get("memory_type", ""),
+                "source_type": result.get("source_type", ""),
+                "source_id": result.get("source_id", ""),
+                "title": result.get("title", ""),
+                "score": result.get("score"),
+            }
+        )
+    return requirements
+
+
+def _domain_context_summary(results: list[dict], requirements: dict) -> str:
+    """Format retrieved domain memory as compact prompt context."""
+    if not results:
+        return ""
+
+    lines = ["Domain memory:"]
+    if requirements.get("features"):
+        lines.append(f"Feature hints: {', '.join(requirements['features'])}")
+    if requirements.get("metrics"):
+        lines.append(f"Metric hints: {', '.join(requirements['metrics'])}")
+    if requirements.get("constraints"):
+        lines.append(f"Constraints: {', '.join(requirements['constraints'])}")
+
+    for result in results[:3]:
+        label = result.get("title") or result.get("source_id") or "domain"
+        text = " ".join(result.get("text", "").split())
+        lines.append(
+            f"- {label} [{result.get('memory_type', '')}]: {text[:700]}"
+        )
+    return "\n".join(lines)
+
+
+def _extend_unique(target: list[str], values: list[str]) -> None:
+    """Append unique non-empty values while preserving existing order."""
+    existing = {item.lower() for item in target}
+    for value in values:
+        normalized = value.strip()
+        if normalized and normalized.lower() not in existing:
+            target.append(normalized)
+            existing.add(normalized.lower())
+
+
+def _as_list(value: object) -> list[str]:
+    """Normalize metadata values to a list of strings."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    return [str(value)]
+
+
+def _eda_column_groups(state: GraphState) -> tuple[list[str], list[str]]:
+    """Return numeric and categorical EDA columns from graph state."""
+    eda_result = state.get("eda_result", {})
+    numeric_columns = list((eda_result.get("num_stats") or {}).keys())
+    categorical_columns = list((eda_result.get("cat_stats") or {}).keys())
+    return numeric_columns, categorical_columns
+
+
+def _domain_feature_columns(
+    state: GraphState,
+    available_columns: list[str],
+) -> list[str]:
+    """Return domain feature hints that match available EDA columns."""
+    hints = _as_list(state.get("domain_requirements", {}).get("features"))
+    lookup = {column.lower(): column for column in available_columns}
+    matched: list[str] = []
+    for hint in hints:
+        column = lookup.get(hint.lower())
+        if column and column not in matched:
+            matched.append(column)
+    return matched
+
+
+def _domain_metric_hints(state: GraphState) -> list[str]:
+    """Return lowercase domain metric hints for metric selection."""
+    hints = _as_list(state.get("domain_requirements", {}).get("metrics"))
+    return [hint.lower() for hint in hints]
+
+
 def _type_compatibility_operation(question: str) -> str:
     """Infer the narrow compatibility check needed for a question."""
     lowered = question.lower()
@@ -253,39 +375,50 @@ def _type_compatibility_columns(
     operation: str,
 ) -> list[str]:
     """Select available EDA columns for the compatibility operation."""
-    eda_result = state.get("eda_result", {})
-    numeric_columns = list((eda_result.get("num_stats") or {}).keys())
-    categorical_columns = list((eda_result.get("cat_stats") or {}).keys())
+    numeric_columns, categorical_columns = _eda_column_groups(state)
+    domain_numeric = _domain_feature_columns(state, numeric_columns)
+    domain_categorical = _domain_feature_columns(state, categorical_columns)
     if operation == "correlation":
-        return numeric_columns
+        return domain_numeric or numeric_columns
     if operation in {"groupby_aggregate", "compare_categories"}:
-        return categorical_columns[:1] + numeric_columns[:1]
+        categories = domain_categorical or categorical_columns
+        numbers = domain_numeric or numeric_columns
+        return categories[:1] + numbers[:1]
     if operation == "numeric_summary":
-        return numeric_columns
+        return domain_numeric or numeric_columns
     return []
 
 
 def _analysis_columns(state: GraphState) -> list[str]:
     """Select EDA-backed columns for statistical summary."""
-    eda_result = state.get("eda_result", {})
-    numeric_columns = list((eda_result.get("num_stats") or {}).keys())
-    categorical_columns = list((eda_result.get("cat_stats") or {}).keys())
-    return [*numeric_columns, *categorical_columns]
+    numeric_columns, categorical_columns = _eda_column_groups(state)
+    available = [*numeric_columns, *categorical_columns]
+    return _domain_feature_columns(state, available) or available
 
 
 def _association_columns(state: GraphState) -> list[str]:
     """Select compatible EDA columns for association analysis."""
     question = state["question"].lower()
-    eda_result = state.get("eda_result", {})
-    numeric_columns = list((eda_result.get("num_stats") or {}).keys())
-    categorical_columns = list((eda_result.get("cat_stats") or {}).keys())
+    numeric_columns, categorical_columns = _eda_column_groups(state)
+    domain_numeric = _domain_feature_columns(state, numeric_columns)
+    domain_categorical = _domain_feature_columns(state, categorical_columns)
+    domain_columns = _domain_feature_columns(
+        state,
+        [*numeric_columns, *categorical_columns],
+    )
     if "correlation" in question and len(numeric_columns) >= 2:
-        return numeric_columns[:4]
+        columns = domain_numeric if len(domain_numeric) >= 2 else numeric_columns
+        return columns[:4]
     if "relationship" in question and len(numeric_columns) >= 2:
-        return numeric_columns[:4]
+        columns = domain_numeric if len(domain_numeric) >= 2 else numeric_columns
+        return columns[:4]
     if any(term in question for term in ("group", "segment", "compare")):
-        if categorical_columns and numeric_columns:
-            return categorical_columns[:1] + numeric_columns[:1]
+        categories = domain_categorical or categorical_columns
+        numbers = domain_numeric or numeric_columns
+        if categories and numbers:
+            return categories[:1] + numbers[:1]
+    if len(domain_columns) >= 2:
+        return domain_columns[:4]
     if len(numeric_columns) >= 2:
         return numeric_columns[:4]
     if categorical_columns and numeric_columns:
@@ -307,10 +440,13 @@ def _association_method(question: str) -> str:
 
 def _custom_metric_inputs(state: GraphState) -> dict | None:
     """Infer approved custom metric inputs from question and EDA columns."""
-    question = state["question"].lower()
-    eda_result = state.get("eda_result", {})
-    numeric_columns = list((eda_result.get("num_stats") or {}).keys())
-    categorical_columns = list((eda_result.get("cat_stats") or {}).keys())
+    metric_hints = " ".join(_domain_metric_hints(state))
+    question = f"{state['question']} {metric_hints}".lower()
+    all_numeric, all_categorical = _eda_column_groups(state)
+    numeric_columns = _domain_feature_columns(state, all_numeric) or all_numeric
+    categorical_columns = (
+        _domain_feature_columns(state, all_categorical) or all_categorical
+    )
     if not numeric_columns and "count" not in question:
         return None
     if any(term in question for term in ("ratio", "rate", "percentage")):

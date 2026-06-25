@@ -21,6 +21,8 @@ class GraphState(TypedDict, total=False):
     session_id: Required[str]
     history: NotRequired[list[ConversationTurn]]
     context: NotRequired[str]
+    domain_context: NotRequired[list[dict[str, Any]]]
+    domain_requirements: NotRequired[dict[str, Any]]
     eda_result: NotRequired[dict[str, Any]]
     dataset_id: NotRequired[str]
     dataset_file_path: NotRequired[str]

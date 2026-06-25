@@ -14,6 +14,7 @@ from app.graph.nodes import (
     node_column_metadata,
     node_custom_metric,
     node_generate,
+    node_load_domain_context,
     node_load_eda_context,
     node_load_history,
     node_missingness_summary,
@@ -34,6 +35,7 @@ def _build_graph(checkpointer: Any):
 
     g.add_node("load_history", node_load_history)
     g.add_node("load_eda_context", node_load_eda_context)
+    g.add_node("load_domain_context", node_load_domain_context)
     g.add_node("column_metadata", node_column_metadata)
     g.add_node("missingness_summary", node_missingness_summary)
     g.add_node("type_compatibility", node_type_compatibility)
@@ -46,7 +48,8 @@ def _build_graph(checkpointer: Any):
 
     g.set_entry_point("load_history")
     g.add_edge("load_history", "load_eda_context")
-    g.add_edge("load_eda_context", "column_metadata")
+    g.add_edge("load_eda_context", "load_domain_context")
+    g.add_edge("load_domain_context", "column_metadata")
     g.add_edge("column_metadata", "missingness_summary")
     g.add_edge("missingness_summary", "type_compatibility")
     g.add_edge("type_compatibility", "basic_statistical_summary")
@@ -123,6 +126,8 @@ async def run_qa_pipeline(request: AskRequest) -> GraphState:
         "question": request.question,
         "session_id": thread_id,
         "context": "",
+        "domain_context": [],
+        "domain_requirements": {},
         "eda_result": {},
         "dataset_id": "",
         "dataset_file_path": "",
