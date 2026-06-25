@@ -16,7 +16,9 @@ Không phá vỡ node cũ, không breaking changes.
     → [generate] → [parse] → [save_memory] → END
 ```
 
-`app/core/pipeline.py` là file duy nhất cần đụng khi mở rộng pipeline.
+`app/core/pipeline.py` là file chính khi mở rộng pipeline. Nếu thay đổi public
+request schema, dependency, dev endpoint, hoặc memory contract thì cập nhật
+file liên quan tối thiểu theo scope được duyệt.
 
 ## LangGraph global state
 
@@ -27,8 +29,9 @@ tại.
 Các field hiện tại:
 
 - `question`: câu hỏi đầu vào.
-- `session_id`: session memory và EDA context đang hoạt động.
-- `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ Redis.
+- `session_id`: LangGraph `thread_id` và EDA context đang hoạt động.
+- `history`: lịch sử hội thoại dạng `{"q": ..., "a": ...}` từ LangGraph
+  checkpoint state.
 - `context`: EDA summary context đang hoạt động, hoặc chuỗi rỗng.
 - `eda_result`: payload EDA có cấu trúc của job đang hoạt động.
 - `dataset_id`: job id / dataset id đang hoạt động.
@@ -39,7 +42,8 @@ Các field hiện tại:
 - `warnings`: cảnh báo từ tool hoặc node trong graph run hiện tại.
 - `prompt`: prompt cuối cùng đã gửi tới LLM.
 - `raw_response`: raw JSON text từ LLM.
-- `response`: `QAResponse` đã parse, hoặc `None` trước bước parse.
+- `response`: dict JSON-safe đã parse từ `QAResponse`, hoặc `None` trước bước
+  parse.
 
 ---
 
@@ -261,14 +265,30 @@ async def retrieve(self, query: str, top_k: int = 3) -> str:
 
 ## Short-term Memory
 
-Redis lưu lịch sử hội thoại theo session. Dùng `SESSION_ID = "default"` — 1 Redis key, không cần quản lý gì thêm.
+Conversation memory dùng LangGraph checkpointer với Redis backend
+(`RedisSaver`). `/ask` nhận `thread_id` optional; nếu client không gửi thì
+dùng active EDA `job_id` từ `/eda/analyze`; nếu chưa có active EDA job thì
+fallback về `SESSION_ID = "default"`. `thread_id` được truyền vào
+`config={"configurable": {"thread_id": ...}}` khi gọi graph, đồng thời được
+dùng làm `session_id` để EDA active context đi cùng conversation thread.
+Nếu Redis hiện tại không hỗ trợ Redis Stack search commands như `FT._LIST`,
+pipeline fallback sang LangGraph in-process checkpointer để `/ask` vẫn chạy
+theo `thread_id` trong process hiện tại.
 
-Khi thêm MoE hay tool, state vẫn chung 1 `GraphState` → LangGraph merge tự động, không cần lo về memory hay lock.
+`history` nằm trong checkpointed `GraphState`, không còn được đọc/ghi qua
+custom Redis key `session:{session_id}` trong QA graph path. `node_load_history`
+chỉ normalize history đã được LangGraph restore, còn `node_save_memory` append
+turn cuối dạng `{"q": question, "a": answer}` và trim theo
+`MAX_HISTORY_TURNS`.
+
+`app/api/routes/dev.py` dùng `reset_conversation_thread()` để xóa checkpoints
+của thread được chọn. Redis checkpointer retention theo backend mặc định;
+`SESSION_TTL` vẫn áp dụng cho EDA/session stores hiện có.
 
 Cấu hình trong `.env`:
 
 ```
-SESSION_TTL=3600        # giây — session hết hạn sau 1 tiếng không hoạt động
+SESSION_TTL=3600        # giây — áp dụng cho EDA/session stores hiện có
 MAX_HISTORY_TURNS=5     # giữ tối đa 5 lượt Q&A gần nhất
 ```
 
@@ -472,6 +492,22 @@ response cuối.
 
 ## Verification Notes
 
+- 2026-06-25: Đã chuyển conversation memory của QA graph sang LangGraph
+  Redis checkpointer (`RedisSaver`) theo `thread_id`; `/ask` nhận
+  `thread_id` optional, graph invoke truyền `configurable.thread_id`, và
+  `history` được append trong checkpointed `GraphState` thay vì custom Redis
+  key `session:{session_id}`. Đã chạy `python -m py_compile
+  app\api\schemas.py app\core\pipeline.py app\graph\nodes.py
+  app\api\routes\dev.py` thành công.
+- 2026-06-25: Đã xử lý Redis không có Redis Stack/RediSearch command
+  `FT._LIST` bằng fallback sang LangGraph in-process checkpointer khi
+  `RedisSaver.setup()` báo unknown `FT.*` command.
+- 2026-06-25: `/ask` hiện trả về final `GraphState` thay vì `QAResponse`
+  trực tiếp; `response` trong state là dict JSON-safe để tránh LangGraph
+  checkpoint deserialize warning cho unregistered `QAResponse`.
+- 2026-06-25: `/ask` mặc định dùng active EDA `job_id` làm LangGraph
+  `thread_id` và bind active EDA job vào thread đó trước khi gọi graph. Đã
+  chạy `python -m py_compile app\api\routes\ask.py` thành công.
 - 2026-06-24: Sau khi nối profiling tool nodes vào QA graph, đã chạy
   `python -m py_compile app\graph\schema.py app\graph\nodes.py
   app\core\pipeline.py` thành công. Node-level smoke test với CSV tạm và stub

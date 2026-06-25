@@ -1,6 +1,6 @@
 import asyncio
 
-from app.memory.redis_client import memory
+from app.core.config import settings
 from app.memory.eda_store import eda_store
 from app.model.openai_client import llm
 from app.model.prompts.qa_system import build_prompt
@@ -19,8 +19,8 @@ statistical_tool = StatisticalAnalysisTool()
 
 
 async def node_load_history(state: GraphState) -> dict:
-    """Load recent conversation history for the active graph session."""
-    return {"history": await memory.get_history(state["session_id"])}
+    """Normalize checkpointed conversation history for the active thread."""
+    return {"history": state.get("history", [])}
 
 
 async def node_load_eda_context(state: GraphState) -> dict:
@@ -127,15 +127,19 @@ async def node_generate(state: GraphState) -> dict:
 
 async def node_parse(state: GraphState) -> dict:
     """Parse the raw LLM JSON text into the API response schema."""
-    return {"response": parse_response(state["raw_response"])}
+    return {"response": _dump_model(parse_response(state["raw_response"]))}
 
 
 async def node_save_memory(state: GraphState) -> dict:
-    """Persist the final answer in session memory when parsing succeeds."""
+    """Append the final answer to checkpointed conversation history."""
     r = state["response"]
     if r:
-        await memory.append(state["session_id"], state["question"], r.answer)
-    return {}
+        history = [
+            *state.get("history", []),
+            {"q": state["question"], "a": str(r.get("answer", ""))},
+        ]
+        return {"history": history[-settings.max_history_turns:]}
+    return {"history": state.get("history", [])}
 
 
 async def _run_tabular_tool(

@@ -2,8 +2,6 @@ from typing import Any
 
 from typing_extensions import NotRequired, Required, TypedDict
 
-from app.api.schemas import QAResponse
-
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
@@ -32,4 +30,4 @@ class GraphState(TypedDict, total=False):
     warnings: NotRequired[list[str]]
     prompt: NotRequired[str]
     raw_response: NotRequired[str]
-    response: NotRequired[QAResponse | None]
+    response: NotRequired[dict[str, Any] | None]

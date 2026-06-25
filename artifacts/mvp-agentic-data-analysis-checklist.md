@@ -214,12 +214,11 @@ serialization format while LangGraph orchestrates read/write timing.
 
 ### Memory Types
 
-- [ ] Conversation memory: user questions and final assistant answers.
-- [ ] Dataset memory: active dataset id, cleaned file path, shape, profile, and
-  metadata.
+- [x] Conversation memory: user questions and final assistant answers.
+- [x] Dataset memory: active dataset id, cleaned file path, shape, profile, and metadata.
+- [ ] Domain memory: Text corpus that contains domain knowledge as embedding / vector
 - [ ] Tool memory: tool requests, tool results, warnings, and provenance.
-- [ ] Agent working memory: active requirements, assumptions, intermediate
-  findings, and unresolved questions.
+- [ ] Agent working memory: active requirements, assumptions, intermediate findings, and unresolved questions.
 - [ ] Curated context memory: validated reusable facts and decisions.
 - [ ] Error memory: recoverable failures, blocked tasks, and retry context.
 
@@ -237,6 +236,30 @@ serialization format while LangGraph orchestrates read/write timing.
 - [ ] Add provenance requirements for memory writes.
 - [ ] Define compaction rules for large tool outputs or long context.
 - [ ] Add `schema_version` or equivalent metadata to memory payloads.
+
+### Current Status
+
+Checked against the current repository on 2026-06-25:
+
+- Implemented conversation memory through LangGraph checkpointing. The QA graph
+  uses `RedisSaver` when Redis supports the required Redis Stack/RediSearch
+  commands and falls back to an in-process checkpointer when Redis reports
+  unknown `FT.*` commands.
+- `/ask` accepts optional `thread_id`; when omitted, it uses the active EDA
+  `job_id` created by `/eda/analyze` so each analyzed dataset gets its own
+  conversation thread.
+- `/ask` now returns the final `GraphState`. The parsed `response` field is a
+  JSON-safe dict instead of a `QAResponse` object, avoiding checkpoint
+  deserialization warnings for unregistered Python classes.
+- Dataset memory exists in Redis through `EDAStore`: active EDA job,
+  job status, EDA result payload, cleaned file path, shape/profile metadata,
+  and chunks/embeddings use purpose-specific `eda:*` keys with `SESSION_TTL`.
+- Tool requests, tool results, warnings, and statistical findings are captured
+  in `GraphState` and therefore checkpointed with the thread, but a dedicated
+  tool-memory key/API contract is not yet implemented.
+- Not implemented yet: domain memory, agent working memory, curated context
+  memory, error memory, schema/version metadata across memory payloads,
+  compaction policy, and explicit concurrent-write merge semantics.
 
 ### Provisional State Fields
 
@@ -261,8 +284,8 @@ class AnalysisState(TypedDict):
 ### Exit Criteria
 
 - [ ] Each memory type has a clear purpose.
-- [ ] Agents know where to read context from.
-- [ ] Agents know where to write outputs.
+- [x] Agents know where to read context from.
+- [x] Agents know where to write outputs.
 - [ ] Temporary working context is separated from curated reusable context.
 - [ ] Redis memory payloads include schema/version metadata.
 
@@ -422,8 +445,8 @@ the domain is unclear.
   global state.
 - [ ] Domain agent converts user intent into actionable requirements and
   handles ambiguity before updating global state.
-- [ ] Global state schema is treated as provisional during MVP development.
-- [ ] Tool outputs and agent outputs are JSON-first.
+- [x] Global state schema is treated as provisional during MVP development.
+- [x] Tool outputs and agent outputs are JSON-first.
 - [ ] Errors and warnings are machine-readable.
 - [ ] No downstream stage depends on parsing Markdown tables.
 - [x] No Python execution is unrestricted.

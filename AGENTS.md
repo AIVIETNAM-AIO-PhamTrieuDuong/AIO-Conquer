@@ -166,6 +166,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
   breaking change.
 - Never overwrite, revert, or discard unrelated working-tree changes.
 - Comments should explain non-obvious constraints, not narrate obvious code.
+- Never automatically check for dependencies in requirements file. Always assume that you have sufficent available dependencies to  implement new codes.
 
 ### Python Standards
 
@@ -237,3 +238,15 @@ agent-relevant context that does not belong more naturally in
 - 2026-06-24: Reviewed after Milestone 1 statistical tools were added in
   `StatisticalAnalysisTool` and wired into the QA LangGraph; existing agent
   guidance remains valid.
+- 2026-06-25: Reviewed after QA conversation memory moved to LangGraph Redis
+  checkpointing by `thread_id`; existing agent guidance remains valid.
+- 2026-06-25: Reviewed after QA conversation memory added an in-process
+  checkpointer fallback for Redis instances without Redis Stack `FT.*`
+  commands; existing agent guidance remains valid.
+- 2026-06-25: Reviewed after `/ask` response changed to final `GraphState`
+  with JSON-safe `response` dict; existing agent guidance remains valid.
+- 2026-06-25: Reviewed after QA conversation memory switched from
+  `AsyncRedisSaver` to synchronous `RedisSaver`; existing agent guidance
+  remains valid.
+- 2026-06-25: Reviewed after `/ask` default thread selection changed to the
+  active EDA `job_id`; existing agent guidance remains valid.

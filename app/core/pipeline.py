@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from langgraph.graph import StateGraph, END
+from typing import Any
 
-from app.api.schemas import AskRequest, QAResponse
+from langgraph.checkpoint.redis import RedisSaver
+from langgraph.graph import StateGraph, END
+from redis.exceptions import ResponseError
+
+from app.api.schemas import AskRequest
+from app.core.config import settings
 from app.graph.nodes import (
     GraphState,
     node_basic_statistical_summary,
@@ -19,9 +24,11 @@ from app.graph.nodes import (
 )
 
 SESSION_ID = "default"
+_checkpointer: Any | None = None
+_graph: Any | None = None
 
 
-def _build_graph():
+def _build_graph(checkpointer: Any):
     """Build the QA LangGraph with the shared graph state schema."""
     g = StateGraph(GraphState)
 
@@ -50,22 +57,71 @@ def _build_graph():
     g.add_edge("parse", "save_memory")
     g.add_edge("save_memory", END)
 
-    return g.compile()
+    return g.compile(checkpointer=checkpointer)
 
 
-_graph = _build_graph()
+async def _get_checkpointer() -> Any:
+    """Create and initialize the Redis checkpointer once per process."""
+    global _checkpointer
+    if _checkpointer is None:
+        redis_checkpointer = RedisSaver(redis_url=settings.redis_url)
+        try:
+            redis_checkpointer.setup()
+        except ResponseError as exc:
+            if not _is_missing_redis_stack_command(exc):
+                raise
+            _checkpointer = _build_memory_checkpointer()
+        else:
+            _checkpointer = redis_checkpointer
+    return _checkpointer
+
+
+def _is_missing_redis_stack_command(exc: ResponseError) -> bool:
+    """Return whether Redis lacks commands required by Redis Stack."""
+    message = str(exc).lower()
+    return "unknown command" in message and "ft." in message
+
+
+def _build_memory_checkpointer() -> Any:
+    """Build an in-process checkpointer when Redis Stack is unavailable."""
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    return InMemorySaver()
+
+
+async def _get_graph() -> Any:
+    """Compile the QA graph with Redis checkpoint persistence."""
+    global _graph
+    if _graph is None:
+        _graph = _build_graph(await _get_checkpointer())
+    return _graph
+
+
+async def reset_conversation_thread(thread_id: str = SESSION_ID) -> None:
+    """Delete checkpointed conversation state for one LangGraph thread."""
+    checkpointer = await _get_checkpointer()
+    if hasattr(checkpointer, "adelete_thread"):
+        await checkpointer.adelete_thread(thread_id)
+        return
+    if hasattr(checkpointer, "delete_thread"):
+        checkpointer.delete_thread(thread_id)
+        return
+    for attr in ("storage", "writes", "blobs"):
+        container = getattr(checkpointer, attr, None)
+        if isinstance(container, dict):
+            container.pop(thread_id, None)
 
 
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
 
-async def run_qa_pipeline(request: AskRequest) -> QAResponse:
-    """Run the QA graph and return its parsed response."""
+async def run_qa_pipeline(request: AskRequest) -> GraphState:
+    """Run the QA graph and return the final checkpoint-safe graph state."""
+    thread_id = request.thread_id or SESSION_ID
     initial: GraphState = {
         "question": request.question,
-        "session_id": SESSION_ID,
-        "history": [],
+        "session_id": thread_id,
         "context": "",
         "eda_result": {},
         "dataset_id": "",
@@ -78,5 +134,6 @@ async def run_qa_pipeline(request: AskRequest) -> QAResponse:
         "raw_response": "",
         "response": None,
     }
-    final = await _graph.ainvoke(initial)
-    return final["response"]
+    config = {"configurable": {"thread_id": thread_id}}
+    final = await (await _get_graph()).ainvoke(initial, config)
+    return final

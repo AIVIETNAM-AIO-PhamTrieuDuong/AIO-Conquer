@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from app.memory.redis_client import memory
 from app.memory.eda_store import eda_store
-from app.core.pipeline import SESSION_ID
+from app.core.pipeline import SESSION_ID, reset_conversation_thread
 from app.retrieval.embedder import embed
 from app.retrieval.retriever import retriever, _cosine_similarity
 
@@ -11,10 +10,10 @@ router = APIRouter(prefix="/dev", tags=["dev"])
 
 
 @router.post("/reset")
-async def reset_session() -> dict:
-    """Clear conversation history. Dev-only — reset before a new demo run."""
-    await memory.clear(SESSION_ID)
-    return {"status": "ok", "message": "Session cleared."}
+async def reset_session(thread_id: str = SESSION_ID) -> dict:
+    """Clear checkpointed conversation history for a LangGraph thread."""
+    await reset_conversation_thread(thread_id)
+    return {"status": "ok", "message": "Thread cleared.", "thread_id": thread_id}
 
 
 @router.get("/embed-test")
