@@ -54,6 +54,10 @@ def _shape_label(result: dict[str, Any]) -> str:
 
 
 def _format_answer(payload: dict[str, Any]) -> str:
+    response_payload = payload.get("response")
+    if isinstance(response_payload, dict):
+        payload = response_payload
+
     answer = payload.get("answer") or "No answer returned by the backend."
     explanation = payload.get("explanation")
     confidence = payload.get("confidence")

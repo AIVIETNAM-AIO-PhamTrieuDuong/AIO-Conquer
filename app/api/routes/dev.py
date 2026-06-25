@@ -1,20 +1,19 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from app.memory.redis_client import memory
 from app.memory.eda_store import eda_store
-from app.core.pipeline import SESSION_ID
+from app.memory.vector_store import vector_store
+from app.core.pipeline import SESSION_ID, reset_conversation_thread
 from app.retrieval.embedder import embed
-from app.retrieval.retriever import retriever, _cosine_similarity
 
 router = APIRouter(prefix="/dev", tags=["dev"])
 
 
 @router.post("/reset")
-async def reset_session() -> dict:
-    """Clear conversation history. Dev-only — reset before a new demo run."""
-    await memory.clear(SESSION_ID)
-    return {"status": "ok", "message": "Session cleared."}
+async def reset_session(thread_id: str = SESSION_ID) -> dict:
+    """Clear checkpointed conversation history for a LangGraph thread."""
+    await reset_conversation_thread(thread_id)
+    return {"status": "ok", "message": "Thread cleared.", "thread_id": thread_id}
 
 
 @router.get("/embed-test")
@@ -52,22 +51,32 @@ async def _resolve_job_id(job_id: str | None) -> str:
 
 @router.get("/eda/chunks/{job_id}")
 async def eda_chunks(job_id: str, preview_chars: int = 200) -> dict:
-    """Inspect chunks + embeddings stored in Redis for a job (text preview only)."""
-    chunks, embeddings = await eda_store.get_eda_chunks(job_id)
+    """Inspect EDA summary chunks stored in Redis vector memory."""
+    chunks = await vector_store.list_chunks(
+        job_id=job_id,
+        memory_types=["eda_summary"],
+    )
     if not chunks:
-        raise HTTPException(status_code=404, detail=f"No chunks stored for job {job_id}.")
+        raise HTTPException(
+            status_code=404,
+            detail=f"No vector chunks stored for job {job_id}.",
+        )
     return {
         "job_id": job_id,
         "num_chunks": len(chunks),
-        "embedding_dim": len(embeddings[0]) if embeddings else 0,
+        "embedding_dim": chunks[0].get("embedding_dim", 0),
         "chunks": [
             {
                 "index": i,
-                "length": len(c),
-                "preview": c[:preview_chars],
-                "embedding_preview": embeddings[i][:5],
+                "key": chunk.get("key"),
+                "memory_type": chunk.get("memory_type"),
+                "source_type": chunk.get("source_type"),
+                "title": chunk.get("title"),
+                "length": len(chunk.get("text", "")),
+                "preview": chunk.get("text", "")[:preview_chars],
+                "embedding_dim": chunk.get("embedding_dim", 0),
             }
-            for i, c in enumerate(chunks)
+            for i, chunk in enumerate(chunks)
         ],
     }
 
@@ -81,50 +90,51 @@ class SearchRequest(BaseModel):
 
 @router.post("/eda/search")
 async def eda_search(req: SearchRequest) -> dict:
-    """Semantic search test: embed the question, cosine-rank Redis chunks, return top-k."""
+    """Semantic search test against Redis vector EDA summary memory."""
     job_id = await _resolve_job_id(req.job_id)
-    chunks, embeddings = await eda_store.get_eda_chunks(job_id)
-    if not chunks:
-        raise HTTPException(status_code=404, detail=f"No chunks stored for job {job_id}.")
-
-    query_embedding = (await embed([req.question]))[0]
-    scored = sorted(
-        (
-            {
-                "index": i,
-                "score": round(_cosine_similarity(query_embedding, emb), 4),
-                "preview": chunks[i][:req.preview_chars],
-            }
-            for i, emb in enumerate(embeddings)
-        ),
-        key=lambda x: x["score"],
-        reverse=True,
+    results = await vector_store.search(
+        job_id=job_id,
+        query=req.question,
+        memory_types=["eda_summary"],
+        top_k=req.top_k,
     )
+    if not results:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No vector chunks stored for job {job_id}.",
+        )
     return {
         "job_id": job_id,
         "question": req.question,
         "top_k": req.top_k,
-        "total_chunks": len(chunks),
-        "results": scored[: req.top_k],
+        "total_results": len(results),
+        "results": [
+            {
+                "index": i,
+                "score": result.get("score"),
+                "distance": result.get("distance"),
+                "memory_type": result.get("memory_type"),
+                "source_type": result.get("source_type"),
+                "preview": result.get("text", "")[:req.preview_chars],
+            }
+            for i, result in enumerate(results)
+        ],
     }
 
 
 @router.post("/eda/retrieve")
 async def eda_retrieve(req: SearchRequest) -> dict:
-    """Run the real retriever path (Pinecone if enabled, else Redis cosine fallback)."""
+    """Run the Redis vector retrieval path used by EDA memory."""
     job_id = await _resolve_job_id(req.job_id)
-    chunks, embeddings = await eda_store.get_eda_chunks(job_id)
-    query_embedding = (await embed([req.question]))[0]
-    results = await retriever.search(
-        session_id=SESSION_ID,
-        query_embedding=query_embedding,
+    results = await vector_store.search(
+        job_id=job_id,
+        query=req.question,
+        memory_types=["eda_summary"],
         top_k=req.top_k,
-        fallback_chunks=chunks,
-        fallback_embeddings=embeddings,
     )
     return {
         "job_id": job_id,
         "question": req.question,
-        "backend": "pinecone" if retriever._enabled else "redis-fallback",
-        "results": [c[: req.preview_chars] for c in results],
+        "backend": "redis-vector",
+        "results": [item.get("text", "")[: req.preview_chars] for item in results],
     }

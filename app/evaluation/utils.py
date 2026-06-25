@@ -251,7 +251,11 @@ class TestBuilder:
         with httpx.Client(timeout=self.request_timeout) as client:
             response = client.post(f"{self.base_url}/ask", json={"question": question})
             response.raise_for_status()
-            return response.json()
+            payload = response.json()
+            graph_response = payload.get("response")
+            if isinstance(graph_response, dict):
+                return graph_response
+            return payload
 
     def reset_session(self) -> None:
         with httpx.Client(timeout=self.request_timeout) as client:

@@ -6,7 +6,7 @@ from typing import Any
 import pandas as pd
 
 from app.tools.schema import DataLoaderTool, ToolProvenance, ToolRequest, ToolResult
-
+from langchain.tools import tool
 
 class CSVDataLoaderTool(DataLoaderTool):
     """Load CSV data and expose JSON-safe row retrieval methods."""
@@ -22,7 +22,7 @@ class CSVDataLoaderTool(DataLoaderTool):
         self.dataset_id = dataset_id
         self.encoding = encoding
         self._dataframe: pd.DataFrame | None = None
-
+    @tool("csv_dataloader.load")
     def load(self) -> ToolResult:
         """Load the configured CSV file into memory."""
         request = self._request("tabular.csv.load", "Load CSV data.")

@@ -11,10 +11,9 @@ import numpy as np
 import pandas as pd
 
 from app.memory.eda_store import eda_store
+from app.memory.vector_store import vector_store
 from app.model.openai_client import llm
 from app.retrieval.chunker import fixed_size_chunk
-from app.retrieval.embedder import embed
-from app.retrieval.retriever import retriever
 
 
 # ---------------------------------------------------------------------------
@@ -270,6 +269,7 @@ DATASET PROFILE:
 # ---------------------------------------------------------------------------
 
 async def run_eda(job_id: str, file_path: str, session_id: str = "default") -> None:
+    """Run EDA, persist operational results, and seed vector memories."""
     try:
         # Read file
         if file_path.endswith(".xlsx") or file_path.endswith(".xls"):
@@ -309,11 +309,29 @@ async def run_eda(job_id: str, file_path: str, session_id: str = "default") -> N
         }
         await eda_store.set_eda_result(job_id, payload)
 
-        # Chunk → embed → store for RAG
-        chunks = fixed_size_chunk(summary_md)
-        embeddings = await embed(chunks)
-        await eda_store.set_eda_chunks(job_id, chunks, embeddings)
-        await retriever.upsert_chunks(job_id, session_id, chunks, embeddings)
+        # Chunk → store in dedicated Redis vector memory.
+        summary_chunks = fixed_size_chunk(summary_md)
+        await vector_store.upsert_texts(
+            job_id=job_id,
+            memory_type="eda_summary",
+            texts=summary_chunks,
+            source_type="generated",
+            source_id="eda_summary",
+            title="Generated EDA summary",
+            metadata={"session_id": session_id},
+        )
+
+        domain_text = insight.strip() or summary_md
+        domain_chunks = fixed_size_chunk(domain_text)
+        await vector_store.upsert_texts(
+            job_id=job_id,
+            memory_type="domain_generated",
+            texts=domain_chunks,
+            source_type="generated",
+            source_id="eda_domain_insight",
+            title="Generated domain insight",
+            metadata={"session_id": session_id},
+        )
 
         await eda_store.set_eda_status(job_id, "done")
 
