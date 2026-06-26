@@ -25,6 +25,7 @@ from app.graph.nodes import (
     node_orchestrator_router,
     node_parse,
     node_query_builder,
+    node_route_multivariate,
     node_save_memory,
     node_save_meta_memory,
     node_statistical_association,
@@ -85,6 +86,7 @@ def _build_multi_agent_graph(checkpointer: Any):
     g.add_node("load_eda_context", node_load_eda_context)
     g.add_node("load_domain_context", node_load_domain_context)
     g.add_node("load_meta_memory", node_load_meta_memory)
+    g.add_node("route_multivariate", node_route_multivariate)
     g.add_node("orchestrator_router", node_orchestrator_router)
     g.add_node("domain_context_planner", node_domain_context_planner)
     g.add_node("query_builder", node_query_builder)
@@ -104,7 +106,8 @@ def _build_multi_agent_graph(checkpointer: Any):
     g.add_edge("load_history", "load_eda_context")
     g.add_edge("load_eda_context", "load_domain_context")
     g.add_edge("load_domain_context", "load_meta_memory")
-    g.add_edge("load_meta_memory", "orchestrator_router")
+    g.add_edge("load_meta_memory", "route_multivariate")
+    g.add_edge("route_multivariate", "orchestrator_router")
     g.add_edge("orchestrator_router", "domain_context_planner")
     g.add_edge("domain_context_planner", "query_builder")
     g.add_edge("query_builder", "coding_tool_planner")
