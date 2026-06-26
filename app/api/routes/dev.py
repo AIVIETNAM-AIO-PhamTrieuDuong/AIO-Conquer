@@ -1,6 +1,12 @@
+import os
+
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from app.core import eda_corr
+from app.memory.redis_client import memory
+from app.memory.domain_store import domain_store
 from app.memory.eda_store import eda_store
 from app.memory.vector_store import vector_store
 from app.core.pipeline import SESSION_ID, reset_conversation_thread
@@ -120,6 +126,37 @@ async def eda_search(req: SearchRequest) -> dict:
             for i, result in enumerate(results)
         ],
     }
+
+
+@router.get("/eda/multivariate/{job_id}")
+async def eda_multivariate(job_id: str):
+    """Return the Multivariate Use-Case Dictionary persisted in Redis for a job."""
+    items = await domain_store.get_multivariate(job_id)
+    if not items:
+        raise HTTPException(status_code=404, detail=f"No multivariate data for job {job_id}.")
+    return {"job_id": job_id, "count": len(items), "items": items}
+
+
+@router.get("/eda/multivariate/{job_id}/index")
+async def eda_multivariate_index(job_id: str):
+    """Return the compact ``__index__`` menu the agent uses to pick use-cases."""
+    index = await domain_store.get_index(job_id)
+    if not index:
+        raise HTTPException(status_code=404, detail=f"No multivariate index for job {job_id}.")
+    return {"job_id": job_id, "count": len(index), "index": index}
+
+
+@router.get("/eda/truth-table/{job_id}")
+async def eda_truth_table(job_id: str):
+    """Download the Correlation Truth Table markdown produced for a job."""
+    path = eda_corr.truth_table_path(job_id)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"No truth_table.md for job {job_id}.")
+    return FileResponse(
+        path,
+        media_type="text/markdown",
+        filename=f"truth_table_{job_id}.md",
+    )
 
 
 @router.post("/eda/retrieve")

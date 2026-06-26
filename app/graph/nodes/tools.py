@@ -1,6 +1,7 @@
 """Deterministic tabular and statistical tool nodes for the QA graph."""
 
 import asyncio
+import json
 
 from app.graph.nodes.common import (
     append_context,
@@ -71,7 +72,7 @@ async def node_statistical_association(state: GraphState) -> dict:
         state,
         StatisticalAnalysisTool.CORRELATION,
         "Measure correlation or association for active dataset columns.",
-        {"columns": columns, "method": _association_method(state["question"])},
+        {"columns": columns, "method": _association_method(state)},
     )
 
 
@@ -463,9 +464,14 @@ def _association_columns(state: GraphState) -> list[str]:
     return []
 
 
-def _association_method(question: str) -> str:
-    """Return the requested association method when explicitly named."""
-    lowered = question.lower()
+def _association_method(state: GraphState) -> str:
+    """Return the association method, preferring a selected use-case test."""
+    forced = str(
+        state.get("domain_requirements", {}).get("association_method", "")
+    ).strip()
+    if forced:
+        return forced
+    lowered = state["question"].lower()
     if "spearman" in lowered:
         return "spearman"
     if "pearson" in lowered:

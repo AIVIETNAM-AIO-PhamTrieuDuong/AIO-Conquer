@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     redis_vector_url: str = "redis://localhost:6380"
     redis_vector_index: str = "aio_conquer_vector_memory"
+    redis_domain_url: str = "redis://localhost:6381"
     session_ttl: int = 3600
     max_history_turns: int = 5
 

@@ -44,6 +44,7 @@ def _build_graph(checkpointer: Any):
     g.add_node("load_history", node_load_history)
     g.add_node("load_eda_context", node_load_eda_context)
     g.add_node("load_domain_context", node_load_domain_context)
+    g.add_node("route_multivariate", node_route_multivariate)
     g.add_node("load_meta_memory", node_load_meta_memory)
     g.add_node("column_metadata", node_column_metadata)
     g.add_node("missingness_summary", node_missingness_summary)
@@ -59,7 +60,8 @@ def _build_graph(checkpointer: Any):
     g.set_entry_point("load_history")
     g.add_edge("load_history", "load_eda_context")
     g.add_edge("load_eda_context", "load_domain_context")
-    g.add_edge("load_domain_context", "load_meta_memory")
+    g.add_edge("load_domain_context", "route_multivariate")
+    g.add_edge("route_multivariate", "load_meta_memory")
     g.add_edge("load_meta_memory", "column_metadata")
     g.add_edge("column_metadata", "missingness_summary")
     g.add_edge("missingness_summary", "type_compatibility")
@@ -189,6 +191,8 @@ async def run_qa_pipeline(request: AskRequest) -> GraphState:
         "context": "",
         "domain_context": [],
         "domain_requirements": {},
+        "multivariate_index": [],
+        "multivariate_selected": [],
         "tool_memory": [],
         "agent_working_memory": {},
         "curated_context": [],

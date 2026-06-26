@@ -1,0 +1,402 @@
+[
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_BREAKING"
+    },
+    "evaluation": {
+      "confidence_score": 5,
+      "proposed_analysis_metric": "Correlation between Target Ball Teaching and Breaking Skill"
+    },
+    "business_value": "Understanding how early breaking performance predicts target ball teaching success helps prioritize coaching interventions and improve early game outcomes.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\n# Piecewise: if breaking > threshold, expect higher target ball teaching\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Filter out rows with outliers in BREAKING.\n2. Compute Spearman rho between BREAKING and GAME_TEACHTARGETBALL.\n3. Interpret positive rho as stronger breaking skill linked to higher target ball teaching scores."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_DONESCENETUT"
+    },
+    "evaluation": {
+      "confidence_score": 5,
+      "proposed_analysis_metric": "Impact of Done Scene Tutorial Completion on Target Ball Teaching"
+    },
+    "business_value": "Identifies whether completing the done scene tutorial correlates with better target ball teaching, guiding tutorial sequencing.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Exclude outliers in DONESCENETUT.\n2. Calculate Spearman correlation.\n3. A positive value indicates higher completion scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_FORCE_CUE"
+    },
+    "evaluation": {
+      "confidence_score": 5,
+      "proposed_analysis_metric": "Force Cue Effectiveness on Target Ball Teaching"
+    },
+    "business_value": "Measures how mastering force cue influences target ball teaching, informing skill progression design.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Filter out extreme FORCE_CUE outliers.\n2. Compute Spearman rho.\n3. Positive correlation suggests better force cue performance leads to higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_TUTPOTTEDBALL"
+    },
+    "evaluation": {
+      "confidence_score": 5,
+      "proposed_analysis_metric": "Potted Ball Tutorial Impact on Target Ball Teaching"
+    },
+    "business_value": "Assesses whether proficiency in potted ball tutorial translates to better target ball teaching, guiding tutorial sequencing.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Remove outliers in TUTPOTTEDBALL.\n2. Calculate Spearman correlation.\n3. A positive value indicates stronger potted ball scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_SHOW_FORCE_CUE"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Show Force Cue Influence on Target Ball Teaching"
+    },
+    "business_value": "Determines if showing force cue improves target ball teaching, informing tutorial emphasis.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Filter out high outliers in SHOW_FORCE_CUE.\n2. Compute Spearman correlation.\n3. Positive correlation suggests better show force cue performance leads to higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_TUTDRAGCUE"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Drag Cue Skill Impact on Target Ball Teaching"
+    },
+    "business_value": "Evaluates whether drag cue proficiency correlates with target ball teaching, guiding skill progression.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Exclude outliers in TUTDRAGCUE.\n2. Calculate Spearman correlation.\n3. Positive value indicates higher drag cue scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_JOINFIRSTGAME"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Join First Game Skill Effect on Target Ball Teaching"
+    },
+    "business_value": "Assesses if early game joining skill predicts target ball teaching success, informing early engagement strategies.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Filter out join first game outliers.\n2. Compute Spearman correlation.\n3. Positive correlation suggests better join first game scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_TUTBOX"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Tut Box Completion Impact on Target Ball Teaching"
+    },
+    "business_value": "Determines if completing the tut box tutorial correlates with target ball teaching, guiding tutorial sequencing.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Exclude outliers in TUTBOX.\n2. Calculate Spearman correlation.\n3. Positive value indicates higher TUTBOX scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_DONE"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Done Tutorial Completion Effect on Target Ball Teaching"
+    },
+    "business_value": "Measures whether finishing the done tutorial improves target ball teaching, informing completion incentives.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Filter out outliers in DONE.\n2. Compute Spearman correlation.\n3. Positive correlation suggests higher DONE scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "TUTORIAL_STEP_WINFIRSTGAME"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Win First Game Skill Impact on Target Ball Teaching"
+    },
+    "business_value": "Assesses if winning the first game predicts target ball teaching success, guiding early game design.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Spearman Rank Correlation",
+      "expected_metrics": [
+        "Spearman rho",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Exclude outliers in WINFIRSTGAME.\n2. Compute Spearman correlation.\n3. Positive correlation indicates better win first game scores associate with higher target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "event_date"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Temporal Trend of Target Ball Teaching"
+    },
+    "business_value": "Tracks how target ball teaching scores evolve over time, informing seasonal or cohort effects.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Eta (Mixed)",
+      "expected_metrics": [
+        "Eta coefficient",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Convert event_date to ordinal.\n2. Compute eta between date and target ball teaching.\n3. Significant eta indicates temporal variation."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "UserChurned"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Churn Impact on Target Ball Teaching"
+    },
+    "business_value": "Identifies whether churned users have lower target ball teaching scores, guiding retention strategies.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "Chi-Square",
+      "expected_metrics": [
+        "Chi-square statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Create contingency table of UserChurned vs. high/low target ball teaching.\n2. Perform Chi-square test.\n3. Significant result indicates churn status relates to target ball teaching."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "medium"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Traffic Medium Effect on Target Ball Teaching"
+    },
+    "business_value": "Assesses if organic vs. paid traffic influences target ball teaching, guiding marketing spend allocation.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by medium.\n2. Run ANOVA.\n3. Significant F indicates medium differences."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "source"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Traffic Source Effect on Target Ball Teaching"
+    },
+    "business_value": "Determines if source (google-play, direct, etc.) affects target ball teaching, informing acquisition strategy.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by source.\n2. Perform ANOVA.\n3. Significant result indicates source impact."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "country"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Country Effect on Target Ball Teaching"
+    },
+    "business_value": "Identifies geographic differences in target ball teaching, guiding localized training content.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by country.\n2. Run ANOVA.\n3. Significant F indicates country differences."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "sub_continent"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Sub-Continent Effect on Target Ball Teaching"
+    },
+    "business_value": "Assesses regional patterns in target ball teaching, informing regional content strategy.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by sub_continent.\n2. Perform ANOVA.\n3. Significant result indicates regional influence."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "metro"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Metro Area Effect on Target Ball Teaching"
+    },
+    "business_value": "Explores whether metropolitan vs. non-set areas influence target ball teaching, guiding local marketing.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by metro.\n2. Run ANOVA.\n3. Significant F indicates metro effect."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "category"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Device Category Effect on Target Ball Teaching"
+    },
+    "business_value": "Determines if mobile vs. tablet users differ in target ball teaching, informing device-specific UX.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by category.\n2. Perform ANOVA.\n3. Significant result indicates device impact."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "mobile_brand_name"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "Mobile Brand Effect on Target Ball Teaching"
+    },
+    "business_value": "Identifies if certain brands correlate with better target ball teaching, guiding partnership decisions.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by mobile_brand_name.\n2. Run ANOVA.\n3. Significant F indicates brand effect."
+  },
+  {
+    "comparison_pair": {
+      "variable_a": "TUTORIAL_STEP_GAME_TEACHTARGETBALL",
+      "variable_b": "operating_system_version"
+    },
+    "evaluation": {
+      "confidence_score": 4,
+      "proposed_analysis_metric": "OS Version Effect on Target Ball Teaching"
+    },
+    "business_value": "Assesses whether OS version influences target ball teaching, guiding compatibility focus.",
+    "sympy_calculation_code": "from sympy import symbols, Piecewise, Eq\nx, y = symbols('x y')\nexpr = Piecewise((y, Eq(x, 1)), (0, True))",
+    "metrics_and_significance": {
+      "statistical_test_type": "ANOVA",
+      "expected_metrics": [
+        "F-statistic",
+        "p-value"
+      ]
+    },
+    "interpretation_instructions": "1. Group target ball teaching by OS version.\n2. Perform ANOVA.\n3. Significant result indicates OS impact."
+  }
+]
