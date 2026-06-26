@@ -133,10 +133,10 @@ calling.
   unsupported method.
 - [x] Prefer deterministic helper functions over generated Python execution
   for the first MVP pass.
-  
+
 ### Current Status
 
-Checked against the current repository on 2026-06-24:
+Checked against the current repository on 2026-06-26:
 
 - Implemented: `ToolRequest`, `ToolResult`, normalized tool errors,
   `CSVDataLoaderTool`, and `DatasetProfileTool`.
@@ -236,7 +236,7 @@ serialization format while LangGraph orchestrates read/write timing.
 
 ### Current Status
 
-Checked against the current repository on 2026-06-25:
+Checked against the current repository on 2026-06-26:
 
 - Implemented conversation memory through LangGraph checkpointing. The QA graph
   uses `RedisSaver` when Redis supports the required Redis Stack/RediSearch
@@ -259,8 +259,9 @@ Checked against the current repository on 2026-06-25:
   `memory_type="domain_custom"`.
 - Vector memory records use `vector:{memory_type}:{job_id}:{chunk_id}` keys
   with `schema_version`, provenance/source fields, text, metadata JSON, and
-  FLOAT32 embeddings. `/domain-memory/{job_id}` appends custom domain
-  knowledge, and `/domain-memory/{job_id}/search` retrieves generated/custom
+  FLOAT32 embeddings. `/domain-memory/{job_id}` appends JSON custom domain
+  knowledge, `/domain-memory/{job_id}/file` appends UTF-8 text/Markdown
+  uploads, and `/domain-memory/{job_id}/search` retrieves generated/custom
   domain context by vector search.
 - QA graph now retrieves domain memory before deterministic tool nodes and
   stores retrieved snippets in `domain_context` plus merged metric/feature
@@ -322,82 +323,99 @@ milestones.
 
 ### Responsibilities
 
-- [ ] Define the MVP agent roles: `orchestrator_agent`, `domain_agent`,
+- [x] Define the MVP agent roles: `orchestrator_agent`, `domain_agent`,
   `query_builder_agent`, and `coding_agent`.
-- [ ] Define each agent handoff contract: input state keys, output state keys,
+- [x] Define each agent handoff contract: input state keys, output state keys,
   merge behavior, provenance, warnings, and downstream consumer.
-- [ ] Add an orchestrator route that parses the user question into analysis
+- [x] Add an orchestrator route that parses the user question into analysis
   intent, risk level, and required specialist agents.
-- [ ] Load structured EDA memory: `num_stats`, `cat_stats`, shape, profile text,
+- [x] Load structured EDA memory: `num_stats`, `cat_stats`, shape, profile text,
   cleaned file path, and summary metadata before agent routing.
-- [ ] Load relevant domain/vector memory as supplemental context with source
+- [x] Load relevant domain/vector memory as supplemental context with source
   provenance and uncertainty markers.
-- [ ] Have `query_builder_agent` identify candidate columns and retrieval
+- [x] Have `query_builder_agent` identify candidate columns and retrieval
   evidence from structured dataset memory without Markdown-only parsing.
-- [ ] Have `coding_agent` select deterministic helper tools for lightweight
+- [x] Have `coding_agent` select deterministic helper tools for lightweight
   validation or statistical support requested by another agent.
-- [ ] Emit `ToolRequest` JSON for every tool call.
-- [ ] Consume `ToolResult` JSON and attach results to the producing agent's
+- [x] Emit `ToolRequest` JSON for every tool call.
+- [x] Consume `ToolResult` JSON and attach results to the producing agent's
   state namespace.
-- [ ] Merge agent outputs into global state with intent, selected agents,
+- [x] Merge agent outputs into global state with intent, selected agents,
   candidate columns, retrieval evidence, confidence, warnings, and open
   questions.
 
 ### Current Status
 
-Checked against `DEVELOPMENT.md` on 2026-06-26:
+Checked against the current repository on 2026-06-26:
 
-- Partially implemented through the current QA LangGraph foundation. The graph
-  already loads conversation history, active EDA context, domain vector memory,
-  and operational Redis meta-memory before deterministic tool nodes.
-- `GraphState` already carries `session_id`, `run_id`, `history`, `context`,
-  `domain_context`, `domain_requirements`, `eda_result`, `dataset_id`,
-  `dataset_file_path`, `tool_requests`, `tool_results`,
-  `statistical_findings`, `warnings`, and parsed `response`.
-- Dedicated `orchestrator_agent`, `query_builder_agent`, `coding_agent`, and
-  `domain_agent` nodes are not implemented yet. Current routing is still the
-  linear QA graph described in `DEVELOPMENT.md`.
-- The current graph can retrieve structured EDA/domain context and append
-  deterministic tool outputs to global state, but it does not yet emit
-  explicit agent handoff records, selected specialist agents, query plans,
-  candidate columns, confidence scores, or open questions as separate
-  multi-agent state namespaces.
+- Implemented as a custom LangGraph router + skill-style planner foundation,
+  not as LangChain subagents, handoffs, Deep Agents, or a new dependency.
+- `app/core/pipeline.py` currently compiles `_build_multi_agent_graph()` from
+  `_get_graph()`. That graph runs:
+  `load_history -> load_eda_context -> load_domain_context ->
+  load_meta_memory -> orchestrator_router -> domain_context_planner ->
+  query_builder -> coding_tool_planner -> column_metadata ->
+  missingness_summary -> type_compatibility -> basic_statistical_summary ->
+  statistical_association -> custom_metric -> generate -> parse ->
+  save_meta_memory -> save_memory -> END`.
+- `GraphState` includes the planner fields `analysis_intent`,
+  `selected_agents`, `agent_handoffs`, `query_plan`, `candidate_columns`,
+  `retrieved_context`, `coding_plan`, and `open_questions`, in addition to the
+  existing EDA, domain memory, tool, warning, and response fields.
+- `node_orchestrator_router` deterministically classifies summary,
+  comparison, and association intent from keywords, sets risk level, selects
+  planner/tool namespaces, and records the first handoff.
+- `node_domain_context_planner` treats retrieved domain memory as
+  supplemental skill-style context, preserves uncertainty in assumptions, and
+  records generic-analysis fallback when no domain hints are available.
+- `node_query_builder` extracts candidate columns only from structured
+  `eda_result.num_stats` and `eda_result.cat_stats`; Markdown/profile text is
+  not the source of truth for candidate-column selection.
+- `node_coding_tool_planner` creates a deterministic `coding_plan` for the
+  existing tabular/statistical tool nodes and does not generate or execute
+  arbitrary Python.
+- Node definitions have been split by concern under `app/graph/nodes/`
+  (`memory.py`, `planners.py`, `tools.py`, `generation.py`, `common.py`) while
+  preserving the public `app.graph.nodes` import surface.
+- Remaining gap: these are lightweight planner nodes, not fully autonomous
+  specialist subagents with parallel fan-out, user handoffs, or independent
+  reasoning loops.
 
 ### Tools Used
 
-- [ ] Dataset profile tool.
-- [ ] Column metadata tool.
-- [ ] Type compatibility tool.
+- [x] Dataset profile tool.
+- [x] Column metadata tool.
+- [x] Type compatibility tool.
 - [ ] CSV/dataframe preview or filtered retrieval tool.
-- [ ] Correlation/statistical association tool when requested through
+- [x] Correlation/statistical association tool when requested through
   `coding_agent`.
-- [ ] Basic statistical summary tool when requested through `coding_agent`.
-- [ ] Optional text retrieval tool for stored Markdown/profile context as a
+- [x] Basic statistical summary tool when requested through `coding_agent`.
+- [x] Optional text retrieval tool for stored Markdown/profile context as a
   supplement, not the source of truth.
 
 ### Global State Updates
 
-- [ ] `analysis_intent`
-- [ ] `selected_agents`
-- [ ] `agent_handoffs`
-- [ ] `query_plan`
-- [ ] `candidate_columns`
-- [ ] `retrieved_context`
-- [ ] `domain_context`
-- [ ] `coding_plan`
-- [ ] `tool_requests`
-- [ ] `tool_results`
-- [ ] `warnings`
-- [ ] `open_questions`
+- [x] `analysis_intent`
+- [x] `selected_agents`
+- [x] `agent_handoffs`
+- [x] `query_plan`
+- [x] `candidate_columns`
+- [x] `retrieved_context`
+- [x] `domain_context`
+- [x] `coding_plan`
+- [x] `tool_requests`
+- [x] `tool_results`
+- [x] `warnings`
+- [x] `open_questions`
 
 ### Exit Criteria
 
-- [ ] Orchestrator can route a request to the required specialist agents.
-- [ ] Agent handoffs are JSON-first and documented by state read/write keys.
-- [ ] Query builder can map user wording to likely dataset columns.
-- [ ] Agents retrieve structured EDA context for downstream stages.
-- [ ] Agents do not fabricate unavailable columns, metrics, or domain facts.
-- [ ] Agent outputs merge into global state as machine-readable updates.
+- [x] Orchestrator can route a request to the required specialist agents.
+- [x] Agent handoffs are JSON-first and documented by state read/write keys.
+- [x] Query builder can map user wording to likely dataset columns.
+- [x] Agents retrieve structured EDA context for downstream stages.
+- [x] Agents do not fabricate unavailable columns, metrics, or domain facts.
+- [x] Agent outputs merge into global state as machine-readable updates.
 
 ## Milestone 4: Feature Agent Calls Statistical Tools
 
@@ -407,56 +425,66 @@ global state.
 
 ### Responsibilities
 
-- [ ] Consume query agent output and domain agent requirements.
-- [ ] Validate feature compatibility for requested analysis.
-- [ ] Determine required statistical computations.
-- [ ] Select appropriate Python-based tools.
-- [ ] Generate `ToolRequest` JSON for statistical computation.
-- [ ] Consume `ToolResult` JSON.
-- [ ] Produce feature findings with metric values, assumptions, warnings, and
+- [x] Consume query agent output and domain agent requirements.
+- [x] Validate feature compatibility for requested analysis.
+- [x] Determine required statistical computations.
+- [x] Select appropriate Python-based tools.
+- [x] Generate `ToolRequest` JSON for statistical computation.
+- [x] Consume `ToolResult` JSON.
+- [x] Produce feature findings with metric values, assumptions, warnings, and
   provenance.
 - [ ] Update global state with feature roles, statistical findings, and
   unresolved issues.
 
 ### Current Status
 
-Checked against `DEVELOPMENT.md` on 2026-06-26:
+Checked against the current repository on 2026-06-26:
 
 - Deterministic statistical support is implemented and wired into the current
   QA graph through `basic_statistical_summary`, `statistical_association`, and
   `custom_metric` nodes.
 - Tool calls already use `ToolRequest` / `ToolResult` and update
   `tool_requests`, `tool_results`, `statistical_findings`, and `warnings`.
-- A dedicated `feature_agent` that consumes query/domain handoffs, records
-  feature roles, plans computations, and writes `feature_plan` /
-  `feature_roles` is not implemented yet.
+- `node_coding_tool_planner` now consumes `query_plan`, `candidate_columns`,
+  `analysis_intent`, and `domain_requirements` to plan deterministic tool
+  usage. It writes `coding_plan` and records selected columns/metrics in
+  `agent_working_memory`.
+- The deterministic tool nodes execute after the planner stage and still own
+  the actual statistical/tool computation.
+- A dedicated `feature_agent` that records feature roles and writes
+  `feature_plan` / `feature_roles` is not implemented yet.
 
 ### Tools Used
 
-- [ ] Missingness summary tool.
-- [ ] Type compatibility tool.
-- [ ] Correlation/statistical association tool.
-- [ ] Basic statistical summary tool.
-- [ ] Deterministic custom metric helper for approved simple calculations.
+- [x] Missingness summary tool.
+- [x] Type compatibility tool.
+- [x] Correlation/statistical association tool.
+- [x] Basic statistical summary tool.
+- [x] Deterministic custom metric helper for approved simple calculations.
 
 ### Global State Updates
 
 - [ ] `feature_plan`
 - [ ] `feature_roles`
-- [ ] `statistical_findings`
-- [ ] `tool_requests`
-- [ ] `tool_results`
-- [ ] `warnings`
-- [ ] `open_questions`
+- [x] `coding_plan`
+- [x] `statistical_findings`
+- [x] `tool_requests`
+- [x] `tool_results`
+- [x] `warnings`
+- [x] `open_questions`
 
 ### Exit Criteria
 
-- [ ] Feature agent can compute or request required statistics for candidate
+- [x] Feature agent can compute or request required statistics for candidate
   features.
-- [ ] Feature agent records assumptions and warnings.
-- [ ] Feature agent returns structured findings that downstream synthesis can
+- [x] Feature agent records assumptions and warnings.
+- [x] Feature agent returns structured findings that downstream synthesis can
   consume.
-- [ ] Feature agent updates global state without relying on Markdown parsing.
+- [x] Feature agent updates global state without relying on Markdown parsing.
+
+Note: the exit criteria are satisfied by the current coding/tool planner plus
+deterministic tool-node sequence. A separately named `feature_agent` remains
+unimplemented.
 
 ## Milestone 5: Domain Agent Requirements And Ambiguity Handling
 
@@ -484,43 +512,57 @@ the domain is unclear.
 
 ### Current Status
 
-Checked against `DEVELOPMENT.md` on 2026-06-26:
+Checked against the current repository on 2026-06-26:
 
 - Domain vector memory is implemented through Redis Stack and
   `RedisVectorStore`; the QA graph loads generated/custom domain context into
   `domain_context` and merged metric/feature hints into `domain_requirements`.
+- `/domain-memory/{job_id}` accepts JSON text augmentation,
+  `/domain-memory/{job_id}/file` accepts UTF-8 `.md`, `.markdown`, and `.txt`
+  uploads, and `/domain-memory/{job_id}/search` retrieves generated/custom
+  domain memory.
 - Existing tool-selection helpers can prefer exact metric and feature hints
   from domain memory when available.
-- A dedicated `domain_agent` that turns user intent into actionable
-  requirements, preserves ambiguity, decides when clarification is needed, and
-  writes assumptions/open questions is not implemented yet.
+- `node_domain_context_planner` now treats domain memory as supplemental
+  skill-style context, writes assumptions and domain source summaries into
+  `agent_working_memory`, and records generic-analysis fallback when no domain
+  hints are present.
+- A dedicated `domain_agent` that fully maps business concepts, decides when
+  clarification is needed, and writes standalone `analysis_objective`,
+  `required_metrics`, `required_filters`, and `candidate_concepts` fields is
+  not implemented yet.
 
 ### Tools Used
 
-- [ ] Dataset profile tool.
-- [ ] Column metadata tool.
-- [ ] Context/memory retrieval tool.
-- [ ] Type compatibility tool when requirements imply specific variables.
+- [x] Dataset profile tool.
+- [x] Column metadata tool.
+- [x] Context/memory retrieval tool.
+- [x] Type compatibility tool when requirements imply specific variables.
 
 ### Global State Updates
 
-- [ ] `domain_requirements`
+- [x] `domain_requirements`
 - [ ] `analysis_objective`
 - [ ] `required_metrics`
 - [ ] `required_filters`
 - [ ] `candidate_concepts`
-- [ ] `assumptions`
-- [ ] `warnings`
-- [ ] `open_questions`
+- [x] `agent_working_memory.assumptions`
+- [x] `warnings`
+- [x] `open_questions`
 
 ### Exit Criteria
 
 - [ ] Domain agent produces requirements that query and feature agents can
   consume directly.
-- [ ] Domain agent preserves ambiguity instead of forcing unsupported
+- [x] Domain agent preserves ambiguity instead of forcing unsupported
   assumptions.
-- [ ] Domain agent writes structured global state updates.
-- [ ] Domain agent does not hardcode behavior for a single dataset.
+- [x] Domain agent writes structured global state updates.
+- [x] Domain agent does not hardcode behavior for a single dataset.
+
+Note: the exit criteria are satisfied by the current domain context planner and
+domain memory loader except for standalone actionable business requirements. A
+separately named `domain_agent` with full ambiguity policy remains
+unimplemented.
 
 ## MVP Acceptance Checklist
 
@@ -529,15 +571,15 @@ Checked against `DEVELOPMENT.md` on 2026-06-26:
 - [x] LangGraph is used as the agent orchestration framework.
 - [x] Redis key/API contracts are separated by purpose.
 - [x] All memory kinds are backed by Redis with schema/version metadata.
-- [ ] Query agent reads structured EDA memory and updates global state.
-- [ ] Feature agent calls statistical tools and updates
+- [x] Query agent reads structured EDA memory and updates global state.
+- [x] Feature agent calls statistical tools and updates
   global state.
 - [ ] Domain agent converts user intent into actionable requirements and
   handles ambiguity before updating global state.
 - [x] Global state schema is treated as provisional during MVP development.
 - [x] Tool outputs and agent outputs are JSON-first.
 - [x] Errors and warnings are machine-readable.
-- [ ] No downstream stage depends on parsing Markdown tables.
+- [x] No downstream stage depends on parsing Markdown tables.
 - [x] No Python execution is unrestricted.
 
 ## Recommended MVP Build Order
