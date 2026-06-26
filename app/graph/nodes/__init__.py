@@ -25,6 +25,7 @@ from app.graph.nodes.tools import (
     node_column_metadata,
     node_custom_metric,
     node_missingness_summary,
+    node_route_multivariate,
     node_statistical_association,
     node_type_compatibility,
 )
@@ -44,6 +45,7 @@ __all__ = [
     "node_missingness_summary",
     "node_orchestrator_router",
     "node_parse",
+    "node_route_multivariate",
     "node_query_builder",
     "node_save_memory",
     "node_save_meta_memory",

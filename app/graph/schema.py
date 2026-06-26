@@ -24,6 +24,8 @@ class GraphState(TypedDict, total=False):
     context: NotRequired[str]
     domain_context: NotRequired[list[dict[str, Any]]]
     domain_requirements: NotRequired[dict[str, Any]]
+    multivariate_index: NotRequired[list[dict[str, Any]]]
+    multivariate_selected: NotRequired[list[dict[str, Any]]]
     analysis_intent: NotRequired[dict[str, Any]]
     selected_agents: NotRequired[list[str]]
     agent_handoffs: NotRequired[list[dict[str, Any]]]

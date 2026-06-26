@@ -27,6 +27,20 @@ services:
       timeout: 3s
       retries: 5
 
+  redis-domain:
+    image: redis:7-alpine
+    container_name: redis-domain
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_domain_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   api:
     build:
       context: .
@@ -39,6 +53,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - REDIS_VECTOR_URL=redis://redis-vector:6379
       - REDIS_VECTOR_INDEX=aio_conquer_vector_memory
+      - REDIS_DOMAIN_URL=redis://redis-domain:6379
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./app:/app/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
@@ -47,8 +63,11 @@ services:
         condition: service_healthy
       redis-vector:
         condition: service_healthy
+      redis-domain:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   redis_data:
   redis_vector_data:
+  redis_domain_data:

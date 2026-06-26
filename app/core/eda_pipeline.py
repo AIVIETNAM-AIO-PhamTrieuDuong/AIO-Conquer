@@ -10,10 +10,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from app.core import eda_corr
+from app.memory.domain_store import domain_store
 from app.memory.eda_store import eda_store
 from app.memory.vector_store import vector_store
 from app.model.openai_client import llm
+from app.model.llm_client import llm
+from app.model.prompts.multivariate import build_multivariate_prompt
 from app.retrieval.chunker import fixed_size_chunk
+from app.retrieval.embedder import embed
+from app.retrieval.retriever import retriever
+from app.validation.multivariate_parser import parse_multivariate
 
 
 # ---------------------------------------------------------------------------
@@ -332,6 +339,42 @@ async def run_eda(job_id: str, file_path: str, session_id: str = "default") -> N
             title="Generated domain insight",
             metadata={"session_id": session_id},
         )
+
+        # Multivariate Use-Case Dictionary (new step — output to file, no Redis yet).
+        # Wrapped separately so a failure here never breaks the core EDA result.
+        try:
+            assoc = await asyncio.get_event_loop().run_in_executor(
+                None, eda_corr.build_association, df_clean
+            )
+            eda_corr.write_truth_table(job_id, assoc["truth_table_md"])
+            raw = await llm.generate_text(
+                build_multivariate_prompt(
+                    summary_md, assoc["truth_table_md"], assoc["target_col"]
+                ),
+                max_tokens=8192,
+                timeout=600,  # heavy generation: 9Router buffers the full completion before responding
+            )
+            # DIAGNOSTIC: persist the raw LLM response so we can see whether the
+            # model returned nothing / truncated JSON / prose instead of an array.
+            tmp_dir = os.path.join(tempfile.gettempdir(), "eda", job_id)
+            os.makedirs(tmp_dir, exist_ok=True)
+            with open(os.path.join(tmp_dir, "multivariate_raw.txt"), "w", encoding="utf-8") as f:
+                f.write(raw or "<EMPTY RESPONSE>")
+            items = parse_multivariate(raw)
+            print(f"[run_eda] multivariate parsed {len(items)} items "
+                  f"(raw_len={len(raw or '')}) for {job_id}")
+
+            # Persist whole array to the dedicated domain knowledge store.
+            # No chunking / embedding — stored as a single JSON blob per job.
+            await domain_store.set_multivariate(job_id, items)
+        except Exception:
+            import traceback
+            tmp_dir = os.path.join(tempfile.gettempdir(), "eda", job_id)
+            os.makedirs(tmp_dir, exist_ok=True)
+            with open(os.path.join(tmp_dir, "multivariate_error.txt"), "w", encoding="utf-8") as f:
+                f.write(traceback.format_exc())
+            await domain_store.set_multivariate(job_id, [])
+            print(f"[run_eda] multivariate step FAILED for {job_id}:\n{traceback.format_exc()}")
 
         await eda_store.set_eda_status(job_id, "done")
 

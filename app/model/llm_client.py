@@ -82,8 +82,8 @@ class NineRouterClient:
             payload["response_format"] = {"type": "json_object"}
         return payload
 
-    async def _post(self, payload: dict) -> str:
-        async with httpx.AsyncClient(timeout=120) as client:
+    async def _post(self, payload: dict, timeout: float = 120) -> str:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(
                 f"{self._base_url}/chat/completions",
                 headers=self._headers,
@@ -92,13 +92,13 @@ class NineRouterClient:
             resp.raise_for_status()
             return _parse_response(resp.text)
 
-    async def generate(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1024) -> str:
+    async def generate(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1024, timeout: float = 120) -> str:
         """JSON-mode generation (replaces Gemini response_mime_type=application/json)."""
-        return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=True))
+        return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=True), timeout=timeout)
 
-    async def generate_text(self, prompt: str, temperature: float = 0.2, max_tokens: int = 2048) -> str:
+    async def generate_text(self, prompt: str, temperature: float = 0.2, max_tokens: int = 2048, timeout: float = 120) -> str:
         """Plain-text generation."""
-        return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=False))
+        return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=False), timeout=timeout)
 
     async def is_alive(self) -> bool:
         try:

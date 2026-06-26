@@ -1,20 +1,158 @@
 """Deterministic tabular and statistical tool nodes for the QA graph."""
 
 import asyncio
+import json
 
 from app.graph.nodes.common import (
     append_context,
     as_list,
     dump_model,
+    extend_unique,
     unique_values,
 )
 from app.graph.schema import GraphState
+from app.memory.domain_store import domain_store
+from app.model.openai_client import llm
 from app.tools.dataset_profile import DatasetProfileTool
+from app.tools.domain_usecase import domain_usecase_tool
 from app.tools.schema import ToolRequest, ToolResult
 from app.tools.statistics import StatisticalAnalysisTool
 
 dataset_profile_tool = DatasetProfileTool()
 statistical_tool = StatisticalAnalysisTool()
+
+
+async def node_route_multivariate(state: GraphState) -> dict:
+    """Resolve relevant multivariate use-cases and merge them into requirements.
+
+    Reads only the compact ``__index__`` menu from the domain store, asks the
+    model which records fit the question, then calls the ``domain.usecase_lookup``
+    tool to fetch those records and resolve their column pair against the active
+    dataset. Resolved columns/method are merged into ``domain_requirements`` so
+    the existing statistical nodes pick the right columns and method, and the
+    call is recorded like any other tool node.
+    """
+    job_id = state.get("dataset_id", "")
+    if not job_id:
+        return {}
+    index = await domain_store.get_index(job_id)
+    if not index:
+        return {}
+
+    ids = await _select_usecase_ids(state["question"], index)
+    if not ids:
+        return {"multivariate_index": index}
+
+    numeric_columns, categorical_columns = _eda_column_groups(state)
+    request = ToolRequest(
+        tool_name=domain_usecase_tool.tool_name,
+        request_id=f"{domain_usecase_tool.tool_name}:{job_id}",
+        caller="langgraph_qa_pipeline",
+        purpose="Resolve relevant multivariate use-cases into dataset columns.",
+        inputs={
+            "job_id": job_id,
+            "ids": ids,
+            "available_columns": [*numeric_columns, *categorical_columns],
+        },
+    )
+    result = await domain_usecase_tool.invoke(request)
+    data = result.data if isinstance(result.data, dict) else {}
+    records = data.get("records", []) if isinstance(data, dict) else []
+
+    # Merge resolved use-case columns/method into domain_requirements (the
+    # convention the statistical nodes already read from).
+    requirements = dict(state.get("domain_requirements") or {})
+    features = list(requirements.get("features", []))
+    extend_unique(features, list(data.get("columns", [])))
+    requirements["features"] = features
+    method = str(data.get("association_method", ""))
+    if method:
+        requirements["association_method"] = method
+
+    # Record the tool call the same way as the deterministic tool nodes.
+    request_payload = dump_model(request)
+    result_payload = dump_model(result)
+    warnings = [*state.get("warnings", []), *result.warnings]
+    if result.status == "error" and result.error:
+        warnings.append(result.error.message)
+    return {
+        "domain_requirements": requirements,
+        "multivariate_index": index,
+        "multivariate_selected": records,
+        "tool_requests": [*state.get("tool_requests", []), request_payload],
+        "tool_results": [*state.get("tool_results", []), result_payload],
+        "tool_memory": [
+            *state.get("tool_memory", []),
+            _tool_memory_record(request_payload, result_payload),
+        ],
+        "error_memory": [
+            *state.get("error_memory", []),
+            *_tool_error_memory_records(request_payload, result_payload),
+        ],
+        "agent_working_memory": _update_working_memory_with_tool(
+            state,
+            request_payload,
+            result_payload,
+        ),
+        "warnings": warnings,
+        "context": append_context(
+            state.get("context", ""),
+            _usecase_context_summary(records),
+        ),
+    }
+
+
+async def _select_usecase_ids(question: str, index: list[dict]) -> list[str]:
+    """Ask the LLM which use-case ids are relevant; fail closed to ``[]``."""
+    valid_ids = {str(entry.get("id")) for entry in index}
+    menu = "\n".join(
+        f"- id={entry.get('id')}: {entry.get('variable_a', '')} vs "
+        f"{entry.get('variable_b', '')} | {entry.get('metric', '')} "
+        f"(confidence {entry.get('confidence')})"
+        for entry in index[:100]
+    )
+    prompt = (
+        "Select which precomputed multivariate analysis use-cases are relevant "
+        "to the user's question.\n\n"
+        f"User question: {question}\n\n"
+        f"Available use-cases:\n{menu}\n\n"
+        'Return ONLY JSON: {"ids": ["<id>", ...]} listing relevant ids, most '
+        'relevant first, at most 5. If none are relevant, return {"ids": []}.'
+    )
+    try:
+        raw = await llm.generate(prompt, max_tokens=256)
+        payload = json.loads(raw)
+    except Exception:
+        return []
+
+    picked = payload.get("ids", []) if isinstance(payload, dict) else []
+    selected: list[str] = []
+    for candidate in picked:
+        record_id = str(candidate)
+        if record_id in valid_ids and record_id not in selected:
+            selected.append(record_id)
+        if len(selected) >= 5:
+            break
+    return selected
+
+
+def _usecase_context_summary(records: list[dict]) -> str:
+    """Format selected use-cases as analysis guidance for the answer prompt."""
+    if not records:
+        return ""
+    lines = ["Selected multivariate use-cases:"]
+    for record in records[:3]:
+        pair = record.get("comparison_pair", {})
+        evaluation = record.get("evaluation", {})
+        interpretation = " ".join(
+            str(record.get("interpretation_instructions", "")).split()
+        )
+        lines.append(
+            f"- {pair.get('variable_a', '')} vs {pair.get('variable_b', '')}: "
+            f"{evaluation.get('proposed_analysis_metric', '')}. "
+            f"{interpretation[:400]}"
+        )
+    return "\n".join(lines)
 
 
 async def node_column_metadata(state: GraphState) -> dict:
@@ -71,7 +209,7 @@ async def node_statistical_association(state: GraphState) -> dict:
         state,
         StatisticalAnalysisTool.CORRELATION,
         "Measure correlation or association for active dataset columns.",
-        {"columns": columns, "method": _association_method(state["question"])},
+        {"columns": columns, "method": _association_method(state)},
     )
 
 
@@ -463,9 +601,14 @@ def _association_columns(state: GraphState) -> list[str]:
     return []
 
 
-def _association_method(question: str) -> str:
-    """Return the requested association method when explicitly named."""
-    lowered = question.lower()
+def _association_method(state: GraphState) -> str:
+    """Return the association method, preferring a selected use-case test."""
+    forced = str(
+        state.get("domain_requirements", {}).get("association_method", "")
+    ).strip()
+    if forced:
+        return forced
+    lowered = state["question"].lower()
     if "spearman" in lowered:
         return "spearman"
     if "pearson" in lowered:
