@@ -20,7 +20,18 @@ Không phá vỡ node cũ, không breaking changes.
 
 `app/core/pipeline.py` là file chính khi mở rộng pipeline. Nếu thay đổi public
 request schema, dependency, dev endpoint, hoặc memory contract thì cập nhật
-file liên quan tối thiểu theo scope được duyệt.
+file liên quan tối thiểu theo scope được duyệt. `_build_graph()` là active
+runtime graph. `_build_multi_agent_graph()` lưu reserved Milestone 3 planner
+graph nhưng hiện không được `_get_graph()` compile/invoke.
+
+Node implementations live in the `app/graph/nodes/` package and are re-exported
+from `app.graph.nodes` for compatibility:
+
+- `memory.py`: history, EDA/domain/meta-memory load and save nodes.
+- `planners.py`: deterministic Milestone 3 router/query/coding planner nodes.
+- `tools.py`: deterministic tabular/statistical tool execution nodes.
+- `generation.py`: prompt generation and response parsing nodes.
+- `common.py`: shared JSON-safe helper functions.
 
 ## LangGraph global state
 
@@ -62,6 +73,81 @@ Các field hiện tại:
   parse.
 
 ---
+
+## Multi-Agent Foundation
+
+Milestone 3 reserved graph dùng custom LangGraph workflow làm spine chính,
+không dùng LangChain subagents, handoffs, Deep Agents hoặc dependency mới. Các
+agent trong milestone này là deterministic planner nodes ghi state có cấu trúc
+trước khi graph chạy tool nodes hiện có. Graph này hiện được giữ trong
+`_build_multi_agent_graph()` nhưng chưa active; `_build_graph()` đang dùng lại
+pipeline deterministic tool-node sequence.
+
+Reserved-only `GraphState` fields:
+
+- `analysis_intent`: deterministic router output cho analysis type,
+  operation, risk level, dataset requirement và routing provenance.
+- `selected_agents`: danh sách planner/tool namespaces được router chọn cho
+  run hiện tại.
+- `agent_handoffs`: JSON-first handoff records giữa các planner nodes, gồm
+  read/write keys, summary, warnings, downstream nodes và provenance.
+- `query_plan`: kế hoạch query có cấu trúc từ EDA metadata và domain hints.
+- `candidate_columns`: danh sách column candidates từ `eda_result.num_stats`
+  và `eda_result.cat_stats`, kèm role, source, match reason và confidence.
+- `retrieved_context`: evidence có cấu trúc từ EDA/domain memory cho query
+  plan.
+- `coding_plan`: kế hoạch dùng deterministic tools hiện có; không sinh hoặc
+  chạy Python tùy ý.
+- `open_questions`: câu hỏi/ambiguity còn mở cho downstream synthesis hoặc
+  human clarification sau này.
+
+Planner nodes hiện tại:
+
+- `orchestrator_router`: đọc question, history, EDA context, domain
+  requirements và curated context; ghi `analysis_intent`, `selected_agents`,
+  `agent_handoffs` và `open_questions`.
+- `domain_context_planner`: dùng `domain_context` / `domain_requirements` như
+  skill-style context; ghi assumptions và domain sources vào
+  `agent_working_memory` mà không hardcode domain fact.
+- `query_builder`: map question vào candidate columns từ structured
+  `eda_result.num_stats` / `eda_result.cat_stats`; ghi `query_plan`,
+  `candidate_columns`, `retrieved_context` và handoff record.
+- `coding_tool_planner`: lập kế hoạch dùng các deterministic tools đã có
+  (`tabular.*`, `stats.*`) và ghi `coding_plan`; node này không execute
+  generated code.
+
+Handoff record shape:
+
+```json
+{
+  "agent": "orchestrator_router",
+  "reads": ["question", "eda_result"],
+  "writes": ["analysis_intent", "selected_agents"],
+  "summary": "Detected comparison intent with low risk.",
+  "warnings": [],
+  "provenance": {
+    "source_node": "node_orchestrator_router",
+    "run_id": "..."
+  },
+  "downstream": ["domain_context_planner", "query_builder"]
+}
+```
+
+Candidate column shape:
+
+```json
+{
+  "column": "Sales",
+  "role": "candidate_metric",
+  "source": "eda_result.num_stats",
+  "match_reason": "question exact match + domain hint",
+  "confidence": "high"
+}
+```
+
+This foundation keeps the current deterministic tool nodes as the execution
+layer. Full feature-agent reasoning, advanced domain ambiguity handling,
+parallel fan-out, and direct user handoffs remain later milestones.
 
 ## Pattern: Thêm tính năng mới
 
@@ -255,7 +341,10 @@ EDA pipeline ghi generated vectors vào Redis vector memory:
 - `memory_type="domain_generated"` cho generated domain insight.
 
 Custom domain augmentation ghi `memory_type="domain_custom"` qua
-`POST /domain-memory/{job_id}`. Redis hash keys dùng prefix
+`POST /domain-memory/{job_id}` hoặc multipart upload
+`POST /domain-memory/{job_id}/file` cho file `.md`, `.markdown`, hoặc `.txt`.
+Uploaded file chunks dùng `source_type="file"` và lưu filename/content type
+trong metadata. Redis hash keys dùng prefix
 `vector:{memory_type}:{job_id}:{chunk_id}` và payload có `schema_version`,
 `job_id`, `memory_type`, provenance/source fields, text, metadata JSON và
 FLOAT32 embedding.
@@ -431,7 +520,7 @@ Nhóm kiểm tra chính:
 - Stability theo thời gian, cohort hoặc data source.
 
 Feature proposal phải giữ provenance: feature gốc, phép biến đổi, lý do,
-constraint và cảnh báo. 
+constraint và cảnh báo.
 
 ### Scratchpad/whiteboard cho context augmentation
 
@@ -527,6 +616,43 @@ response cuối.
 
 ## Verification Notes
 
+- 2026-06-26: Đã thêm `POST /domain-memory/{job_id}/file` để augment domain
+  knowledge từ uploaded text/Markdown file vào Redis vector memory với
+  `memory_type="domain_custom"` và `source_type="file"`. Đã chạy
+  `PYTHONPYCACHEPREFIX=/tmp/aio_conquer_pycache python3 -m py_compile
+  app/api/routes/domain_memory.py` thành công.
+- 2026-06-26: Đã deactivate reserved Milestone 3 planner graph trong runtime
+  path: `_build_graph()` trở lại deterministic tool-node sequence
+  `load_meta_memory → column_metadata`, còn planner topology được giữ trong
+  inactive `_build_multi_agent_graph()`. `run_qa_pipeline()` không còn
+  initialize planner-only state fields cho active graph. Đã chạy
+  `PYTHONPYCACHEPREFIX=/tmp/aio_conquer_pycache python3 -m py_compile
+  app/graph/schema.py app/graph/nodes/__init__.py app/graph/nodes/common.py
+  app/graph/nodes/generation.py app/graph/nodes/memory.py
+  app/graph/nodes/planners.py app/graph/nodes/tools.py app/core/pipeline.py`
+  thành công.
+- 2026-06-26: Đã tách monolithic `app/graph/nodes.py` thành package
+  `app/graph/nodes/` theo concern modules (`memory.py`, `planners.py`,
+  `tools.py`, `generation.py`, `common.py`) và giữ compatibility surface qua
+  `app.graph.nodes`. Đã chạy `PYTHONPYCACHEPREFIX=/tmp/aio_conquer_pycache
+  python3 -m py_compile app/graph/schema.py app/graph/nodes/__init__.py
+  app/graph/nodes/common.py app/graph/nodes/generation.py
+  app/graph/nodes/memory.py app/graph/nodes/planners.py
+  app/graph/nodes/tools.py app/core/pipeline.py` thành công.
+- 2026-06-26: Đã triển khai Milestone 3 multi-agent foundation bằng custom
+  LangGraph workflow với deterministic planner nodes:
+  `orchestrator_router`, `domain_context_planner`, `query_builder`, và
+  `coding_tool_planner`. `GraphState` thêm `analysis_intent`,
+  `selected_agents`, `agent_handoffs`, `query_plan`, `candidate_columns`,
+  `retrieved_context`, `coding_plan`, và `open_questions`. Đã chạy
+  `PYTHONPYCACHEPREFIX=/tmp/aio_conquer_pycache python3 -m py_compile
+  app/graph/schema.py app/graph/nodes/__init__.py app/graph/nodes/common.py
+  app/graph/nodes/generation.py app/graph/nodes/memory.py
+  app/graph/nodes/planners.py app/graph/nodes/tools.py app/core/pipeline.py`
+  thành công.
+  Focused planner-node import smoke test chưa chạy được trong shell hiện tại
+  vì system Python thiếu `pydantic_settings` và `.venv` hiện tại là
+  Windows-style venv không execute được từ WSL shell này.
 - 2026-06-25: Đã thêm agent meta-memory trong `app/memory/context_store.py`
   với `ToolMemory`, `AgentWorkingMemory`, `CuratedContextMemory`,
   `ErrorMemory`, và `ContextStore`. QA graph thêm `load_meta_memory` trước

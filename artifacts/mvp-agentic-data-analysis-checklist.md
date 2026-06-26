@@ -313,26 +313,55 @@ class AnalysisState(TypedDict):
 - [x] Temporary working context is separated from curated reusable context.
 - [x] Redis memory payloads include schema/version metadata.
 
-## Milestone 3: Query Agent Reads Structured EDA Memory
+## Milestone 3: Multi-Agent System Foundation
 
-Goal: complete the query agent so it reads structured EDA memory, maps user
-wording to dataset columns, uses lightweight helper tools when needed, and
-updates global state.
+Goal: establish the LangGraph multi-agent foundation so an orchestrator can
+parse the user request, load structured EDA/domain context, route work to
+specialist agents, and merge machine-readable state updates for downstream
+milestones.
 
 ### Responsibilities
 
-- [ ] Parse the user question into retrieval intent.
+- [ ] Define the MVP agent roles: `orchestrator_agent`, `domain_agent`,
+  `query_builder_agent`, and `coding_agent`.
+- [ ] Define each agent handoff contract: input state keys, output state keys,
+  merge behavior, provenance, warnings, and downstream consumer.
+- [ ] Add an orchestrator route that parses the user question into analysis
+  intent, risk level, and required specialist agents.
 - [ ] Load structured EDA memory: `num_stats`, `cat_stats`, shape, profile text,
-  cleaned file path, and summary metadata.
-- [ ] Identify candidate columns from structured dataset memory.
-- [ ] Retrieve relevant column metadata, dataset profile, and prior findings
-  without relying on Markdown-only parsing.
-- [ ] Detect whether the question is single-variable or multivariate.
-- [ ] Select tools needed for tabular retrieval or lightweight validation.
+  cleaned file path, and summary metadata before agent routing.
+- [ ] Load relevant domain/vector memory as supplemental context with source
+  provenance and uncertainty markers.
+- [ ] Have `query_builder_agent` identify candidate columns and retrieval
+  evidence from structured dataset memory without Markdown-only parsing.
+- [ ] Have `coding_agent` select deterministic helper tools for lightweight
+  validation or statistical support requested by another agent.
 - [ ] Emit `ToolRequest` JSON for every tool call.
-- [ ] Consume `ToolResult` JSON.
-- [ ] Update global state with query intent, candidate columns, retrieval
-  evidence, confidence, warnings, and open questions.
+- [ ] Consume `ToolResult` JSON and attach results to the producing agent's
+  state namespace.
+- [ ] Merge agent outputs into global state with intent, selected agents,
+  candidate columns, retrieval evidence, confidence, warnings, and open
+  questions.
+
+### Current Status
+
+Checked against `DEVELOPMENT.md` on 2026-06-26:
+
+- Partially implemented through the current QA LangGraph foundation. The graph
+  already loads conversation history, active EDA context, domain vector memory,
+  and operational Redis meta-memory before deterministic tool nodes.
+- `GraphState` already carries `session_id`, `run_id`, `history`, `context`,
+  `domain_context`, `domain_requirements`, `eda_result`, `dataset_id`,
+  `dataset_file_path`, `tool_requests`, `tool_results`,
+  `statistical_findings`, `warnings`, and parsed `response`.
+- Dedicated `orchestrator_agent`, `query_builder_agent`, `coding_agent`, and
+  `domain_agent` nodes are not implemented yet. Current routing is still the
+  linear QA graph described in `DEVELOPMENT.md`.
+- The current graph can retrieve structured EDA/domain context and append
+  deterministic tool outputs to global state, but it does not yet emit
+  explicit agent handoff records, selected specialist agents, query plans,
+  candidate columns, confidence scores, or open questions as separate
+  multi-agent state namespaces.
 
 ### Tools Used
 
@@ -340,14 +369,22 @@ updates global state.
 - [ ] Column metadata tool.
 - [ ] Type compatibility tool.
 - [ ] CSV/dataframe preview or filtered retrieval tool.
+- [ ] Correlation/statistical association tool when requested through
+  `coding_agent`.
+- [ ] Basic statistical summary tool when requested through `coding_agent`.
 - [ ] Optional text retrieval tool for stored Markdown/profile context as a
   supplement, not the source of truth.
 
 ### Global State Updates
 
+- [ ] `analysis_intent`
+- [ ] `selected_agents`
+- [ ] `agent_handoffs`
 - [ ] `query_plan`
 - [ ] `candidate_columns`
 - [ ] `retrieved_context`
+- [ ] `domain_context`
+- [ ] `coding_plan`
 - [ ] `tool_requests`
 - [ ] `tool_results`
 - [ ] `warnings`
@@ -355,10 +392,12 @@ updates global state.
 
 ### Exit Criteria
 
-- [ ] Query agent can map user wording to likely dataset columns.
-- [ ] Query agent can retrieve structured EDA context for downstream agents.
-- [ ] Query agent does not fabricate unavailable columns or metrics.
-- [ ] Query agent writes machine-readable updates to global state.
+- [ ] Orchestrator can route a request to the required specialist agents.
+- [ ] Agent handoffs are JSON-first and documented by state read/write keys.
+- [ ] Query builder can map user wording to likely dataset columns.
+- [ ] Agents retrieve structured EDA context for downstream stages.
+- [ ] Agents do not fabricate unavailable columns, metrics, or domain facts.
+- [ ] Agent outputs merge into global state as machine-readable updates.
 
 ## Milestone 4: Feature Agent Calls Statistical Tools
 
@@ -378,6 +417,19 @@ global state.
   provenance.
 - [ ] Update global state with feature roles, statistical findings, and
   unresolved issues.
+
+### Current Status
+
+Checked against `DEVELOPMENT.md` on 2026-06-26:
+
+- Deterministic statistical support is implemented and wired into the current
+  QA graph through `basic_statistical_summary`, `statistical_association`, and
+  `custom_metric` nodes.
+- Tool calls already use `ToolRequest` / `ToolResult` and update
+  `tool_requests`, `tool_results`, `statistical_findings`, and `warnings`.
+- A dedicated `feature_agent` that consumes query/domain handoffs, records
+  feature roles, plans computations, and writes `feature_plan` /
+  `feature_roles` is not implemented yet.
 
 ### Tools Used
 
@@ -430,6 +482,19 @@ the domain is unclear.
 - [ ] Update global state with requirements, assumptions, constraints, and
   unresolved questions.
 
+### Current Status
+
+Checked against `DEVELOPMENT.md` on 2026-06-26:
+
+- Domain vector memory is implemented through Redis Stack and
+  `RedisVectorStore`; the QA graph loads generated/custom domain context into
+  `domain_context` and merged metric/feature hints into `domain_requirements`.
+- Existing tool-selection helpers can prefer exact metric and feature hints
+  from domain memory when available.
+- A dedicated `domain_agent` that turns user intent into actionable
+  requirements, preserves ambiguity, decides when clarification is needed, and
+  writes assumptions/open questions is not implemented yet.
+
 ### Tools Used
 
 - [ ] Dataset profile tool.
@@ -480,7 +545,7 @@ the domain is unclear.
 ```text
 1. Tool schemas and deterministic helper tools
 2. Redis memory key/API contracts
-3. Query agent reads structured EDA memory
+3. Multi-agent system foundation
 4. Feature agent calls statistical tools
 5. Domain agent adds requirements and ambiguity handling
 6. End-to-end global state update validation

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from app.memory.vector_store import vector_store
@@ -58,6 +58,61 @@ async def append_domain_memory(
         "job_id": job_id,
         "source_id": source_id,
         "memory_type": "domain_custom",
+        "chunks_written": len(records),
+    }
+
+
+@router.post("/{job_id}/file")
+async def append_domain_memory_file(
+    job_id: str,
+    file: UploadFile = File(...),
+    title: str | None = Form(default=None),
+    source_id: str | None = Form(default=None),
+) -> dict:
+    """Append uploaded text or Markdown domain knowledge to vector memory."""
+    file_name = file.filename or ""
+    extension = file_name.rsplit(".", maxsplit=1)[-1].lower()
+    if extension not in {"md", "markdown", "txt"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Domain memory file must be .md, .markdown, or .txt.",
+        )
+
+    contents = await file.read()
+    try:
+        text = contents.decode("utf-8").strip()
+    except UnicodeDecodeError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Domain memory file must be UTF-8 text.",
+        ) from exc
+
+    if not text:
+        raise HTTPException(
+            status_code=400,
+            detail="Domain memory file content is required.",
+        )
+
+    chunks = fixed_size_chunk(text)
+    resolved_source_id = source_id or str(uuid.uuid4())
+    records = await vector_store.upsert_texts(
+        job_id=job_id,
+        memory_type="domain_custom",
+        texts=chunks,
+        source_type="file",
+        source_id=resolved_source_id,
+        title=title or file_name,
+        metadata={
+            "file_name": file_name,
+            "content_type": file.content_type or "",
+        },
+    )
+    return {
+        "job_id": job_id,
+        "source_id": resolved_source_id,
+        "memory_type": "domain_custom",
+        "source_type": "file",
+        "file_name": file_name,
         "chunks_written": len(records),
     }
 

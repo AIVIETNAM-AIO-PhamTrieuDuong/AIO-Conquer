@@ -1,89 +1,20 @@
+"""Deterministic tabular and statistical tool nodes for the QA graph."""
+
 import asyncio
 
-from app.core.config import settings
-from app.memory.context_store import context_store
-from app.memory.eda_store import eda_store
-from app.memory.vector_store import vector_store
-from app.model.openai_client import llm
-from app.model.prompts.qa_system import build_prompt
+from app.graph.nodes.common import (
+    append_context,
+    as_list,
+    dump_model,
+    unique_values,
+)
+from app.graph.schema import GraphState
 from app.tools.dataset_profile import DatasetProfileTool
 from app.tools.schema import ToolRequest, ToolResult
 from app.tools.statistics import StatisticalAnalysisTool
-from app.validation.parser import parse_response
-from app.graph.schema import GraphState
-
-# ---------------------------------------------------------------------------
-# Nodes
-# ---------------------------------------------------------------------------
 
 dataset_profile_tool = DatasetProfileTool()
 statistical_tool = StatisticalAnalysisTool()
-
-
-async def node_load_history(state: GraphState) -> dict:
-    """Normalize checkpointed conversation history for the active thread."""
-    return {"history": state.get("history", [])}
-
-
-async def node_load_eda_context(state: GraphState) -> dict:
-    """Load the active EDA summary and structured dataset context."""
-    job_id = await eda_store.get_active_eda(state["session_id"])
-    if not job_id:
-        return {"context": "", "eda_result": {}, "dataset_file_path": ""}
-    result = await eda_store.get_eda_result(job_id)
-    if not result:
-        return {
-            "context": "",
-            "eda_result": {},
-            "dataset_id": job_id,
-            "dataset_file_path": "",
-        }
-    return {
-        "context": result.get("summary_md", ""),
-        "eda_result": result,
-        "dataset_id": job_id,
-        "dataset_file_path": result.get("cleaned_file_path", ""),
-    }
-
-
-async def node_load_domain_context(state: GraphState) -> dict:
-    """Retrieve dataset-scoped domain memory before tool execution."""
-    job_id = state.get("dataset_id", "")
-    if not job_id:
-        return {"domain_context": [], "domain_requirements": {}}
-
-    results = await vector_store.search(
-        job_id=job_id,
-        query=state["question"],
-        memory_types=["domain_generated", "domain_custom"],
-        top_k=3,
-    )
-    requirements = _domain_requirements(results)
-    return {
-        "domain_context": results,
-        "domain_requirements": requirements,
-        "context": _append_context(
-            state.get("context", ""),
-            _domain_context_summary(results, requirements),
-        ),
-    }
-
-
-async def node_load_meta_memory(state: GraphState) -> dict:
-    """Load reusable meta-memory and initialize working memory."""
-    scope_id = _memory_scope_id(state)
-    loaded = await context_store.load_meta_memory(scope_id)
-    curated_context = loaded.get("curated_context", [])
-    return {
-        "tool_memory": [],
-        "error_memory": [],
-        "curated_context": curated_context,
-        "agent_working_memory": _initial_working_memory(state, loaded),
-        "context": _append_context(
-            state.get("context", ""),
-            _curated_context_summary(curated_context),
-        ),
-    }
 
 
 async def node_column_metadata(state: GraphState) -> dict:
@@ -146,7 +77,7 @@ async def node_statistical_association(state: GraphState) -> dict:
 
 async def node_custom_metric(state: GraphState) -> dict:
     """Run an approved custom metric when the question implies one."""
-    inputs = _custom_metric_inputs(state)
+    inputs = custom_metric_inputs(state)
     if not inputs:
         return {}
     return await _run_statistical_tool(
@@ -155,89 +86,6 @@ async def node_custom_metric(state: GraphState) -> dict:
         "Compute an approved deterministic custom metric.",
         inputs,
     )
-
-
-async def node_generate(state: GraphState) -> dict:
-    """Build the QA prompt and request a raw model response."""
-    context = state.get("context", "")
-    history = state.get("history", [])
-    prompt = build_prompt(state["question"], context=context, history=history)
-    max_tokens = 4096 if context else 1024
-    raw_response = await llm.generate(prompt, max_tokens=max_tokens)
-    return {"prompt": prompt, "raw_response": raw_response}
-
-
-async def node_parse(state: GraphState) -> dict:
-    """Parse the raw LLM JSON text into the API response schema."""
-    return {"response": _dump_model(parse_response(state["raw_response"]))}
-
-
-async def node_save_meta_memory(state: GraphState) -> dict:
-    """Persist current-run meta-memory records to operational Redis."""
-    scope_id = _memory_scope_id(state)
-    thread_id = state["session_id"]
-    run_id = state.get("run_id", "")
-    saved_tools = []
-    saved_errors = []
-    for record in state.get("tool_memory", []):
-        saved_tools.append(
-            await context_store.tool_memory.append(
-                scope_id=scope_id,
-                thread_id=thread_id,
-                run_id=run_id,
-                source_node=record.get("source_node", "tool_node"),
-                record=record,
-            )
-        )
-    for record in state.get("error_memory", []):
-        saved_errors.append(
-            await context_store.error_memory.append(
-                scope_id=scope_id,
-                thread_id=thread_id,
-                run_id=run_id,
-                source_node=record.get("source_node", "tool_node"),
-                record=record,
-            )
-        )
-
-    working_memory = _final_working_memory(state)
-    saved_working = await context_store.agent_working_memory.save(
-        scope_id=scope_id,
-        thread_id=thread_id,
-        run_id=run_id,
-        source_node="node_save_meta_memory",
-        snapshot=working_memory,
-    )
-    curated_context = list(state.get("curated_context", []))
-    curated_record = _curated_context_record(state)
-    if curated_record:
-        saved_curated = await context_store.curated_context.append(
-            scope_id=scope_id,
-            thread_id=thread_id,
-            run_id=run_id,
-            source_node="node_save_meta_memory",
-            record=curated_record,
-        )
-        curated_context.append(saved_curated)
-
-    return {
-        "tool_memory": saved_tools,
-        "error_memory": saved_errors,
-        "agent_working_memory": saved_working,
-        "curated_context": curated_context[-20:],
-    }
-
-
-async def node_save_memory(state: GraphState) -> dict:
-    """Append the final answer to checkpointed conversation history."""
-    r = state["response"]
-    if r:
-        history = [
-            *state.get("history", []),
-            {"q": state["question"], "a": str(r.get("answer", ""))},
-        ]
-        return {"history": history[-settings.max_history_turns:]}
-    return {"history": state.get("history", [])}
 
 
 async def _run_tabular_tool(
@@ -265,8 +113,8 @@ async def _run_tabular_tool(
     )
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, dataset_profile_tool.invoke, request)
-    request_payload = _dump_model(request)
-    result_payload = _dump_model(result)
+    request_payload = dump_model(request)
+    result_payload = dump_model(result)
     warnings = [*state.get("warnings", []), *result.warnings]
     if result.status == "error" and result.error:
         warnings.append(result.error.message)
@@ -295,7 +143,7 @@ async def _run_tabular_tool(
             _statistical_finding(result),
         ],
         "warnings": warnings,
-        "context": _append_context(
+        "context": append_context(
             state.get("context", ""),
             _tool_context_summary(result),
         ),
@@ -327,8 +175,8 @@ async def _run_statistical_tool(
     )
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, statistical_tool.invoke, request)
-    request_payload = _dump_model(request)
-    result_payload = _dump_model(result)
+    request_payload = dump_model(request)
+    result_payload = dump_model(result)
     warnings = [*state.get("warnings", []), *result.warnings]
     if result.status == "error" and result.error:
         warnings.append(result.error.message)
@@ -357,55 +205,44 @@ async def _run_statistical_tool(
             _statistical_finding(result),
         ],
         "warnings": warnings,
-        "context": _append_context(
+        "context": append_context(
             state.get("context", ""),
             _tool_context_summary(result),
         ),
     }
 
 
-def _memory_scope_id(state: GraphState) -> str:
-    """Return the Redis meta-memory scope for this graph state."""
-    return str(state.get("dataset_id") or state.get("session_id") or "default")
-
-
-def _initial_working_memory(
-    state: GraphState,
-    loaded: dict,
-) -> dict:
-    """Create the current run working-memory snapshot."""
-    prior_working = loaded.get("agent_working_memory") or {}
-    return {
-        "objective": state["question"],
-        "requirements": state.get("domain_requirements", {}),
-        "assumptions": prior_working.get("assumptions", []),
-        "intermediate_findings": [],
-        "unresolved_questions": [],
-        "selected_columns": [],
-        "selected_metrics": [],
-        "prior_context": {
-            "tool_memory_count": len(loaded.get("tool_memory", [])),
-            "recent_tool_memory": loaded.get("tool_memory", [])[-3:],
-            "error_memory_count": len(loaded.get("error_memory", [])),
-            "recent_errors": loaded.get("error_memory", [])[-3:],
-            "curated_context_count": len(loaded.get("curated_context", [])),
-        },
-    }
-
-
-def _curated_context_summary(curated_context: list[dict]) -> str:
-    """Format recent curated context for prompt augmentation."""
-    if not curated_context:
-        return ""
-
-    lines = ["Curated context memory:"]
-    for item in curated_context[-3:]:
-        question = str(item.get("question", "")).strip()
-        answer = str(item.get("answer", "")).strip()
-        label = question or item.get("record_type", "context")
-        if answer:
-            lines.append(f"- {label}: {answer[:500]}")
-    return "\n".join(lines) if len(lines) > 1 else ""
+def custom_metric_inputs(state: GraphState) -> dict | None:
+    """Infer approved custom metric inputs from question and EDA columns."""
+    metric_hints = " ".join(_domain_metric_hints(state))
+    question = f"{state['question']} {metric_hints}".lower()
+    all_numeric, all_categorical = _eda_column_groups(state)
+    numeric_columns = _domain_feature_columns(state, all_numeric) or all_numeric
+    categorical_columns = (
+        _domain_feature_columns(state, all_categorical) or all_categorical
+    )
+    if not numeric_columns and "count" not in question:
+        return None
+    if any(term in question for term in ("ratio", "rate", "percentage")):
+        if len(numeric_columns) >= 2:
+            return {
+                "metric": "ratio_of_sums",
+                "numerator_column": numeric_columns[0],
+                "denominator_column": numeric_columns[1],
+            }
+    if "difference" in question and categorical_columns and numeric_columns:
+        return {
+            "metric": "difference_of_means",
+            "group_column": categorical_columns[0],
+            "value_column": numeric_columns[0],
+        }
+    if any(term in question for term in ("sum", "total")) and numeric_columns:
+        return {"metric": "sum", "column": numeric_columns[0]}
+    if any(term in question for term in ("mean", "average")) and numeric_columns:
+        return {"metric": "mean", "column": numeric_columns[0]}
+    if "count" in question or "how many" in question:
+        return {"metric": "count"}
+    return None
 
 
 def _tool_memory_record(request: dict, result: dict) -> dict:
@@ -471,7 +308,7 @@ def _update_working_memory_with_tool(
     """Update working memory with one tool result artifact."""
     working = dict(state.get("agent_working_memory", {}))
     inputs = request.get("inputs", {})
-    working["selected_columns"] = _unique_values(
+    working["selected_columns"] = unique_values(
         [
             *working.get("selected_columns", []),
             *_input_columns(inputs),
@@ -479,7 +316,7 @@ def _update_working_memory_with_tool(
     )
     data = result.get("data") if isinstance(result.get("data"), dict) else {}
     metric = inputs.get("metric") or data.get("metric")
-    working["selected_metrics"] = _unique_values(
+    working["selected_metrics"] = unique_values(
         [
             *working.get("selected_metrics", []),
             *([str(metric)] if metric else []),
@@ -506,7 +343,7 @@ def _update_working_memory_with_tool(
             "Resolve tool error from "
             f"{request.get('tool_name', 'tool')}: {result.get('summary', '')}"
         )
-    working["unresolved_questions"] = _unique_values(unresolved)[-20:]
+    working["unresolved_questions"] = unique_values(unresolved)[-20:]
     return working
 
 
@@ -521,137 +358,8 @@ def _input_columns(inputs: dict) -> list[str]:
         "numerator_column",
         "denominator_column",
     ):
-        columns.extend(_as_list(inputs.get(key)))
+        columns.extend(as_list(inputs.get(key)))
     return columns
-
-
-def _unique_values(values: list[str]) -> list[str]:
-    """Return unique non-empty strings while preserving order."""
-    unique = []
-    seen = set()
-    for value in values:
-        normalized = str(value).strip()
-        key = normalized.lower()
-        if normalized and key not in seen:
-            unique.append(normalized)
-            seen.add(key)
-    return unique
-
-
-def _final_working_memory(state: GraphState) -> dict:
-    """Build the final working-memory snapshot for persistence."""
-    working = dict(state.get("agent_working_memory", {}))
-    working["objective"] = state["question"]
-    working["requirements"] = state.get("domain_requirements", {})
-    working["warnings"] = state.get("warnings", [])
-    working["statistical_findings"] = state.get("statistical_findings", [])[-20:]
-    working["final_response_present"] = bool(state.get("response"))
-    return working
-
-
-def _curated_context_record(state: GraphState) -> dict | None:
-    """Build a system-curated final answer record when parsing succeeded."""
-    response = state.get("response") or {}
-    answer = str(response.get("answer", "")).strip()
-    if not answer:
-        return None
-
-    return {
-        "record_type": "qa_final_answer",
-        "validation_status": "system_generated",
-        "question": state["question"],
-        "answer": answer,
-        "explanation": response.get("explanation", ""),
-        "confidence": response.get("confidence"),
-        "dataset_id": state.get("dataset_id", ""),
-        "provenance": {
-            "domain_sources": [
-                {
-                    "memory_type": item.get("memory_type", ""),
-                    "source_id": item.get("source_id", ""),
-                    "score": item.get("score"),
-                }
-                for item in state.get("domain_context", [])
-            ],
-            "tool_memory": [
-                {
-                    "tool_name": item.get("tool_name", ""),
-                    "request_id": item.get("request_id", ""),
-                    "status": item.get("status", ""),
-                }
-                for item in state.get("tool_memory", [])
-            ],
-        },
-    }
-
-
-def _domain_requirements(results: list[dict]) -> dict:
-    """Merge domain vector metadata into tool-planning hints."""
-    requirements = {
-        "metrics": [],
-        "features": [],
-        "constraints": [],
-        "sources": [],
-    }
-    for result in results:
-        metadata = result.get("metadata", {})
-        _extend_unique(requirements["metrics"], _as_list(metadata.get("metrics")))
-        _extend_unique(requirements["features"], _as_list(metadata.get("features")))
-        _extend_unique(
-            requirements["constraints"],
-            _as_list(metadata.get("constraints")),
-        )
-        requirements["sources"].append(
-            {
-                "memory_type": result.get("memory_type", ""),
-                "source_type": result.get("source_type", ""),
-                "source_id": result.get("source_id", ""),
-                "title": result.get("title", ""),
-                "score": result.get("score"),
-            }
-        )
-    return requirements
-
-
-def _domain_context_summary(results: list[dict], requirements: dict) -> str:
-    """Format retrieved domain memory as compact prompt context."""
-    if not results:
-        return ""
-
-    lines = ["Domain memory:"]
-    if requirements.get("features"):
-        lines.append(f"Feature hints: {', '.join(requirements['features'])}")
-    if requirements.get("metrics"):
-        lines.append(f"Metric hints: {', '.join(requirements['metrics'])}")
-    if requirements.get("constraints"):
-        lines.append(f"Constraints: {', '.join(requirements['constraints'])}")
-
-    for result in results[:3]:
-        label = result.get("title") or result.get("source_id") or "domain"
-        text = " ".join(result.get("text", "").split())
-        lines.append(
-            f"- {label} [{result.get('memory_type', '')}]: {text[:700]}"
-        )
-    return "\n".join(lines)
-
-
-def _extend_unique(target: list[str], values: list[str]) -> None:
-    """Append unique non-empty values while preserving existing order."""
-    existing = {item.lower() for item in target}
-    for value in values:
-        normalized = value.strip()
-        if normalized and normalized.lower() not in existing:
-            target.append(normalized)
-            existing.add(normalized.lower())
-
-
-def _as_list(value: object) -> list[str]:
-    """Normalize metadata values to a list of strings."""
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return [str(item) for item in value]
-    return [str(value)]
 
 
 def _eda_column_groups(state: GraphState) -> tuple[list[str], list[str]]:
@@ -667,7 +375,7 @@ def _domain_feature_columns(
     available_columns: list[str],
 ) -> list[str]:
     """Return domain feature hints that match available EDA columns."""
-    hints = _as_list(state.get("domain_requirements", {}).get("features"))
+    hints = as_list(state.get("domain_requirements", {}).get("features"))
     lookup = {column.lower(): column for column in available_columns}
     matched: list[str] = []
     for hint in hints:
@@ -679,7 +387,7 @@ def _domain_feature_columns(
 
 def _domain_metric_hints(state: GraphState) -> list[str]:
     """Return lowercase domain metric hints for metric selection."""
-    hints = _as_list(state.get("domain_requirements", {}).get("metrics"))
+    hints = as_list(state.get("domain_requirements", {}).get("metrics"))
     return [hint.lower() for hint in hints]
 
 
@@ -765,39 +473,6 @@ def _association_method(question: str) -> str:
     return "auto"
 
 
-def _custom_metric_inputs(state: GraphState) -> dict | None:
-    """Infer approved custom metric inputs from question and EDA columns."""
-    metric_hints = " ".join(_domain_metric_hints(state))
-    question = f"{state['question']} {metric_hints}".lower()
-    all_numeric, all_categorical = _eda_column_groups(state)
-    numeric_columns = _domain_feature_columns(state, all_numeric) or all_numeric
-    categorical_columns = (
-        _domain_feature_columns(state, all_categorical) or all_categorical
-    )
-    if not numeric_columns and "count" not in question:
-        return None
-    if any(term in question for term in ("ratio", "rate", "percentage")):
-        if len(numeric_columns) >= 2:
-            return {
-                "metric": "ratio_of_sums",
-                "numerator_column": numeric_columns[0],
-                "denominator_column": numeric_columns[1],
-            }
-    if "difference" in question and categorical_columns and numeric_columns:
-        return {
-            "metric": "difference_of_means",
-            "group_column": categorical_columns[0],
-            "value_column": numeric_columns[0],
-        }
-    if any(term in question for term in ("sum", "total")) and numeric_columns:
-        return {"metric": "sum", "column": numeric_columns[0]}
-    if any(term in question for term in ("mean", "average")) and numeric_columns:
-        return {"metric": "mean", "column": numeric_columns[0]}
-    if "count" in question or "how many" in question:
-        return {"metric": "count"}
-    return None
-
-
 def _statistical_finding(result: ToolResult) -> dict:
     """Convert one tool result into a compact graph finding."""
     return {
@@ -806,7 +481,7 @@ def _statistical_finding(result: ToolResult) -> dict:
         "summary": result.summary,
         "warnings": result.warnings,
         "data": result.data,
-        "provenance": _dump_model(result.provenance),
+        "provenance": dump_model(result.provenance),
     }
 
 
@@ -918,19 +593,3 @@ def _custom_metric_context(result: ToolResult) -> str:
         f"value={data.get('value')}, "
         f"columns={data.get('columns', [])}"
     )
-
-
-def _append_context(context: str, addition: str) -> str:
-    """Append a structured tool summary to the existing prompt context."""
-    if not addition:
-        return context
-    if not context:
-        return addition
-    return f"{context}\n\n{addition}"
-
-
-def _dump_model(model: object) -> dict:
-    """Return a dict from a Pydantic model across supported versions."""
-    if hasattr(model, "model_dump"):
-        return model.model_dump()
-    return model.dict()

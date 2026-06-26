@@ -262,3 +262,14 @@ agent-relevant context that does not belong more naturally in
   `app/memory/context_store.py`; `ToolMemory`, `AgentWorkingMemory`,
   `CuratedContextMemory`, and `ErrorMemory` use operational Redis keys under
   `meta:{scope_id}:*` and are loaded/saved by QA graph nodes.
+- 2026-06-26: Reviewed after Milestone 3 multi-agent foundation added
+  deterministic planner nodes before existing QA tool nodes; existing agent
+  guidance remains valid.
+- 2026-06-26: Reviewed after `app/graph/nodes.py` was converted into the
+  `app/graph/nodes/` package; import `app.graph.nodes` remains the public
+  compatibility surface and existing agent guidance remains valid.
+- 2026-06-26: Reviewed after Milestone 3 planner graph was reserved in
+  `_build_multi_agent_graph()` but deactivated from the active `_build_graph()`;
+  existing agent guidance remains valid.
+- 2026-06-26: Reviewed after `/domain-memory/{job_id}/file` was added for
+  text/Markdown domain-memory uploads; existing agent guidance remains valid.
