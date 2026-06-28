@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Literal
 
+from app.evaluation.answer_cot_score import AnswerCotScore
 from app.evaluation.bertscore import BertScore
-from app.evaluation.ragas_score import RAGAScore
 from app.evaluation.utils import DEFAULT_DATASETS, REPO_ROOT, DatasetSpec, TestBuilder
 
-ScoreMetric = Literal["bertscore", "ragas"]
+ScoreMetric = Literal["bertscore", "ragas", "answer-cot"]
 
 
 @dataclass(frozen=True)
@@ -47,9 +47,13 @@ class Runner:
         ragas_batch_size: int = 1,
         ragas_experiment_name: str = "rag_chatbot_ragas",
         ragas_show_progress: bool = True,
+        answer_cot_experiment_name: str = "rag_chatbot_answer_cot",
     ) -> None:
         self.datasets = tuple(datasets)
         self.output_dir = self._resolve_path(output_dir)
+        self.ragas_batch_size = ragas_batch_size
+        self.ragas_experiment_name = ragas_experiment_name
+        self.ragas_show_progress = ragas_show_progress
         self.test_builder = TestBuilder(
             base_url=base_url,
             datasets=self.datasets,
@@ -67,12 +71,13 @@ class Runner:
             rescale_with_baseline=bertscore_rescale_with_baseline,
             experiment_name=experiment_name,
         )
-        self.ragas = RAGAScore(
-            datasets=self.datasets,
+        self.answer_cot = AnswerCotScore(
             output_dir=self.output_dir,
-            batch_size=ragas_batch_size,
-            experiment_name=ragas_experiment_name,
-            show_progress=ragas_show_progress,
+            bertscore_model_type=bertscore_model_type,
+            bertscore_lang=bertscore_lang,
+            bertscore_batch_size=bertscore_batch_size,
+            bertscore_rescale_with_baseline=bertscore_rescale_with_baseline,
+            experiment_name=answer_cot_experiment_name,
         )
 
     def run(
@@ -91,7 +96,7 @@ class Runner:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         prepared_files: dict[str, Path] = {}
-        if prepare:
+        if prepare and metric != "answer-cot":
             prepared_files = self.test_builder.generate_answers_into_original_files(
                 upload_first=upload_first,
                 reset_history=reset_history,
@@ -108,7 +113,9 @@ class Runner:
             output_path=resolved_output_path,
             extra_metadata={
                 "metric": metric,
-                "prepared_files": {name: str(path) for name, path in prepared_files.items()},
+                "prepared_files": {
+                    name: str(path) for name, path in prepared_files.items()
+                },
                 **(extra_metadata or {}),
             },
         )
@@ -144,9 +151,29 @@ class Runner:
         extra_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         if metric == "bertscore":
-            return self.bertscore.calculate(output_path=output_path, extra_metadata=extra_metadata)
+            return self.bertscore.calculate(
+                output_path=output_path,
+                extra_metadata=extra_metadata,
+            )
         if metric == "ragas":
-            return self.ragas.calculate(output_path=output_path, extra_metadata=extra_metadata)
+            from app.evaluation.ragas_score import RAGAScore
+
+            ragas = RAGAScore(
+                datasets=self.datasets,
+                output_dir=self.output_dir,
+                batch_size=self.ragas_batch_size,
+                experiment_name=self.ragas_experiment_name,
+                show_progress=self.ragas_show_progress,
+            )
+            return ragas.calculate(
+                output_path=output_path,
+                extra_metadata=extra_metadata,
+            )
+        if metric == "answer-cot":
+            return self.answer_cot.calculate(
+                output_path=output_path,
+                extra_metadata=extra_metadata,
+            )
         raise ValueError(f"Unsupported metric: {metric}")
 
     def _resolve_score_output_path(
@@ -183,15 +210,21 @@ def run_evaluation(
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run RAG benchmark preparation and scoring.")
+    parser = argparse.ArgumentParser(
+        description="Run RAG benchmark preparation and scoring."
+    )
     parser.add_argument("--base-url", default="http://localhost:8000")
     parser.add_argument(
         "--metric",
-        choices=("bertscore", "ragas"),
+        choices=("bertscore", "ragas", "answer-cot"),
         default="bertscore",
         help="Scoring metric to calculate.",
     )
-    parser.add_argument("--output", default=None, help="Path for the JSON score report.")
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="Path for the JSON score report.",
+    )
     parser.add_argument(
         "--score-only",
         action="store_true",
@@ -200,7 +233,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Do not regenerate rows that already have generated_answer. Rows with llm_answer are always skipped.",
+        help=(
+            "Do not regenerate rows that already have generated_answer. "
+            "Rows with llm_answer are always skipped."
+        ),
     )
     parser.add_argument(
         "--no-upload",

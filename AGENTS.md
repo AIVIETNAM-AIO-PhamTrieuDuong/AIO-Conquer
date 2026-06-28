@@ -273,3 +273,6 @@ agent-relevant context that does not belong more naturally in
   existing agent guidance remains valid.
 - 2026-06-26: Reviewed after `/domain-memory/{job_id}/file` was added for
   text/Markdown domain-memory uploads; existing agent guidance remains valid.
+- 2026-06-28: Reviewed after `app/evaluation` added `answer-cot` score-only
+  evaluation for benchmark JSON response logs paired with
+  `*_QA_with_Premise.csv`; existing agent guidance remains valid.

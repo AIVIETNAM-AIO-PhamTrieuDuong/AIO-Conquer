@@ -1,0 +1,220 @@
+Q,A,premise
+How many total records are in the dataset?,There are 5000 records in the dataset.,"Step 1: Count total rows in the dataset.
+Step 2: Total rows = 5,000."
+What is the overall user churn rate?,The overall user churn rate is 53.06% (2653 out of 5000 users churned).,"Step 1: Count UserChurned == True = 2,653.
+Step 2: Total users = 5,000.
+Step 3: Churn rate = 2,653 / 5,000 = 53.06%."
+How many users churned versus how many were retained?,2653 users churned and 2347 users were retained.,"Step 1: Count UserChurned == True = 2,653.
+Step 2: Count UserChurned == False = 2,347.
+Step 3: 2,653 + 2,347 = 5,000 (matches total)."
+What date range does the dataset cover?,The dataset covers events from 2023-07-04 to 2023-07-30 (July 2023).,"Step 1: Inspect event_date column.
+Step 2: min(event_date) = 2023-07-04.
+Step 3: max(event_date) = 2023-07-30."
+How many unique countries are represented in the dataset?,There are 15 unique countries represented in the dataset.,"Step 1: Count unique values in country column.
+Step 2: Unique countries = 15."
+Which country has the most users in the dataset?,Indonesia has the most users with 782 records.,"Step 1: Count records per country.
+Step 2: Indonesia = 782, Pakistan = 569, Philippines = 470, Egypt = 380, Brazil = 331, ...
+Step 3: Indonesia has the highest count at 782."
+Which country has the highest churn rate among the top 5 countries by user count?,Brazil has the highest churn rate at 64.65% among the top 5 countries by user count.,"Step 1: Identify top 5 countries by user count: Indonesia(782), Pakistan(569), Philippines(470), Egypt(380), Brazil(331).
+Step 2: Compute churn rate per country: Indonesia=46.04%, Pakistan=50.97%, Philippines=46.38%, Egypt=47.63%, Brazil=64.65%.
+Step 3: Rank descending → Brazil has the highest churn at 64.65%."
+What is the churn rate for users from Indonesia?,The churn rate for users from Indonesia is 46.04%.,"Step 1: Filter country == 'Indonesia' → n=782.
+Step 2: Churn rate = churned / total in group = 46.04%."
+What is the churn rate for users from Pakistan?,The churn rate for users from Pakistan is 50.97%.,"Step 1: Filter country == 'Pakistan' → n=569.
+Step 2: Churn rate = churned / total in group = 50.97%."
+What is the churn rate for users from the Philippines?,The churn rate for users from the Philippines is 46.38%.,"Step 1: Filter country == 'Philippines' → n=470.
+Step 2: Churn rate = churned / total in group = 46.38%."
+What is the churn rate for users from Egypt?,The churn rate for users from Egypt is 47.63%.,"Step 1: Filter country == 'Egypt' → n=380.
+Step 2: Churn rate = churned / total in group = 47.63%."
+How many users came from Brazil and what is their churn rate?,331 users came from Brazil and their churn rate is 64.65%.,"Step 1: Filter country == 'Brazil' → n=331.
+Step 2: Churn rate = churned / total in group = 331 users, 64.65% churned."
+What is the churn rate for users from the United States?,The churn rate for users from the United States is 57.22%.,"Step 1: Filter country == 'United States' → n=194.
+Step 2: Churn rate = churned / total in group = 57.22%."
+What is the churn rate for users from India?,The churn rate for users from India is 52.31%.,"Step 1: Filter country == 'India' → n=195.
+Step 2: Churn rate = churned / total in group = 52.31%."
+What is the churn rate for users from Vietnam?,The churn rate for users from Vietnam is 58.08%.,"Step 1: Filter country == 'Vietnam' → n=167.
+Step 2: Churn rate = churned / total in group = 58.08%."
+Which sub-continent has the highest churn rate?,South America has the highest churn rate at 62.84%.,"Step 1: Compute churn rate per sub_continent.
+Step 2: South America=62.84%, Other=58.53%, Eastern Europe=57.14%, Northern America=56.65%, Western Asia=55.56%, Southern Africa=53.73%, Southern Asia=52.64%, Western Africa=50.00%, Northern Africa=49.31%, Southeast Asia=48.22%.
+Step 3: Rank descending → South America leads at 62.84%."
+Which sub-continent has the lowest churn rate?,Southeast Asia has the lowest churn rate at 48.22%.,"Step 1: Compute churn rate per sub_continent.
+Step 2: Southeast Asia=48.22%, Northern Africa=49.31%, Western Africa=50.00%, ...
+Step 3: Rank ascending → Southeast Asia is lowest at 48.22%."
+What is the churn rate for users from Northern Africa?,The churn rate for users from Northern Africa is 49.31%.,"Step 1: Filter sub_continent == 'Northern Africa' → n=432.
+Step 2: Churn rate = churned / total in group = 49.31%."
+What is the churn rate for users from Southern Asia?,The churn rate for users from Southern Asia is 52.64%.,"Step 1: Filter sub_continent == 'Southern Asia' → n=832.
+Step 2: Churn rate = churned / total in group = 52.64%."
+What is the most common mobile device category in the dataset?,Mobile (smartphone) is the most common category with 4881 records (97.62%).,"Step 1: Count records per category: mobile=4,881, tablet=118, Other=1.
+Step 2: mobile has the highest count at 4,881.
+Step 3: Share = 4,881 / 5,000 = 97.62%."
+How many tablet users are in the dataset and what is their churn rate?,There are 118 tablet users with a churn rate of 65.25%.,"Step 1: Filter category == 'tablet' → n=118.
+Step 2: Churn rate = churned / total in group = 65.25%."
+Is the churn rate higher for tablet or mobile users?,Tablet users have a higher churn rate (65.25%) compared to mobile users (52.76%).,"Step 1: Tablet churn rate = 65.25% (n=118).
+Step 2: Mobile churn rate = 52.76% (n=4,881).
+Step 3: Compare: 65.25% > 52.76% → tablet has higher churn."
+Which mobile brand has the most users?,Samsung has the most users with 1302 records.,"Step 1: Count records per mobile_brand_name.
+Step 2: Samsung=1,302, Other=865, OPPO=707, Xiaomi=661, Vivo=553, Realme=361, Infinix=301, Tecno=250.
+Step 3: Samsung has the highest count at 1,302."
+Which mobile brand has the highest churn rate?,Samsung (excluding 'Other') has the highest churn rate at 56.30%.,"Step 1: Compute churn rate per brand (excluding 'Other'): Samsung=56.30%, Tecno=54.40%, Xiaomi=53.10%, Vivo=50.99%, OPPO=49.08%, Realme=47.37%, Infinix=46.18%.
+Step 2: Rank descending → Samsung leads at 56.30%."
+Which mobile brand has the lowest churn rate?,Infinix has the lowest churn rate at 46.18%.,"Step 1: Compute churn rate per brand: Infinix=46.18%, Realme=47.37%, OPPO=49.08%, Vivo=50.99%, Xiaomi=53.10%, Tecno=54.40%, Samsung=56.30%.
+Step 2: Rank ascending → Infinix is lowest at 46.18%."
+What is the churn rate for OPPO users?,The churn rate for OPPO users is 49.08%.,"Step 1: Filter mobile_brand_name == 'OPPO' → n=707.
+Step 2: Churn rate = churned / total in group = 49.08%."
+What is the churn rate for Xiaomi users?,The churn rate for Xiaomi users is 53.10%.,"Step 1: Filter mobile_brand_name == 'Xiaomi' → n=661.
+Step 2: Churn rate = churned / total in group = 53.10%."
+What is the churn rate for Vivo users?,The churn rate for Vivo users is 50.99%.,"Step 1: Filter mobile_brand_name == 'Vivo' → n=553.
+Step 2: Churn rate = churned / total in group = 50.99%."
+What is the churn rate for Realme users?,The churn rate for Realme users is 47.37%.,"Step 1: Filter mobile_brand_name == 'Realme' → n=361.
+Step 2: Churn rate = churned / total in group = 47.37%."
+How many Infinix users are in the dataset?,There are 301 Infinix users in the dataset.,"Step 1: Count mobile_brand_name == 'Infinix' = 301.
+Step 2: Compare to other brands: Samsung=1,302, OPPO=707, Xiaomi=661, Vivo=553, Realme=361, Tecno=250."
+What is the most common Android operating system version in the dataset?,Android 11 is the most common with 1328 users.,"Step 1: Count records per operating_system_version.
+Step 2: Android 11=1,328, Android 12=958, Android 10=854, Android 13=663, Android 9=426, ...
+Step 3: Android 11 has the highest count at 1,328."
+What is the churn rate for Android 13 users?,The churn rate for Android 13 users is 58.52%.,"Step 1: Filter operating_system_version == 'Android 13' → n=663.
+Step 2: Churn rate = churned / total in group = 58.52%."
+What is the churn rate for Android 11 users?,The churn rate for Android 11 users is 50.75%.,"Step 1: Filter operating_system_version == 'Android 11' → n=1,328.
+Step 2: Churn rate = churned / total in group = 50.75%."
+What is the churn rate for Android 10 users?,The churn rate for Android 10 users is 51.76%.,"Step 1: Filter operating_system_version == 'Android 10' → n=854.
+Step 2: Churn rate = churned / total in group = 51.76%."
+What is the churn rate for Android 12 users?,The churn rate for Android 12 users is 52.92%.,"Step 1: Filter operating_system_version == 'Android 12' → n=958.
+Step 2: Churn rate = churned / total in group = 52.92%."
+What is the churn rate for Android 9 users?,The churn rate for Android 9 users is 52.58%.,"Step 1: Filter operating_system_version == 'Android 9' → n=426.
+Step 2: Churn rate = churned / total in group = 52.58%."
+Which Android version has the highest churn rate?,Android 13 has the highest churn rate at 58.52% among named Android versions.,"Step 1: Compute churn rate per OS version: Android 13=58.52%, Android 12=52.92%, Android 9=52.58%, Android 10=51.76%, Android 11=50.75%, Android 6.0.1=48.15%.
+Step 2: Rank descending → Android 13 leads at 58.52%."
+Which Android version has the lowest churn rate?,Android 6.0.1 has the lowest churn rate at 48.15% among named Android versions.,"Step 1: Compute churn rate per OS version.
+Step 2: Android 6.0.1=48.15%, Android 11=50.75%, Android 10=51.76%, Android 9=52.58%, Android 12=52.92%, Android 13=58.52%.
+Step 3: Rank ascending → Android 6.0.1 is lowest at 48.15%."
+What are the three acquisition sources in the dataset?,"The three acquisition sources are google-play (organic), direct (none medium), and google (CPC).","Step 1: Inspect unique combinations of source and medium columns.
+Step 2: source='google-play', medium='organic' → Google Play organic.
+Step 3: source='(direct)', medium='(none)' → direct.
+Step 4: source='google', medium='cpc' → Google CPC."
+Which acquisition source has the most users?,Google-play (organic) has the most users with 2103 records.,"Step 1: Count records per acquisition source: google-play/organic=2,103, (direct)/(none)=1,531, google/cpc=1,365.
+Step 2: google-play/organic has the highest count at 2,103."
+What is the churn rate for users acquired through Google Play (organic)?,The churn rate for users acquired through Google Play (organic) is 49.26%.,"Step 1: Filter source=='google-play' AND medium=='organic' → n=2,103.
+Step 2: Churn rate = churned / total in group = 49.26%."
+What is the churn rate for users acquired via CPC (paid / google)?,The churn rate for users acquired via CPC is 56.19%.,"Step 1: Filter source=='google' AND medium=='cpc' → n=1,365.
+Step 2: Churn rate = churned / total in group = 56.19%."
+What is the churn rate for direct users (none medium)?,The churn rate for direct users is 55.45%.,"Step 1: Filter source=='(direct)' AND medium=='(none)' → n=1,531.
+Step 2: Churn rate = churned / total in group = 55.45%."
+Which acquisition channel has the lowest churn rate?,The organic channel (google-play) has the lowest churn rate at 49.26%.,"Step 1: Compute churn rate per channel: organic=49.26%, direct=55.45%, CPC=56.19%.
+Step 2: Rank ascending → organic (google-play) is lowest at 49.26%."
+Which acquisition channel has the highest churn rate?,The CPC channel has the highest churn rate at 56.19%.,"Step 1: Compute churn rate per channel: organic=49.26%, direct=55.45%, CPC=56.19%.
+Step 2: Rank descending → CPC is highest at 56.19%."
+How many tutorial steps are tracked in the dataset?,12 tutorial steps are tracked in the dataset.,"Step 1: Count columns with prefix 'TUTORIAL_STEP_'.
+Step 2: TUTDRAGCUE, SHOW_FORCE_CUE, FORCE_CUE, TUTPOTTEDBALL, DONESCENETUT, JOINFIRSTGAME, GAME_TEACHBOOSTAIM, BREAKING, GAME_TEACHTARGETBALL, WINFIRSTGAME, TUTBOX, DONE.
+Step 3: Total = 12 tutorial steps."
+Which tutorial step has the highest completion rate?,TUTORIAL_STEP_TUTDRAGCUE has the highest completion rate at 44.30%.,"Step 1: Compute completion rate per step (value > 0): TUTDRAGCUE=44.30%, SHOW_FORCE_CUE=39.04%, DONESCENETUT=38.46%, TUTPOTTEDBALL=38.20%, FORCE_CUE=37.66%, BREAKING=37.38%, GAME_TEACHTARGETBALL=36.00%, WINFIRSTGAME=26.40%, TUTBOX=19.18%, JOINFIRSTGAME=19.24%, DONE=18.64%, GAME_TEACHBOOSTAIM=0.00%.
+Step 2: Rank descending → TUTDRAGCUE leads at 44.30%."
+Which tutorial step has the lowest completion rate (excluding steps with 0% completion)?,TUTORIAL_STEP_DONE has the lowest completion rate at 18.64%.,"Step 1: Compute completion rate per step (excluding GAME_TEACHBOOSTAIM at 0%): DONE=18.64%, JOINFIRSTGAME=19.24%, TUTBOX=19.18%, WINFIRSTGAME=26.40%, ...
+Step 2: Rank ascending → DONE is lowest at 18.64%."
+What percentage of users completed the TUTORIAL_STEP_DONE (final tutorial step)?,18.64% of users completed the TUTORIAL_STEP_DONE step.,"Step 1: Filter TUTORIAL_STEP_DONE > 0 → n=932.
+Step 2: Completion rate = 932 / 5,000 = 18.64%."
+What percentage of users completed TUTORIAL_STEP_JOINFIRSTGAME?,19.24% of users completed the TUTORIAL_STEP_JOINFIRSTGAME step.,"Step 1: Filter TUTORIAL_STEP_JOINFIRSTGAME > 0 → n=962.
+Step 2: Completion rate = 962 / 5,000 = 19.24%."
+What percentage of users completed TUTORIAL_STEP_WINFIRSTGAME?,26.40% of users completed the TUTORIAL_STEP_WINFIRSTGAME step.,"Step 1: Filter TUTORIAL_STEP_WINFIRSTGAME > 0 → n=1,320.
+Step 2: Completion rate = 1,320 / 5,000 = 26.40%."
+Is TUTORIAL_STEP_GAME_TEACHBOOSTAIM ever completed by any user?,No — TUTORIAL_STEP_GAME_TEACHBOOSTAIM has zero completions across all 5000 users.,"Step 1: Compute sum of TUTORIAL_STEP_GAME_TEACHBOOSTAIM across all 5,000 users.
+Step 2: Sum = 0. Count of users with value > 0 = 0.
+Step 3: No user has a non-zero value for this step."
+What is the churn rate for users who completed TUTORIAL_STEP_WINFIRSTGAME vs those who did not?,Users who completed WINFIRSTGAME have a churn rate of 43.86%; those who did not have a churn rate of 56.36%.,"Step 1: Filter TUTORIAL_STEP_WINFIRSTGAME > 0 → n=1,320. Churn rate = 43.86%.
+Step 2: Filter TUTORIAL_STEP_WINFIRSTGAME == 0 → n=3,680. Churn rate = 56.36%.
+Step 3: Gap = 56.36% - 43.86% = 12.50 pp."
+Does winning the first game reduce churn?,Yes — users who won the first game (WINFIRSTGAME > 0) have a notably lower churn rate (43.86%) compared to those who did not (56.36%).,"Step 1: WINFIRSTGAME completed (>0): n=1,320, churn=43.86%.
+Step 2: WINFIRSTGAME not completed (==0): n=3,680, churn=56.36%.
+Step 3: 43.86% < 56.36% → completing WINFIRSTGAME is associated with lower churn."
+What is the churn rate for users who completed TUTORIAL_STEP_DONE?,Users who completed TUTORIAL_STEP_DONE have a churn rate of 40.77%.,"Step 1: Filter TUTORIAL_STEP_DONE > 0 → n=932.
+Step 2: Churn rate = churned / total in group = 40.77%."
+Does completing the full tutorial reduce churn?,Yes — users who completed the final tutorial step (DONE) churn at 40.77% compared to the overall rate of 53.06%.,"Step 1: DONE completed (>0): n=932, churn=40.77%.
+Step 2: Overall churn rate = 53.06%.
+Step 3: 40.77% < 53.06% → completing the full tutorial is associated with lower churn."
+What is the churn rate for users who joined their first game (JOINFIRSTGAME > 0)?,Users who joined their first game have a churn rate of 38.88%.,"Step 1: Filter TUTORIAL_STEP_JOINFIRSTGAME > 0 → n=962.
+Step 2: Churn rate = churned / total in group = 38.88%."
+What is the average time spent on TUTORIAL_STEP_WINFIRSTGAME across all users?,The average time spent on WINFIRSTGAME across all users is 71.51 seconds.,"Step 1: Compute mean of TUTORIAL_STEP_WINFIRSTGAME across all 5,000 users (including zeros).
+Step 2: Mean = 71.51 seconds."
+What is the average time spent on TUTORIAL_STEP_WINFIRSTGAME among users who actually completed it?,Among users who completed the step (value > 0) the average time is approximately 270.86 seconds.,"Step 1: Filter TUTORIAL_STEP_WINFIRSTGAME > 0 → n=1,320.
+Step 2: Compute mean of WINFIRSTGAME among completers = 270.86 seconds."
+Which tutorial step has the highest average time spent across all users?,TUTORIAL_STEP_WINFIRSTGAME has the highest average time at 71.51 seconds across all users.,"Step 1: Compute mean per tutorial step across all users.
+Step 2: WINFIRSTGAME=71.51s, TUTBOX=10.74s, TUTDRAGCUE=10.59s, GAME_TEACHTARGETBALL=14.92s, ...
+Step 3: Rank descending → WINFIRSTGAME has the highest average at 71.51s."
+Which tutorial step has the lowest average time spent across all users?,TUTORIAL_STEP_TUTPOTTEDBALL has the lowest non-zero average at 0.40 seconds.,"Step 1: Compute mean per tutorial step across all users (exclude GAME_TEACHBOOSTAIM at 0).
+Step 2: TUTPOTTEDBALL=0.40s, DONE=0.49s, DONESCENETUT=1.05s, ...
+Step 3: Rank ascending → TUTPOTTEDBALL has the lowest non-zero average at 0.40s."
+Do churned users spend more or less time on TUTORIAL_STEP_GAME_TEACHTARGETBALL than retained users?,Retained users spend more time on TEACHTARGETBALL (avg 16.74s) than churned users (avg 13.31s) suggesting engagement correlates with retention.,"Step 1: Filter UserChurned==True → mean GAME_TEACHTARGETBALL = 13.31s.
+Step 2: Filter UserChurned==False → mean GAME_TEACHTARGETBALL = 16.74s.
+Step 3: Retained users spend more time: 16.74s > 13.31s."
+What is the average TUTDRAGCUE time for churned users vs retained users?,Churned users average 10.68 seconds and retained users average 10.49 seconds on TUTDRAGCUE — nearly identical.,"Step 1: Filter UserChurned==True → mean TUTDRAGCUE = 10.68s.
+Step 2: Filter UserChurned==False → mean TUTDRAGCUE = 10.49s.
+Step 3: Gap = 10.68 - 10.49 = 0.19s — nearly identical."
+What percentage of users completed TUTORIAL_STEP_SHOW_FORCE_CUE?,39.04% of users completed TUTORIAL_STEP_SHOW_FORCE_CUE.,"Step 1: Filter TUTORIAL_STEP_SHOW_FORCE_CUE > 0 → n=1,952.
+Step 2: Completion rate = 1,952 / 5,000 = 39.04%."
+What percentage of users completed TUTORIAL_STEP_FORCE_CUE?,37.66% of users completed TUTORIAL_STEP_FORCE_CUE.,"Step 1: Filter TUTORIAL_STEP_FORCE_CUE > 0 → n=1,883.
+Step 2: Completion rate = 1,883 / 5,000 = 37.66%."
+What percentage of users completed TUTORIAL_STEP_BREAKING?,37.38% of users completed TUTORIAL_STEP_BREAKING.,"Step 1: Filter TUTORIAL_STEP_BREAKING > 0 → n=1,869.
+Step 2: Completion rate = 1,869 / 5,000 = 37.38%."
+What percentage of users completed TUTORIAL_STEP_GAME_TEACHTARGETBALL?,36.00% of users completed TUTORIAL_STEP_GAME_TEACHTARGETBALL.,"Step 1: Filter TUTORIAL_STEP_GAME_TEACHTARGETBALL > 0 → n=1,800.
+Step 2: Completion rate = 1,800 / 5,000 = 36.00%."
+What percentage of users completed TUTORIAL_STEP_DONESCENETUT?,38.46% of users completed TUTORIAL_STEP_DONESCENETUT.,"Step 1: Filter TUTORIAL_STEP_DONESCENETUT > 0 → n=1,923.
+Step 2: Completion rate = 1,923 / 5,000 = 38.46%."
+What percentage of users completed TUTORIAL_STEP_TUTPOTTEDBALL?,38.20% of users completed TUTORIAL_STEP_TUTPOTTEDBALL.,"Step 1: Filter TUTORIAL_STEP_TUTPOTTEDBALL > 0 → n=1,910.
+Step 2: Completion rate = 1,910 / 5,000 = 38.20%."
+What percentage of users completed TUTORIAL_STEP_TUTBOX?,19.18% of users completed TUTORIAL_STEP_TUTBOX.,"Step 1: Filter TUTORIAL_STEP_TUTBOX > 0 → n=959.
+Step 2: Completion rate = 959 / 5,000 = 19.18%."
+How many users completed TUTORIAL_STEP_DONE?,932 out of 5000 users completed TUTORIAL_STEP_DONE.,"Step 1: Count TUTORIAL_STEP_DONE > 0 = 932 users out of 5,000."
+How many users completed TUTORIAL_STEP_JOINFIRSTGAME?,962 out of 5000 users completed TUTORIAL_STEP_JOINFIRSTGAME.,"Step 1: Count TUTORIAL_STEP_JOINFIRSTGAME > 0 = 962 users out of 5,000."
+How many users completed TUTORIAL_STEP_WINFIRSTGAME?,1320 out of 5000 users completed TUTORIAL_STEP_WINFIRSTGAME.,"Step 1: Count TUTORIAL_STEP_WINFIRSTGAME > 0 = 1,320 users out of 5,000."
+How does the South America sub-continent churn rate compare to Southeast Asia?,South America has a churn rate of 62.84% versus 48.22% for Southeast Asia — a 14.62 percentage point gap.,"Step 1: South America churn rate = 62.84% (n=619).
+Step 2: Southeast Asia churn rate = 48.22% (n=1,769).
+Step 3: Gap = 62.84% - 48.22% = 14.62 percentage points."
+Is there a drop-off between early and late tutorial steps?,Yes — early steps like TUTDRAGCUE have ~44% completion while later steps like DONE and JOINFIRSTGAME drop to ~19% indicating significant funnel drop-off.,"Step 1: Early step TUTDRAGCUE completion = 44.30%.
+Step 2: Mid steps (SHOW_FORCE_CUE, DONESCENETUT, TUTPOTTEDBALL, FORCE_CUE, BREAKING, GAME_TEACHTARGETBALL) completion ≈ 36–39%.
+Step 3: Late steps WINFIRSTGAME=26.40%, JOINFIRSTGAME=19.24%, TUTBOX=19.18%, DONE=18.64%.
+Step 4: Drop from early (~44%) to late (~19%) = ~25 pp funnel drop-off."
+Which tutorial milestone shows the biggest engagement drop?,JOINFIRSTGAME (19.24%) and DONE (18.64%) show the biggest drops from the early tutorial steps that complete at ~38–44%.,"Step 1: Compute completion rates: TUTDRAGCUE=44.30%, mid-steps≈36–39%, WINFIRSTGAME=26.40%, JOINFIRSTGAME=19.24%, TUTBOX=19.18%, DONE=18.64%.
+Step 2: Biggest drop occurs between WINFIRSTGAME(26.40%) and JOINFIRSTGAME(19.24%) and DONE(18.64%).
+Step 3: JOINFIRSTGAME and DONE mark the largest absolute drop from the early tutorial plateau."
+What proportion of users who completed the full tutorial later churned?,40.77% of users who completed the tutorial (DONE step) churned — well below the overall churn rate of 53.06%.,"Step 1: Filter TUTORIAL_STEP_DONE > 0 → n=932.
+Step 2: Churn rate among completers = 40.77%.
+Step 3: Overall churn rate = 53.06%.
+Step 4: 40.77% of tutorial completers still churned."
+Does CPC (paid) traffic result in higher churn than organic?,Yes — CPC traffic has a churn rate of 56.19% compared to 49.26% for organic — a ~7 percentage point difference.,"Step 1: CPC churn rate = 56.19%.
+Step 2: Organic (google-play) churn rate = 49.26%.
+Step 3: Gap = 56.19% - 49.26% = 6.93 percentage points.
+Step 4: CPC > organic → paid traffic results in higher churn."
+Which country among the top 10 by volume has the lowest churn rate?,Indonesia has the lowest churn rate among the top 10 countries by volume at 46.04%.,"Step 1: Top 10 countries by count: Other(1249), Indonesia(782), Pakistan(569), Philippines(470), Egypt(380), Brazil(331), India(195), United States(194), Vietnam(167), Russia(128).
+Step 2: Churn rates: Indonesia=46.04%, Philippines=46.38%, Egypt=47.63%, Pakistan=50.97%, India=52.31%, US=57.22%, Vietnam=58.08%, Russia=57.81%, Brazil=64.65%.
+Step 3: Indonesia has the lowest churn at 46.04%."
+What is the total number of users from Southeast Asia sub-continent?,1769 users are from the Southeast Asia sub-continent.,"Step 1: Count records where sub_continent == 'Southeast Asia' = 1,769."
+How does Samsung's churn rate compare to Infinix's churn rate?,Samsung has a churn rate of 56.30% versus Infinix at 46.18% — a 10.12 percentage point difference.,"Step 1: Samsung churn rate = 56.30%.
+Step 2: Infinix churn rate = 46.18%.
+Step 3: Gap = 56.30% - 46.18% = 10.12 percentage points."
+What share of users are on Android 11 or newer (Android 11 / 12 / 13)?,2949 out of 5000 users (58.98%) are on Android 11 or newer.,"Step 1: Count users on Android 11 = 1,328, Android 12 = 958, Android 13 = 663.
+Step 2: Total on Android 11+ = 1,328 + 958 + 663 = 2,949.
+Step 3: Share = 2,949 / 5,000 = 58.98%."
+What is the most important single behavioral predictor of retention based on tutorial data?,Joining the first game (JOINFIRSTGAME) is the strongest retention signal — users who joined their first game have the lowest churn rate at 38.88%.,"Step 1: Compute churn rate for each tutorial step completion group.
+Step 2: JOINFIRSTGAME completed → churn = 38.88% (lowest).
+Step 3: DONE completed → churn = 40.77%.
+Step 4: WINFIRSTGAME completed → churn = 43.86%.
+Step 5: JOINFIRSTGAME has the lowest churn rate among all tutorial completion groups."
+How many tutorial steps have a completion rate above 35%?,"Seven tutorial steps have a completion rate above 35%: TUTDRAGCUE (44.30%), SHOW_FORCE_CUE (39.04%), DONESCENETUT (38.46%), TUTPOTTEDBALL (38.20%), FORCE_CUE (37.66%), BREAKING (37.38%), and GAME_TEACHTARGETBALL (36.00%).","Step 1: Compute completion rate per step (value > 0).
+Step 2: TUTDRAGCUE=44.30%, SHOW_FORCE_CUE=39.04%, DONESCENETUT=38.46%, TUTPOTTEDBALL=38.20%, FORCE_CUE=37.66%, BREAKING=37.38%, GAME_TEACHTARGETBALL=36.00%, WINFIRSTGAME=26.40%, TUTBOX=19.18%, JOINFIRSTGAME=19.24%, DONE=18.64%, GAME_TEACHBOOSTAIM=0.00%.
+Step 3: Apply threshold > 35%: TUTDRAGCUE, SHOW_FORCE_CUE, DONESCENETUT, TUTPOTTEDBALL, FORCE_CUE, BREAKING, GAME_TEACHTARGETBALL → 7 steps."
+How many users were acquired via Google Play vs Google (CPC)?,2103 users were acquired via Google Play (organic) and 1365 via Google (CPC).,"Step 1: Count source+medium groups: google-play/organic=2,103, (direct)/(none)=1,531, google/cpc=1,365.
+Step 2: Google Play organic = 2,103, Google CPC = 1,365."
+What is the ratio of churned to retained users?,The ratio of churned to retained users is approximately 1.13:1 (2653 churned vs 2347 retained).,"Step 1: Churned = 2,653, Retained = 2,347.
+Step 2: Ratio = 2,653 / 2,347 = 1.13.
+Step 3: Ratio = 1.13:1 (churned to retained)."
+Which sub-continent has the most users?,Southeast Asia has the most users with 1769 records.,"Step 1: Count records per sub_continent: Southeast Asia=1,769, Southern Asia=832, South America=619, Northern Africa=432, Other=545, ...
+Step 2: Southeast Asia has the highest count at 1,769."
+What is the churn rate for Eastern Europe users?,The churn rate for Eastern Europe users is 57.14%.,"Step 1: Filter sub_continent == 'Eastern Europe' → n=168.
+Step 2: Churn rate = churned / total in group = 57.14%."
+What is the churn rate for Western Asia users?,The churn rate for Western Asia users is 55.56%.,"Step 1: Filter sub_continent == 'Western Asia' → n=162.
+Step 2: Churn rate = churned / total in group = 55.56%."
+What is the churn rate for Southern Africa users?,The churn rate for Southern Africa users is 53.73%.,"Step 1: Filter sub_continent == 'Southern Africa' → n=134.
+Step 2: Churn rate = churned / total in group = 53.73%."
+What is the churn rate for Western Africa users?,The churn rate for Western Africa users is 50.00%.,"Step 1: Filter sub_continent == 'Western Africa' → n=136.
+Step 2: Churn rate = churned / total in group = 50.00%."
+How many users are in the Northern America sub-continent?,203 users are in the Northern America sub-continent with a churn rate of 56.65%.,"Step 1: Filter sub_continent == 'Northern America' → n=203.
+Step 2: Churn rate = churned / total in group = 56.65%."

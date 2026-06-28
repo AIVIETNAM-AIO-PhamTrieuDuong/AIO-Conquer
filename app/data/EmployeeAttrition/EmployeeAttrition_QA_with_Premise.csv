@@ -1,0 +1,275 @@
+Q,A,premise
+How many employee records are in the dataset?,"There are 59,598 employee records in the dataset.","Step 1: Count total rows in the dataset.
+Step 2: Total rows = 59,598."
+How many employees left versus stayed?,"28,338 employees left and 31,260 stayed.","Step 1: Filter Attrition == 'Left' → count = 28,338.
+Step 2: Filter Attrition == 'Stayed' → count = 31,260.
+Step 3: 28,338 + 31,260 = 59,598 (matches total)."
+What is the overall attrition rate?,The overall attrition rate is 47.55%.,"Step 1: Count employees who Left = 28,338.
+Step 2: Total employees = 59,598.
+Step 3: Attrition rate = 28,338 / 59,598 = 47.55%."
+How many columns does the dataset have?,"The dataset has 24 columns covering demographics, job details, work environment, and attrition outcome.","Step 1: Count columns in the dataset.
+Step 2: Columns = Employee ID, Age, Gender, Years at Company, Job Role, Monthly Income, Work-Life Balance, Job Satisfaction, Performance Rating, Number of Promotions, Overtime, Distance from Home, Education Level, Marital Status, Number of Dependents, Job Level, Company Size, Company Tenure, Remote Work, Leadership Opportunities, Innovation Opportunities, Company Reputation, Employee Recognition, Attrition.
+Step 3: Total = 24 columns."
+What are the numeric columns in the dataset?,"The numeric columns are: Age, Years at Company, Monthly Income, Number of Promotions, Distance from Home, Number of Dependents, and Company Tenure.","Step 1: Inspect each column's data type.
+Step 2: Numeric columns (integer/float): Age, Years at Company, Monthly Income, Number of Promotions, Distance from Home, Number of Dependents, Company Tenure.
+Step 3: All other columns are categorical."
+What is the attrition rate by gender?,Female employees have an attrition rate of 53.16% and male employees have a rate of 42.94%.,"Step 1: Filter Female employees → 26,859 records. Compute attrition = Left / total = 53.16%.
+Step 2: Filter Male employees → 32,739 records. Compute attrition = Left / total = 42.94%."
+Which gender has the higher attrition rate?,Female employees have a higher attrition rate (53.16%) compared to male employees (42.94%).,"Step 1: Female attrition rate = 53.16%.
+Step 2: Male attrition rate = 42.94%.
+Step 3: Compare: 53.16% > 42.94% → Female is higher."
+How many male and female employees are in the dataset?,"There are 32,739 male and 26,859 female employees.","Step 1: Count by Gender.
+Step 2: Male = 32,739.
+Step 3: Female = 26,859.
+Step 4: 32,739 + 26,859 = 59,598 (matches total)."
+Which job role has the highest attrition rate?,Education has the highest attrition rate at 48.72%.,"Step 1: Compute attrition rate per Job Role.
+Step 2: Education=48.72%, Media=47.44%, Healthcare=47.31%, Technology=47.29%, Finance=46.80%.
+Step 3: Rank descending → Education leads at 48.72%."
+Which job role has the lowest attrition rate?,Finance has the lowest attrition rate at 46.80%.,"Step 1: Compute attrition rate per Job Role.
+Step 2: Finance=46.80%, Technology=47.29%, Healthcare=47.31%, Media=47.44%, Education=48.72%.
+Step 3: Rank ascending → Finance is lowest at 46.80%."
+How do attrition rates compare across all five job roles?,"Education leads at 48.72%, followed by Media (47.44%), Healthcare (47.31%), Technology (47.29%), and Finance (46.80%). The gap is narrow — less than 2 percentage points across all roles.","Step 1: Compute attrition rate per Job Role.
+Step 2: Education=48.72%, Media=47.44%, Healthcare=47.31%, Technology=47.29%, Finance=46.80%.
+Step 3: Gap = 48.72% - 46.80% = 1.92 percentage points across all roles."
+How many employees work in Technology?,"15,507 employees work in Technology, the largest job-role group.","Step 1: Count employees where Job Role == 'Technology'.
+Step 2: Technology = 15,507.
+Step 3: Compare to other roles: Healthcare=13,642, Education=12,490, Media=9,574, Finance=8,385.
+Step 4: Technology is the largest group."
+Which work-life balance rating is associated with the highest attrition?,Poor work-life balance is associated with the highest attrition rate at 60.11%.,"Step 1: Compute attrition rate per Work-Life Balance rating.
+Step 2: Poor=60.11%, Fair=57.46%, Good=40.56%, Excellent=35.81%.
+Step 3: Rank descending → Poor has the highest attrition at 60.11%."
+What is the attrition rate for employees with excellent work-life balance?,Employees with excellent work-life balance have an attrition rate of 35.81%.,"Step 1: Filter Work-Life Balance == 'Excellent'.
+Step 2: Compute attrition rate = Left / total in group = 35.81%."
+What is the spread in attrition between 'Poor' and 'Excellent' work-life balance?,The spread is 24.30 percentage points — Poor at 60.11% versus Excellent at 35.81%.,"Step 1: Poor Work-Life Balance attrition = 60.11%.
+Step 2: Excellent Work-Life Balance attrition = 35.81%.
+Step 3: Spread = 60.11% - 35.81% = 24.30 percentage points."
+What is the attrition rate for employees with 'Good' work-life balance?,Employees with Good work-life balance have an attrition rate of 40.56%.,"Step 1: Filter Work-Life Balance == 'Good'.
+Step 2: Compute attrition rate = Left / total in group = 40.56%."
+What is the attrition rate for employees with 'Fair' work-life balance?,Employees with Fair work-life balance have an attrition rate of 57.46%.,"Step 1: Filter Work-Life Balance == 'Fair'.
+Step 2: Compute attrition rate = Left / total in group = 57.46%."
+Which job satisfaction level has the highest attrition rate?,"Surprisingly, Very High job satisfaction has the highest attrition rate at 52.89%, followed by Low at 52.42%.","Step 1: Compute attrition rate per Job Satisfaction level.
+Step 2: Very High=52.89%, Low=52.42%, High=45.30%, Medium=45.32%.
+Step 3: Rank descending → Very High leads at 52.89%."
+What is the attrition rate for employees with high job satisfaction?,Employees with High job satisfaction have an attrition rate of 45.30%.,"Step 1: Filter Job Satisfaction == 'High'.
+Step 2: Compute attrition rate = Left / total in group = 45.30%."
+What is the attrition rate for employees with medium job satisfaction?,Employees with Medium job satisfaction have an attrition rate of 45.32%.,"Step 1: Filter Job Satisfaction == 'Medium'.
+Step 2: Compute attrition rate = Left / total in group = 45.32%."
+Which performance rating has the highest attrition rate?,Low performance rating is associated with the highest attrition rate at 57.53%.,"Step 1: Compute attrition rate per Performance Rating.
+Step 2: Low=57.53%, Below Average=51.81%, Average=46.15%, High=46.07%.
+Step 3: Rank descending → Low has the highest attrition at 57.53%."
+What is the attrition rate for employees with high performance?,"Employees with High performance have an attrition rate of 46.07%, slightly below the average.","Step 1: Filter Performance Rating == 'High'.
+Step 2: Compute attrition rate = Left / total in group = 46.07%.
+Step 3: Overall attrition = 47.55%. 46.07% < 47.55% → slightly below average."
+What is the attrition rate for below-average performers?,Below Average performers have an attrition rate of 51.81%.,"Step 1: Filter Performance Rating == 'Below Average'.
+Step 2: Compute attrition rate = Left / total in group = 51.81%."
+What is the attrition rate for employees who work overtime versus those who don't?,Employees who work overtime have an attrition rate of 51.54%; those who don't have a rate of 45.61%.,"Step 1: Filter Overtime == 'Yes' → attrition rate = 51.54%.
+Step 2: Filter Overtime == 'No' → attrition rate = 45.61%.
+Step 3: Gap = 51.54% - 45.61% = 5.93 percentage points."
+How many employees work overtime?,"19,450 employees work overtime out of 59,598 total (32.63%).","Step 1: Count Overtime == 'Yes' = 19,450.
+Step 2: Total = 59,598.
+Step 3: Share = 19,450 / 59,598 = 32.63%."
+Does overtime increase attrition risk?,"Yes — employees working overtime churn at 51.54% compared to 45.61% for those who don't, a 5.93 percentage-point difference.","Step 1: Overtime == 'Yes' attrition = 51.54%.
+Step 2: Overtime == 'No' attrition = 45.61%.
+Step 3: Difference = 51.54% - 45.61% = 5.93 percentage points.
+Step 4: Overtime group has higher attrition → condition is True."
+Which education level has the highest attrition rate?,Bachelor's Degree holders have the highest attrition rate at 49.32%.,"Step 1: Compute attrition rate per Education Level.
+Step 2: Bachelor's Degree=49.32%, Master's Degree=48.93%, Associate Degree=48.47%, High School=48.25%, PhD=24.86%.
+Step 3: Rank descending → Bachelor's Degree leads at 49.32%."
+Which education level has the lowest attrition rate?,PhD holders have by far the lowest attrition rate at 24.86%.,"Step 1: Compute attrition rate per Education Level.
+Step 2: PhD=24.86%, High School=48.25%, Associate Degree=48.47%, Master's Degree=48.93%, Bachelor's Degree=49.32%.
+Step 3: Rank ascending → PhD is lowest at 24.86%."
+How does PhD attrition compare to Bachelor's Degree attrition?,"PhD holders have an attrition rate of 24.86%, roughly half that of Bachelor's Degree holders at 49.32%.","Step 1: PhD attrition = 24.86%.
+Step 2: Bachelor's Degree attrition = 49.32%.
+Step 3: Ratio = 49.32% / 24.86% ≈ 2.0x.
+Step 4: PhD attrition is roughly half of Bachelor's Degree attrition."
+How many PhD employees are in the dataset?,"There are 3,089 PhD employees — the smallest education group.","Step 1: Count Education Level == 'PhD' = 3,089.
+Step 2: Compare to other groups: Bachelor's=17,826, Associate=14,915, Master's=12,020, High School=11,748.
+Step 3: PhD is the smallest education group."
+Which marital status has the highest attrition rate?,Single employees have the highest attrition rate at 66.83%.,"Step 1: Compute attrition rate per Marital Status.
+Step 2: Single=66.83%, Divorced=40.70%, Married=36.15%.
+Step 3: Rank descending → Single has the highest attrition at 66.83%."
+What is the attrition rate for married employees?,Married employees have the lowest attrition rate at 36.15%.,"Step 1: Filter Marital Status == 'Married'.
+Step 2: Compute attrition rate = Left / total in group = 36.15%.
+Step 3: Compare to other groups: Divorced=40.70%, Single=66.83%.
+Step 4: Married has the lowest attrition among all marital status groups."
+What is the attrition rate for divorced employees?,Divorced employees have an attrition rate of 40.70%.,"Step 1: Filter Marital Status == 'Divorced'.
+Step 2: Compute attrition rate = Left / total in group = 40.70%."
+How wide is the attrition gap between single and married employees?,The gap is 30.68 percentage points — single employees churn at 66.83% versus married at 36.15%.,"Step 1: Single attrition = 66.83%.
+Step 2: Married attrition = 36.15%.
+Step 3: Gap = 66.83% - 36.15% = 30.68 percentage points."
+How many single employees are in the dataset?,"There are 20,835 single employees in the dataset.","Step 1: Count Marital Status == 'Single' = 20,835.
+Step 2: Compare: Married=29,908, Divorced=8,855."
+Which job level has the highest attrition rate?,Entry-level employees have the highest attrition rate at 63.19%.,"Step 1: Compute attrition rate per Job Level.
+Step 2: Entry=63.19%, Mid=45.56%, Senior=20.31%.
+Step 3: Rank descending → Entry-level has the highest attrition at 63.19%."
+Which job level has the lowest attrition rate?,Senior-level employees have the lowest attrition rate at 20.31%.,"Step 1: Compute attrition rate per Job Level.
+Step 2: Senior=20.31%, Mid=45.56%, Entry=63.19%.
+Step 3: Rank ascending → Senior-level has the lowest attrition at 20.31%."
+What is the attrition rate for mid-level employees?,Mid-level employees have an attrition rate of 45.56%.,"Step 1: Filter Job Level == 'Mid'.
+Step 2: Compute attrition rate = Left / total in group = 45.56%."
+How does entry-level attrition compare to senior-level attrition?,Entry-level attrition (63.19%) is 3.1x higher than senior-level attrition (20.31%) — the largest single-factor gap in the dataset.,"Step 1: Entry-level attrition = 63.19%.
+Step 2: Senior-level attrition = 20.31%.
+Step 3: Ratio = 63.19% / 20.31% = 3.1x.
+Step 4: Gap = 63.19% - 20.31% = 42.88 percentage points — the largest single-factor gap in the dataset."
+How many employees are at each job level?,"Entry: 23,867; Mid: 23,753; Senior: 11,978.","Step 1: Count by Job Level.
+Step 2: Entry = 23,867.
+Step 3: Mid = 23,753.
+Step 4: Senior = 11,978.
+Step 5: Total = 23,867 + 23,753 + 11,978 = 59,598."
+Does company size significantly affect attrition?,"Differences are modest — Small companies have the highest attrition at 49.87%, followed by Medium at 46.58% and Large at 46.47%.","Step 1: Compute attrition rate per Company Size.
+Step 2: Small=49.87%, Medium=46.58%, Large=46.47%.
+Step 3: Gap = 49.87% - 46.47% = 3.40 percentage points — a modest difference."
+What is the attrition rate for employees with remote work versus those without?,Remote workers have an attrition rate of 24.86% versus 52.89% for non-remote workers — a 28.03 percentage-point difference.,"Step 1: Filter Remote Work == 'Yes' → attrition = 24.86%.
+Step 2: Filter Remote Work == 'No' → attrition = 52.89%.
+Step 3: Gap = 52.89% - 24.86% = 28.03 percentage points."
+How many employees have remote work access?,"11,359 employees have remote work (19.06% of the workforce).","Step 1: Count Remote Work == 'Yes' = 11,359.
+Step 2: Total = 59,598.
+Step 3: Share = 11,359 / 59,598 = 19.06%."
+Is remote work the strongest individual predictor of retention in this dataset?,"Remote work is among the strongest predictors — remote workers churn at 24.86% versus 52.89% for non-remote workers, a gap comparable to PhD education and senior job level.","Step 1: Remote work gap = 52.89% - 24.86% = 28.03 pp.
+Step 2: Compare to other large gaps — PhD vs non-PhD: 49.32% - 24.86% ≈ 24.46 pp; Senior vs Entry: 63.19% - 20.31% = 42.88 pp.
+Step 3: Remote work gap (28.03 pp) is large but job level gap is larger.
+Step 4: Remote work is among the strongest predictors, comparable to PhD education."
+Does having leadership opportunities reduce attrition?,"Slightly — employees with leadership opportunities have an attrition rate of 45.31% versus 47.66% without, a 2.35 percentage-point difference.","Step 1: Leadership Opportunities == 'Yes' → attrition = 45.31%.
+Step 2: Leadership Opportunities == 'No' → attrition = 47.66%.
+Step 3: Gap = 47.66% - 45.31% = 2.35 percentage points — slight reduction."
+Does having innovation opportunities reduce attrition?,"Marginally — employees with innovation opportunities have an attrition rate of 45.11% versus 48.02% without, a 2.91 percentage-point difference.","Step 1: Innovation Opportunities == 'Yes' → attrition = 45.11%.
+Step 2: Innovation Opportunities == 'No' → attrition = 48.02%.
+Step 3: Gap = 48.02% - 45.11% = 2.91 percentage points — marginal reduction."
+How many employees have leadership opportunities?,"Only 2,918 employees (4.89%) have leadership opportunities.","Step 1: Count Leadership Opportunities == 'Yes' = 2,918.
+Step 2: Total = 59,598.
+Step 3: Share = 2,918 / 59,598 = 4.89%."
+How many employees have innovation opportunities?,"9,703 employees (16.28%) have innovation opportunities.","Step 1: Count Innovation Opportunities == 'Yes' = 9,703.
+Step 2: Total = 59,598.
+Step 3: Share = 9,703 / 59,598 = 16.28%."
+Which company reputation rating is associated with the highest attrition?,Poor company reputation is associated with the highest attrition rate at 56.50%.,"Step 1: Compute attrition rate per Company Reputation.
+Step 2: Poor=56.50%, Fair=51.94%, Good=42.91%, Excellent=43.92%.
+Step 3: Rank descending → Poor has the highest attrition at 56.50%."
+What is the attrition rate for companies with excellent reputation?,Employees at companies with excellent reputation have an attrition rate of 43.92%.,"Step 1: Filter Company Reputation == 'Excellent'.
+Step 2: Compute attrition rate = Left / total in group = 43.92%."
+How wide is the attrition gap between poor and good company reputation?,The gap between Poor (56.50%) and Good (42.91%) reputation is 13.59 percentage points.,"Step 1: Poor Company Reputation attrition = 56.50%.
+Step 2: Good Company Reputation attrition = 42.91%.
+Step 3: Gap = 56.50% - 42.91% = 13.59 percentage points."
+Does employee recognition level significantly affect attrition?,"The effect is small — attrition ranges from 47.83% (Low recognition) to 46.14% (Very High recognition), a difference of only 1.69 percentage points.","Step 1: Compute attrition rate per Employee Recognition level.
+Step 2: Low=47.83%, Medium=47.71%, High=47.18%, Very High=46.14%.
+Step 3: Gap = 47.83% - 46.14% = 1.69 percentage points — a small effect."
+What is the average age of employees who left versus those who stayed?,Employees who left average 37.95 years old; those who stayed average 39.13 years old.,"Step 1: Filter Attrition == 'Left' → mean Age = 37.95 years.
+Step 2: Filter Attrition == 'Stayed' → mean Age = 39.13 years.
+Step 3: Gap = 39.13 - 37.95 = 1.18 years."
+What is the average monthly income of employees who left versus those who stayed?,"Employees who left earn an average of $7,277/month; those who stayed earn $7,326/month — a small $49 difference.","Step 1: Filter Attrition == 'Left' → mean Monthly Income = $7,277.
+Step 2: Filter Attrition == 'Stayed' → mean Monthly Income = $7,326.
+Step 3: Gap = $7,326 - $7,277 = $49."
+What is the average years at company for employees who left versus stayed?,Employees who left averaged 14.99 years; those who stayed averaged 16.45 years.,"Step 1: Filter Attrition == 'Left' → mean Years at Company = 14.99.
+Step 2: Filter Attrition == 'Stayed' → mean Years at Company = 16.45.
+Step 3: Gap = 16.45 - 14.99 = 1.46 years."
+Do employees who leave have fewer promotions on average?,Yes — employees who left averaged 0.75 promotions versus 0.91 for those who stayed.,"Step 1: Filter Attrition == 'Left' → mean Number of Promotions = 0.75.
+Step 2: Filter Attrition == 'Stayed' → mean Number of Promotions = 0.91.
+Step 3: Gap = 0.91 - 0.75 = 0.16 promotions.
+Step 4: Employees who left have fewer promotions on average."
+Does distance from home correlate with attrition?,"Yes — employees who left lived an average of 52.86 units from home versus 47.42 for those who stayed, suggesting distance is a mild attrition risk factor.","Step 1: Filter Attrition == 'Left' → mean Distance from Home = 52.86.
+Step 2: Filter Attrition == 'Stayed' → mean Distance from Home = 47.42.
+Step 3: Gap = 52.86 - 47.42 = 5.44 units.
+Step 4: Employees who left live farther from home on average."
+Do employees who stay have more dependents on average?,"Yes — employees who stayed average 1.76 dependents versus 1.52 for those who left, suggesting dependents correlate with retention.","Step 1: Filter Attrition == 'Stayed' → mean Number of Dependents = 1.76.
+Step 2: Filter Attrition == 'Left' → mean Number of Dependents = 1.52.
+Step 3: Gap = 1.76 - 1.52 = 0.24 dependents.
+Step 4: Employees who stayed have more dependents on average."
+What is the average monthly income across all employees?,"The average monthly income across all employees is $7,302.","Step 1: Compute mean Monthly Income across all 59,598 employees.
+Step 2: Mean = $7,302."
+What is the minimum and maximum age in the dataset?,The minimum age is 18 and the maximum age is 59.,"Step 1: Compute min(Age) = 18.
+Step 2: Compute max(Age) = 59."
+What is the range of Years at Company in the dataset?,Years at Company ranges from 1 to 51.,"Step 1: Compute min(Years at Company) = 1.
+Step 2: Compute max(Years at Company) = 51.
+Step 3: Range = 1 to 51."
+What is the average company tenure (in months) for employees who left vs stayed?,Employees who left had an average company tenure of 54.95 months; those who stayed had 56.49 months.,"Step 1: Filter Attrition == 'Left' → mean Company Tenure = 54.95 months.
+Step 2: Filter Attrition == 'Stayed' → mean Company Tenure = 56.49 months.
+Step 3: Gap = 56.49 - 54.95 = 1.54 months."
+What percentage of employees have never received a promotion?,"49,852 out of 59,598 employees (49.86%) have zero promotions — the most common promotion count.","Step 1: Count Number of Promotions == 0 = 29,716.
+Step 2: Total = 59,598.
+Step 3: Share = 29,716 / 59,598 = 49.86%."
+Do employees with no promotions have higher attrition than those with at least one?,Yes — employees with no promotions have an attrition rate of 49.33% versus 45.78% for those with at least one promotion.,"Step 1: Filter Number of Promotions == 0 → attrition = 49.33% (n=29,716).
+Step 2: Filter Number of Promotions >= 1 → attrition = 45.78%.
+Step 3: Gap = 49.33% - 45.78% = 3.55 percentage points.
+Step 4: No-promotion group has higher attrition."
+Which age group has the highest attrition rate?,The 18–29 age group has the highest attrition rate at 52.20%.,"Step 1: Define age groups: 18–29, 30–39, 40–49, 50–59.
+Step 2: Compute attrition per group: 18–29=52.20%, 30–39=45.50%, 40–49=46.12%, 50–59=45.56%.
+Step 3: Rank descending → 18–29 has the highest attrition at 52.20%."
+How does attrition differ across age groups?,Ages 18–29: 52.20%; 30–39: 45.50%; 40–49: 46.12%; 50–59: 45.56%. Younger employees leave at a noticeably higher rate.,"Step 1: Define age groups and compute attrition.
+Step 2: 18–29 = 52.20%.
+Step 3: 30–39 = 45.50%.
+Step 4: 40–49 = 46.12%.
+Step 5: 50–59 = 45.56%.
+Step 6: 18–29 group is 6.08 pp higher than the next group (30–39)."
+What is the attrition rate for entry-level employees who also work overtime?,Entry-level employees who work overtime have an attrition rate of 67.31%.,"Step 1: Filter Job Level == 'Entry' AND Overtime == 'Yes' → n=7,772.
+Step 2: Compute attrition rate = Left / total in group = 67.31%."
+What is the attrition rate for senior employees who work overtime?,Senior employees who work overtime have an attrition rate of 23.72% — high seniority substantially buffers overtime-driven attrition.,"Step 1: Filter Job Level == 'Senior' AND Overtime == 'Yes' → n=3,824.
+Step 2: Compute attrition rate = Left / total in group = 23.72%.
+Step 3: Compare to Entry+Overtime = 67.31%. Senior buffers attrition significantly."
+What is the attrition rate for single employees who work overtime?,Single employees who work overtime have an attrition rate of 70.94%.,"Step 1: Filter Marital Status == 'Single' AND Overtime == 'Yes' → n=6,721.
+Step 2: Compute attrition rate = Left / total in group = 70.94%."
+What is the attrition rate for married employees who work overtime?,Married employees who work overtime have an attrition rate of 40.60%.,"Step 1: Filter Marital Status == 'Married' AND Overtime == 'Yes' → n=9,823.
+Step 2: Compute attrition rate = Left / total in group = 40.60%."
+What is the attrition rate for remote workers with poor work-life balance?,Remote workers with poor work-life balance churn at 36.52% — far lower than non-remote workers with poor work-life balance at 65.70%.,"Step 1: Filter Remote Work == 'Yes' AND Work-Life Balance == 'Poor' → n=1,591.
+Step 2: Compute attrition rate = Left / total in group = 36.52%.
+Step 3: Compare to non-remote + poor WLB = 65.70%. Remote work reduces attrition by 29.18 pp."
+What is the attrition rate for non-remote workers with poor work-life balance?,Non-remote workers with poor work-life balance have an attrition rate of 65.70%.,"Step 1: Filter Remote Work == 'No' AND Work-Life Balance == 'Poor' → n=6,714.
+Step 2: Compute attrition rate = Left / total in group = 65.70%."
+What is the attrition rate for remote workers with excellent work-life balance?,Remote workers with excellent work-life balance churn at only 15.15% — the joint benefit of two strong retention factors.,"Step 1: Filter Remote Work == 'Yes' AND Work-Life Balance == 'Excellent' → n=2,066.
+Step 2: Compute attrition rate = Left / total in group = 15.15%.
+Step 3: This is the joint benefit of two strong retention factors: remote work (24.86%) and excellent WLB (35.81%)."
+What is the attrition rate for entry-level employees who are also single?,Single entry-level employees have an attrition rate of 82.32% — one of the highest at-risk segments.,"Step 1: Filter Job Level == 'Entry' AND Marital Status == 'Single' → n=8,354.
+Step 2: Compute attrition rate = Left / total in group = 82.32%.
+Step 3: Compare to Entry alone (63.19%) and Single alone (66.83%) — combination amplifies risk."
+What is the attrition rate for employees who are single + entry-level + overtime + poor work-life balance?,This highest-risk combination yields an attrition rate of 93.03% (n=373 employees).,"Step 1: Filter Marital Status=='Single' AND Job Level=='Entry' AND Overtime=='Yes' AND Work-Life Balance=='Poor' → n=373.
+Step 2: Compute attrition rate = Left / total in group = 93.03%."
+What is the attrition rate for senior + remote + excellent work-life balance employees?,This lowest-risk combination yields an attrition rate of just 0.68% (n=439 employees).,"Step 1: Filter Job Level=='Senior' AND Remote Work=='Yes' AND Work-Life Balance=='Excellent' → n=439.
+Step 2: Compute attrition rate = Left / total in group = 0.68%."
+What is the attrition rate for female employees who work overtime?,Female employees who work overtime have an attrition rate of 56.85%.,"Step 1: Filter Gender == 'Female' AND Overtime == 'Yes' → n=8,808.
+Step 2: Compute attrition rate = Left / total in group = 56.85%."
+What is the attrition rate for male employees who work overtime?,Male employees who work overtime have an attrition rate of 47.15%.,"Step 1: Filter Gender == 'Male' AND Overtime == 'Yes' → n=10,642.
+Step 2: Compute attrition rate = Left / total in group = 47.15%."
+What is the attrition rate for entry-level employees with low performance?,Entry-level employees with low performance ratings have an attrition rate of 72.40%.,"Step 1: Filter Job Level == 'Entry' AND Performance Rating == 'Low' → n=1,163.
+Step 2: Compute attrition rate = Left / total in group = 72.40%."
+What is the attrition rate for senior employees with low performance?,Senior employees with low performance have an attrition rate of 30.89% — still the highest among senior sub-groups.,"Step 1: Filter Job Level == 'Senior' AND Performance Rating == 'Low' → n=573.
+Step 2: Compute attrition rate = Left / total in group = 30.89%.
+Step 3: Compare to Entry+Low Perf = 72.40%. Senior level buffers low-performance attrition significantly."
+Do PhD employees who work remotely have a very low attrition rate?,"Yes — PhD employees with remote work have an attrition rate of just 8.13%, versus 28.62% for PhD employees without remote work.","Step 1: Filter Education Level == 'PhD' AND Remote Work == 'Yes' → n=566.
+Step 2: Attrition rate = 8.13%.
+Step 3: Filter Education Level == 'PhD' AND Remote Work == 'No' → n=2,523.
+Step 4: Attrition rate = 28.62%.
+Step 5: Remote work reduces PhD attrition by 28.62% - 8.13% = 20.49 pp."
+What is the attrition rate for employees at companies with poor reputation who also work remotely?,Remote employees at companies with poor reputation churn at 35.20% — noticeably lower than their non-remote counterparts at 61.39%.,"Step 1: Filter Company Reputation == 'Poor' AND Remote Work == 'Yes' → n=2,247.
+Step 2: Attrition rate = 35.20%.
+Step 3: Filter Company Reputation == 'Poor' AND Remote Work == 'No' → n=9,787.
+Step 4: Attrition rate = 61.39%.
+Step 5: Remote work reduces poor-reputation attrition by 61.39% - 35.20% = 26.19 pp."
+Is monthly income meaningfully different across job levels?,"No — average monthly income is nearly identical: Entry $7,325, Mid $7,279, Senior $7,303, suggesting the dataset does not reflect a strong pay gradient by level.","Step 1: Compute mean Monthly Income per Job Level.
+Step 2: Entry = $7,325, Mid = $7,279, Senior = $7,303.
+Step 3: Max gap = $7,325 - $7,279 = $46.
+Step 4: No strong pay gradient exists across levels."
+Do employees who left earn less on average than those who stayed within each job level?,"Yes, consistently — at every job level employees who left earned slightly less than those who stayed, though the gaps are small (under $100/month).","Step 1: Entry — Left=$7,297, Stayed=$7,373. Gap=$76.
+Step 2: Mid — Left=$7,258, Stayed=$7,296. Gap=$38.
+Step 3: Senior — Left=$7,230, Stayed=$7,322. Gap=$92.
+Step 4: At every job level, employees who left earned less than those who stayed; all gaps < $100."
+What are the top individual factors associated with high attrition in this dataset?,"The top individual attrition drivers are: Single marital status (66.83%), Entry job level (63.19%), Poor work-life balance (60.11%), and no remote work (52.89%).","Step 1: Rank all single-factor attrition rates.
+Step 2: Single marital status = 66.83%.
+Step 3: Entry job level = 63.19%.
+Step 4: Poor work-life balance = 60.11%.
+Step 5: No remote work = 52.89%.
+Step 6: These four factors have the highest individual attrition rates."
+What are the top individual factors associated with low attrition?,"The strongest retention factors are: Remote work (24.86%), Senior job level (20.31%), PhD education (24.86%), and Married status (36.15%).","Step 1: Rank all single-factor attrition rates ascending.
+Step 2: Remote work = 24.86%.
+Step 3: Senior job level = 20.31%.
+Step 4: PhD education = 24.86%.
+Step 5: Married status = 36.15%.
+Step 6: These four factors have the lowest individual attrition rates."
+Which combination of factors creates the highest-risk employee profile?,Single + Entry-level + Overtime + Poor Work-Life Balance yields the highest observed attrition rate at 93.03%.,"Step 1: Test high-risk factor combinations.
+Step 2: Single + Entry + Overtime + Poor Work-Life Balance → n=373, attrition = 93.03%.
+Step 3: This is the highest observed attrition rate in any sub-group in the dataset."
+Which combination of factors creates the lowest-risk (most retained) employee profile?,Senior + Remote Work + Excellent Work-Life Balance yields the lowest observed attrition rate at 0.68%.,"Step 1: Test low-risk factor combinations.
+Step 2: Senior + Remote Work + Excellent Work-Life Balance → n=439, attrition = 0.68%.
+Step 3: This is the lowest observed attrition rate in any sub-group in the dataset."
+Does remote work reduce attrition even when reputation or work-life balance is poor?,"Yes — remote work consistently buffers attrition across all company reputation and work-life balance levels, roughly halving the attrition rate in each sub-group.","Step 1: Poor Reputation — Remote=35.20% vs Non-remote=61.39%. Reduction=26.19 pp.
+Step 2: Fair Reputation — Remote=25.31% vs Non-remote=58.24%. Reduction=32.93 pp.
+Step 3: Good Reputation — Remote=21.76% vs Non-remote=47.95%. Reduction=26.19 pp.
+Step 4: Excellent Reputation — Remote=19.14% vs Non-remote=49.72%. Reduction=30.58 pp.
+Step 5: Remote work reduces attrition across all reputation levels, roughly halving the rate in each sub-group."

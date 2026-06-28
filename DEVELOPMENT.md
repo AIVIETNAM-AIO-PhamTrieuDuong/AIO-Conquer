@@ -614,8 +614,35 @@ response cuối.
 
 ---
 
+## Evaluation
+
+`app/evaluation/runner.py` supports score-only benchmark evaluation with
+`--metric answer-cot` for the fixed JSON response logs paired with
+`*_QA_with_Premise.csv` files for EmployeeAttrition, MobileGameChurn, and
+SuperStore. The combined report is written to `app/evaluation/results` unless
+`--output` is provided.
+
+The answer/CoT evaluator in `app/evaluation/answer_cot_score.py` validates each
+JSON `results[*].index` against CSV row order and question text, scores final
+answers with BERTScore against `A`, and scores visible `response.cot` with
+DeepEval G-Eval against `premise`. Missing actual CoT is recorded as
+`cot_score=0.0` with reason `missing_cot` and is included in aggregates.
+
+Required optional evaluation dependencies are `bert-score` and `deepeval`.
+DeepEval judge configuration is supplied by the runtime environment.
+
+---
+
 ## Verification Notes
 
+- 2026-06-28: Đã thêm evaluator `answer-cot` cho ba benchmark JSON/CSV pair:
+  EmployeeAttrition, MobileGameChurn, và SuperStore. Evaluator validate
+  index/question alignment, dùng BERTScore cho final answers, DeepEval G-Eval
+  cho visible CoT so với `premise`, và score missing CoT bằng 0. Đã chạy
+  `python -m py_compile app\evaluation\answer_cot_score.py
+  app\evaluation\runner.py tests\test_answer_cot_score.py`,
+  `python -m unittest tests.test_answer_cot_score`, và validation smoke test
+  cho ba requested pair thành công.
 - 2026-06-26: Đã thêm `POST /domain-memory/{job_id}/file` để augment domain
   knowledge từ uploaded text/Markdown file vào Redis vector memory với
   `memory_type="domain_custom"` và `source_type="file"`. Đã chạy
