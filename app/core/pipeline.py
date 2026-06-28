@@ -220,7 +220,7 @@ async def run_qa_pipeline(request: AskRequest) -> GraphState:
         try:
             await context_store.error_memory.append(
                 scope_id=thread_id,
-                thread_id=thread_id,
+                thread_id=thread_id, 
                 run_id=run_id,
                 source_node="run_qa_pipeline",
                 record={
