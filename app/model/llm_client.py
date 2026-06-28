@@ -1,5 +1,7 @@
 import json
 import httpx
+from langsmith import traceable
+
 from app.core.config import settings
 
 
@@ -92,10 +94,12 @@ class NineRouterClient:
             resp.raise_for_status()
             return _parse_response(resp.text)
 
+    @traceable(run_type="llm", name="NineRouter.generate")
     async def generate(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1024, timeout: float = 120) -> str:
         """JSON-mode generation (replaces Gemini response_mime_type=application/json)."""
         return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=True), timeout=timeout)
 
+    @traceable(run_type="llm", name="NineRouter.generate_text")
     async def generate_text(self, prompt: str, temperature: float = 0.2, max_tokens: int = 2048, timeout: float = 120) -> str:
         """Plain-text generation."""
         return await self._post(self._payload(prompt, temperature, max_tokens, json_mode=False), timeout=timeout)

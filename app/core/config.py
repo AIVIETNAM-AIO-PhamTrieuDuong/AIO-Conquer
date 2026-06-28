@@ -22,5 +22,20 @@ class Settings(BaseSettings):
     pinecone_api_key: Optional[str] = None
     pinecone_index: Optional[str] = None
 
+    # LangSmith tracing (see app/core/tracing.py). These are bridged into
+    # os.environ at import time so the LangChain/langsmith SDK auto-traces.
+    langsmith_tracing: bool = False
+    langsmith_endpoint: str = "https://api.smith.langchain.com"
+    langsmith_api_key: Optional[str] = None
+    langsmith_project: str = "aio"
+    langsmith_workspace_id: Optional[str] = None
+
 
 settings = Settings()
+
+# Bridge LangSmith settings into os.environ so the LangChain/langsmith SDK,
+# which reads configuration from environment variables, picks them up. Done at
+# import time because every entry point imports `settings` before any LLM call.
+from app.core.tracing import init_tracing  # noqa: E402
+
+init_tracing(settings)

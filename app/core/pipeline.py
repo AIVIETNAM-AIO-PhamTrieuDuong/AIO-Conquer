@@ -5,6 +5,7 @@ from typing import Any
 
 from langgraph.checkpoint.redis import RedisSaver
 from langgraph.graph import StateGraph, END
+from langsmith import traceable
 from redis.exceptions import ResponseError
 
 from app.api.schemas import AskRequest
@@ -183,6 +184,7 @@ async def reset_conversation_thread(thread_id: str = SESSION_ID) -> None:
 # Entrypoint
 # ---------------------------------------------------------------------------
 
+@traceable(name="run_qa_pipeline")
 async def run_qa_pipeline(request: AskRequest) -> GraphState:
     """Run the QA graph and return the final checkpoint-safe graph state."""
     thread_id = request.thread_id or SESSION_ID
