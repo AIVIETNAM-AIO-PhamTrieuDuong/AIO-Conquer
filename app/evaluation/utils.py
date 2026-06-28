@@ -92,7 +92,8 @@ class TestBuilder:
                 raise RuntimeError(f"/eda/analyze did not return a job_id: {payload}")
 
             if wait:
-                payload["result"] = self._poll_eda_result(client, job_id)
+                payload["active_eda"] = self._poll_active_eda(client, job_id)
+                payload["result"] = self._get_eda_result(client, job_id)
             return payload
 
     def upload_dataset_files_to_eda(self, wait: bool = True) -> dict[str, dict[str, Any]]:
@@ -119,12 +120,17 @@ class TestBuilder:
         for dataset in self.datasets:
             if reset_history:
                 self.reset_session()
+            thread_id = None
             if upload_first:
-                self.upload_file_to_eda(dataset.data_path, wait=True)
+                upload = self.upload_file_to_eda(dataset.data_path, wait=True)
+                thread_id = str(upload["job_id"])
+                if reset_history:
+                    self.reset_session(thread_id)
 
             output_paths[dataset.name] = self.generate_answers_for_dataset(
                 dataset,
                 reset_before_each_question=reset_before_each_question,
+                thread_id=thread_id,
             )
         return output_paths
 
@@ -132,7 +138,9 @@ class TestBuilder:
         self,
         dataset: DatasetSpec,
         reset_before_each_question: bool = True,
+        thread_id: str | None = None,
     ) -> Path:
+        """Generate answers for one benchmark using the active EDA thread."""
         benchmark_path = self._resolve_path(dataset.benchmark_path)
         if not benchmark_path.exists():
             raise FileNotFoundError(f"Benchmark file not found: {benchmark_path}")
@@ -163,8 +171,8 @@ class TestBuilder:
                     response = {"answer": candidate_answer}
                 else:
                     if reset_before_each_question:
-                        self.reset_session()
-                    response = self.ask(question)
+                        self.reset_session(thread_id)
+                    response = self.ask(question, thread_id=thread_id)
                 writer.writerow(
                     {
                         "dataset": dataset.name,
@@ -200,13 +208,18 @@ class TestBuilder:
         for dataset in self.datasets:
             if reset_history:
                 self.reset_session()
+            thread_id = None
             if upload_first:
-                self.upload_file_to_eda(dataset.data_path, wait=True)
+                upload = self.upload_file_to_eda(dataset.data_path, wait=True)
+                thread_id = str(upload["job_id"])
+                if reset_history:
+                    self.reset_session(thread_id)
 
             updated_paths[dataset.name] = self.generate_answers_into_original_file_for_dataset(
                 dataset,
                 reset_before_each_question=reset_before_each_question,
                 skip_existing=skip_existing,
+                thread_id=thread_id,
             )
         return updated_paths
 
@@ -215,7 +228,9 @@ class TestBuilder:
         dataset: DatasetSpec,
         reset_before_each_question: bool = True,
         skip_existing: bool = False,
+        thread_id: str | None = None,
     ) -> Path:
+        """Generate benchmark answers into the source CSV using the EDA thread."""
         benchmark_path = self._resolve_path(dataset.benchmark_path)
         if not benchmark_path.exists():
             raise FileNotFoundError(f"Benchmark file not found: {benchmark_path}")
@@ -231,8 +246,8 @@ class TestBuilder:
                 continue
 
             if reset_before_each_question:
-                self.reset_session()
-            response = self.ask(row["Q"])
+                self.reset_session(thread_id)
+            response = self.ask(row["Q"], thread_id=thread_id)
             row.update(self._format_generated_response(response))
 
         output_fieldnames = list(fieldnames)
@@ -247,9 +262,13 @@ class TestBuilder:
 
         return benchmark_path
 
-    def ask(self, question: str) -> dict[str, Any]:
+    def ask(self, question: str, thread_id: str | None = None) -> dict[str, Any]:
+        """Ask one question, binding it to the active EDA job thread when known."""
+        body = {"question": question}
+        if thread_id:
+            body["thread_id"] = thread_id
         with httpx.Client(timeout=self.request_timeout) as client:
-            response = client.post(f"{self.base_url}/ask", json={"question": question})
+            response = client.post(f"{self.base_url}/ask", json=body)
             response.raise_for_status()
             payload = response.json()
             graph_response = payload.get("response")
@@ -257,30 +276,43 @@ class TestBuilder:
                 return graph_response
             return payload
 
-    def reset_session(self) -> None:
+    def reset_session(self, thread_id: str | None = None) -> None:
+        """Reset one conversation thread through the dev reset endpoint."""
+        params = {"thread_id": thread_id} if thread_id else None
         with httpx.Client(timeout=self.request_timeout) as client:
-            response = client.post(f"{self.base_url}/dev/reset")
+            response = client.post(f"{self.base_url}/dev/reset", params=params)
             response.raise_for_status()
 
-    def _poll_eda_result(self, client: httpx.Client, job_id: str) -> dict[str, Any]:
+    def _poll_active_eda(self, client: httpx.Client, job_id: str) -> dict[str, Any]:
+        """Poll /dev/eda/active until the uploaded job is no longer pending."""
         deadline = time.monotonic() + self.eda_max_wait
 
         while True:
-            response = client.get(f"{self.base_url}/eda/result/{job_id}")
+            response = client.get(f"{self.base_url}/dev/eda/active")
             response.raise_for_status()
             payload = response.json()
             status = payload.get("status")
 
-            if status == "done":
+            if payload.get("active_job_id") == job_id and status != "pending":
                 return payload
-            if status and status != "pending":
-                raise RuntimeError(f"EDA job {job_id} returned status {status!r}: {payload}")
+            active_job_id = payload.get("active_job_id")
+            if status and status != "pending" and active_job_id != job_id:
+                raise RuntimeError(
+                    f"Active EDA job did not match uploaded job {job_id}: {payload}"
+                )
             if time.monotonic() >= deadline:
                 raise TimeoutError(
-                    f"Timed out waiting for EDA job {job_id} after {self.eda_max_wait} seconds."
+                    f"Timed out waiting for active EDA job {job_id} after "
+                    f"{self.eda_max_wait} seconds."
                 )
 
             time.sleep(self.eda_poll_interval)
+
+    def _get_eda_result(self, client: httpx.Client, job_id: str) -> dict[str, Any]:
+        """Fetch the completed EDA result for one uploaded job."""
+        response = client.get(f"{self.base_url}/eda/result/{job_id}")
+        response.raise_for_status()
+        return response.json()
 
     @staticmethod
     def _read_benchmark_rows(path: Path) -> list[dict[str, str]]:
